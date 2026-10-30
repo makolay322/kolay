@@ -10,6 +10,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ImageDecoder;
 import android.graphics.Outline;
+import android.media.ExifInterface;
+import android.os.ParcelFileDescriptor;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
@@ -17,6 +19,7 @@ import android.util.Size;
 import android.view.*;
 import android.widget.*;
 import app.kolay.payload.ui.*;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -98,7 +101,7 @@ final class CompressScreen extends Screen {
         c.io.execute(() -> {
             String error = null; Uri out = null; long before = size(src), after = 0;
             try {
-                // ImageDecoder applies EXIF rotation; the saved copy carries no EXIF/location data.
+                // ImageDecoder applies EXIF rotation, so the copy's orientation tag is reset to normal below.
                 Bitmap bm = ImageDecoder.decodeBitmap(ImageDecoder.createSource(c.a.getContentResolver(), src),
                         (d, info, s) -> d.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE));
                 Bitmap flat = Bitmap.createBitmap(bm.getWidth(), bm.getHeight(), Bitmap.Config.ARGB_8888);
@@ -117,6 +120,7 @@ final class CompressScreen extends Screen {
                     if (!flat.compress(Bitmap.CompressFormat.JPEG, QUALITY, os)) throw new Exception("Sıkıştırma başarısız");
                 }
                 flat.recycle();
+                copyExif(src, out);
                 ContentValues done = new ContentValues();
                 done.put(MediaStore.Images.Media.IS_PENDING, 0);
                 c.a.getContentResolver().update(out, done, null, null);
@@ -151,6 +155,38 @@ final class CompressScreen extends Screen {
         content.removeAllViews();
         content.addView(l, new FrameLayout.LayoutParams(-1, -1));
         Ui.appear(l, 0);
+    }
+
+    /** Camera/date/GPS tags worth carrying over; size and thumbnail tags are deliberately left out. */
+    private static final String[] EXIF_TAGS = {
+        ExifInterface.TAG_DATETIME, ExifInterface.TAG_DATETIME_ORIGINAL, ExifInterface.TAG_DATETIME_DIGITIZED,
+        ExifInterface.TAG_SUBSEC_TIME, ExifInterface.TAG_SUBSEC_TIME_ORIGINAL, ExifInterface.TAG_SUBSEC_TIME_DIGITIZED,
+        ExifInterface.TAG_OFFSET_TIME, ExifInterface.TAG_OFFSET_TIME_ORIGINAL, ExifInterface.TAG_OFFSET_TIME_DIGITIZED,
+        ExifInterface.TAG_MAKE, ExifInterface.TAG_MODEL, ExifInterface.TAG_SOFTWARE,
+        ExifInterface.TAG_LENS_MAKE, ExifInterface.TAG_LENS_MODEL,
+        ExifInterface.TAG_IMAGE_DESCRIPTION, ExifInterface.TAG_ARTIST, ExifInterface.TAG_COPYRIGHT,
+        ExifInterface.TAG_EXPOSURE_TIME, ExifInterface.TAG_F_NUMBER, ExifInterface.TAG_EXPOSURE_PROGRAM,
+        ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY, ExifInterface.TAG_EXPOSURE_BIAS_VALUE, ExifInterface.TAG_MAX_APERTURE_VALUE,
+        ExifInterface.TAG_METERING_MODE, ExifInterface.TAG_LIGHT_SOURCE, ExifInterface.TAG_FLASH,
+        ExifInterface.TAG_FOCAL_LENGTH, ExifInterface.TAG_FOCAL_LENGTH_IN_35MM_FILM, ExifInterface.TAG_WHITE_BALANCE,
+        ExifInterface.TAG_GPS_LATITUDE, ExifInterface.TAG_GPS_LATITUDE_REF, ExifInterface.TAG_GPS_LONGITUDE, ExifInterface.TAG_GPS_LONGITUDE_REF,
+        ExifInterface.TAG_GPS_ALTITUDE, ExifInterface.TAG_GPS_ALTITUDE_REF, ExifInterface.TAG_GPS_TIMESTAMP, ExifInterface.TAG_GPS_DATESTAMP,
+        ExifInterface.TAG_GPS_PROCESSING_METHOD,
+    };
+
+    /** Best effort: a failure here must not lose the compressed copy. */
+    private void copyExif(Uri src, Uri dst) {
+        try (InputStream in = c.a.getContentResolver().openInputStream(src);
+             ParcelFileDescriptor pfd = c.a.getContentResolver().openFileDescriptor(dst, "rw")) {
+            ExifInterface from = new ExifInterface(in);
+            ExifInterface to = new ExifInterface(pfd.getFileDescriptor());
+            for (String tag : EXIF_TAGS) {
+                String v = from.getAttribute(tag);
+                if (v != null) to.setAttribute(tag, v);
+            }
+            to.setAttribute(ExifInterface.TAG_ORIENTATION, String.valueOf(ExifInterface.ORIENTATION_NORMAL));
+            to.saveAttributes();
+        } catch (Exception ignored) { }
     }
 
     private long size(Uri u) {
