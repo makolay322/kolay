@@ -4,6 +4,7 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 (görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
 
 ## [Yayınlanmadı]
+- Otomatik yayın: `main`'e modül değişikliği push edilince GitHub Actions derler, imzalar, Release açar (`release.yml`). Sürüm numarası artık durumsuz (son manifest'ten).
 
 ## 1.0.1 — ilk yayın
 ### Eklendi

@@ -15,7 +15,8 @@ Bu depo birden fazla oturumdan yönetilir. **Önce bunu oku**, sonra [docs/ARCHI
 3. `payload/` **`compileOnly`** bağımlılık kullanır (sdk, Tesseract). Bunları payload içine paketleme: sınıf çakışması ve çift yükleme olur.
 4. Payload `host.ready()` çağırmalı (ilk ekran görününce). Çağırmayan sürüm "bozuk açılış" sayılır, 2 kez üst üste olursa kara listeye girer.
 5. `versionCode` yalnızca artar (`tools/release.sh` yönetir). Geri alma = eski kodla **daha yüksek** sürüm yayınlamak.
-6. İmza anahtarları `~/.kolay/` altında, depo dışında. Asla commit etme, asla çıktıya yazma.
+6. İmza anahtarları depo dışında: hepsi `~/.kolay/` altında; **yalnızca güncelleme anahtarı** (`update_key.pem`) ayrıca GitHub Secret `UPDATE_KEY_PEM` olarak durur (otomatik yayın için). APK keystore'u (`release.keystore`) **asla** GitHub'a yüklenmez. Asla commit etme, asla çıktıya yazma; iş akışını (`release.yml`) anahtarı yazdıracak/yükletecek biçimde değiştirme.
+7. `main`'e `payload/**` veya `sdk/**` değişikliği push etmek **otomatik olarak yeni sürüm yayınlar** (`.github/workflows/release.yml`). Yarım iş main'e girmesin; sürüm elle de çıkarılabilir (`tools/release.sh`).
 7. Ağ yalnızca HTTPS; güncelleme adresi `Config.REPO_BASE` ile başlamalı, indirme sunucusu `Config.trustedHost` ile sınırlı.
 8. OCR metni diske/loga yazılmaz. Loglara kişisel veri koyma.
 9. Gradle bağımlılık doğrulaması açık (`gradle/verification-metadata.xml`); bağımlılık eklersen `./gradlew --write-verification-metadata sha256 :shell:assembleRelease` ile güncelle ve farkı gözle incele.

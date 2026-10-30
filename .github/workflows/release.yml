@@ -1,0 +1,34 @@
+name: release
+# Signs and publishes a new payload when module code changes on main. Needs the secret UPDATE_KEY_PEM (see docs/OPERATIONS.md).
+on:
+  push:
+    branches: [main]
+    paths: ['payload/**', 'sdk/**', 'gradle/**', 'build.gradle', 'settings.gradle', '!payload/version.properties']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # create the Release + tag; nothing else
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3  # v4.9.1
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Secret scan
+        run: |
+          if git grep -nIE 'AIza[0-9A-Za-z_-]{35}|-----BEGIN (EC |RSA )?PRIVATE KEY-----|gemini\.key=' -- . ':!.github' ':!SECURITY.md' ':!CLAUDE.md' ':!docs'; then
+            echo "::error::possible secret committed"; exit 1; fi
+      - name: Build, sign, publish
+        env:
+          UPDATE_KEY_PEM: ${{ secrets.UPDATE_KEY_PEM }}
+          GH_TOKEN: ${{ github.token }}
+        run: tools/release.sh

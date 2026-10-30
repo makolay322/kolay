@@ -22,20 +22,30 @@ openssl ec -in update_key.pem -pubout -outform DER | base64 | tr -d '\n'   # →
 ```
 
 ## Modül sürümü yayınlama
-```bash
-git status            # temiz olmalı (değişiklikleri önce commit et)
-tools/release.sh      # veya: tools/release.sh 1.1.0  (sürüm adı; verilmezse yama +1: 1.0.1 → 1.0.2)
-```
-Sürüm adı `1.0.x` biçimindedir, etiket `v1.0.x`; hızlı artmasın diye yalnızca yama sayısı büyür. Betik: dahili `versionCode`'u +1 yapar (cihazda gösterilmez) → modül + kabuk derler → `payload.apk`'yı SHA-256 ile özetler, ECDSA ile imzalar → `manifest.json` yazar →
-sürüm commit'i + `v<vc>` etiketi push eder → `gh release create ... --latest`. Cihazlar en geç 6–12 saatte alır
-(ya da Ayarlar → *Şimdi denetle*).
+**Otomatik (varsayılan):** `main`'e `payload/**` veya `sdk/**` (ya da Gradle dosyaları) değişikliği push et → `.github/workflows/release.yml`
+sırayla: gizli anahtar taraması → modülü derler → `UPDATE_KEY_PEM` ile imzalar → imzayı yayından önce doğrular → `v1.0.x` Release'i (`payload.apk` + `manifest.json`) açar.
+Sürüm **durumsuzdur**: bir sonraki `versionCode`/`versionName`, son yayınlanan manifest'ten türetilir (yama +1; `1.0.1 → 1.0.2`), depoya commit geri yazılmaz.
+Yalnızca doküman/kabuk değişiklikleri sürüm üretmez. Zorla: GitHub → Actions → *release* → *Run workflow* (veya `gh workflow run release`).
 
-Yayından sonra: `curl -sL .../releases/latest/download/manifest.json` ile manifest'i kontrol et ve CHANGELOG'u güncelle.
+**Elle (yedek):** `main` push edilmiş ve ağaç temizken
+```bash
+tools/release.sh      # veya: tools/release.sh 1.1.0  (sürüm adı; verilmezse yama +1)
+```
+Aynı betik yerelde `~/.kolay` anahtarlarını kullanır ve ayrıca keystore ile imzalı `Kolay.apk`'yı Release'e ekler. Aynı anda ikisi çalışırsa ikinci "release vX already exists" der; sorun değil.
+
+Sürüm adı `1.0.x` biçimindedir, etiket `v1.0.x`. Cihazlar en geç 6–12 saatte alır (ya da Ayarlar → *Şimdi denetle*).
+Yayından sonra: `curl -sL .../releases/latest/download/manifest.json` ile kontrol et ve CHANGELOG'u güncelle.
+
+**Secret kurulumu / yenileme** (bir kez; değer ekrana yazılmaz):
+```bash
+gh secret set UPDATE_KEY_PEM < ~/.kolay/update_key.pem
+```
+Anahtar rotasyonunda yeni anahtarı aynı komutla yükle (bkz. aşağıdaki rotasyon adımları).
 
 ## Kabuk sürümü yayınlama (nadir)
 Kabuk, yalnızca sözleşme (`Host`) büyüdüğünde, yerel kütüphane/izin/manifest değiştiğinde veya imza anahtarı rotasyonunda değişir.
 1. `shell/build.gradle` içinde `versionCode`/`versionName` artır (+ gerekiyorsa `Host.API`, `Config.SHELL_API`).
-2. `tools/release.sh` (kabuk de aynı Release'e `Kolay.apk` olarak eklenir).
+2. `tools/release.sh` (kabuk `Kolay.apk` olarak Release'e eklenir; bunu yalnızca elle/yerelde çıkar, çünkü keystore GitHub'da yok).
 3. Kullanıcı (sen) `Kolay.apk`'yı elle yükler. Yeni modül daha yüksek `api` istiyorsa, eski kabuklu cihazlar "kabuk güncellemesi gerekli" uyarısı görür ve modülü almaz — **önce kabuğu dağıt, sonra o API'yi isteyen modülü yayınla.**
 
 ## Geri alma (kötü sürüm yayınlandı)
@@ -47,7 +57,7 @@ Cihazlar `versionCode` düşürmez; bu yüzden **düzeltme ileriye doğrudur**:
 ## Anahtar rotasyonu (planlı)
 1. Yeni ECDSA anahtarı üret; açık anahtarı `Config.UPDATE_PUBLIC_KEYS` dizisine **ekle** (eskisini silme).
 2. Yeni kabuk yayınla, tüm cihazlara yükle (elle).
-3. Cihazlar yeni kabuktayken `tools/release.sh`'ın anahtarını yenisine çevir (`update_key.pem`).
+3. Cihazlar yeni kabuktayken `tools/release.sh`'ın anahtarını yenisine çevir (`update_key.pem`) ve GitHub Secret'ı da güncelle.
 4. Bir sonraki kabuk sürümünde eski açık anahtarı diziden çıkar.
 
 ## Anahtar ele geçirilirse / kaybolursa (olay müdahalesi)
@@ -61,4 +71,4 @@ Cihazlar `versionCode` düşürmez; bu yüzden **düzeltme ileriye doğrudur**:
 - Hesapta **2FA zorunlu** olmalı; depo erişimi yalnızca sahibinde.
 - `main` dalı için "force push yasak / silme yasak" koruması önerilir (Settings → Branches).
 - Secret scanning ve push protection (public depoda varsayılan) açık kalsın.
-- Release'leri yalnızca `tools/release.sh` üretmeli; elle yüklenen dosya imzasız olacağı için cihazlarca reddedilir.
+- Release'leri yalnızca `release.yml` veya `tools/release.sh` üretmeli; elle yüklenen dosya imzasız olacağı için cihazlarca reddedilir.

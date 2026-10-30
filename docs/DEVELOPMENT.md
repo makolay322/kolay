@@ -21,7 +21,7 @@ güncelleme imzası üretemez. Sürüm yayınlamak için anahtarlar gerekir ([OP
 | `./gradlew :shell:assembleRelease` | `shell/build/outputs/apk/release/shell-release.apk` (modülü `assets/`'e gömer) |
 
 `shell`, `bundlePayload` görevi aracılığıyla önce `payload`'ı derler ve çıktıyı `assets/payload.apk` olarak paketler.
-Sürüm bilgisi: modül için `payload/version.properties` (`tools/release.sh` artırır), kabuk için `shell/build.gradle` (`versionCode`/`versionName`, elle).
+Sürüm bilgisi: modül için `payload/version.properties` yalnızca **taban** değerdir (gerçek sürümü yayın betiği son manifest'ten türetir), kabuk için `shell/build.gradle` (`versionCode`/`versionName`, elle).
 
 ## Telefona yükleme
 - İlk kurulum: `shell-release.apk` (veya Release'teki `Kolay.apk`) telefona kopyalanıp elle yüklenir.
