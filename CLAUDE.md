@@ -35,4 +35,4 @@ Bir değişikliği "çalışıyor" diye raporlamadan önce neyin gerçekten çal
 
 ## Dil ve stil
 Arayüz metinleri ve dokümanlar Türkçe; kod, tanımlayıcılar ve kod yorumları İngilizce. Çevredeki koda uy (yorum yoğunluğu, adlandırma).
-Arayüzde çıktıyı üreten harici servisin adı geçmez ("cilalama" denir).
+Arayüzde yalnızca Ayarlar'daki anahtar alanı "Gemini API anahtarı" diye adlandırılır; diğer yerlerde servis adı yerine "cilalama" denir.

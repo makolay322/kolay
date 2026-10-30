@@ -31,7 +31,7 @@ Ayrıntı: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ## Kurulum
 
 1. [Releases](https://github.com/makolay322/kolay/releases/latest) sayfasından **`Kolay.apk`** dosyasını indirip yükle (bir kez).
-2. Uygulamayı aç → sağ üstte **Ayarlar** → *Cilalama anahtarı* alanına API anahtarını yapıştır → **Kaydet**.
+2. Uygulamayı aç → sağ üstte **Ayarlar** → *Gemini API anahtarı* alanına anahtarı yapıştır → **Kaydet**.
 3. Bitti. Sonraki sürümler kendiliğinden iner; ana sayfada "Yeni sürüm hazır" bandı çıkınca dokunman yeterli.
 
 API anahtarı yalnızca telefonda, Android Keystore ile şifreli tutulur. Bu depoda **hiçbir sır yoktur**.

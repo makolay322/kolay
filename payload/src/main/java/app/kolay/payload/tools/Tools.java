@@ -1,6 +1,7 @@
 package app.kolay.payload.tools;
 
 import app.kolay.payload.tools.ocr.OcrTool;
+import app.kolay.payload.tools.youtube.YoutubeTool;
 
 /** The toolbox contents, in display order. Add a line here to add a tool. */
 public final class Tools {
@@ -8,5 +9,6 @@ public final class Tools {
 
     public static final Tool[] ALL = {
         new OcrTool(),
+        new YoutubeTool(),
     };
 }

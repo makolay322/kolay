@@ -29,10 +29,10 @@ public final class SettingsScreen extends Screen {
         col.setPadding(c.dp(16), c.dp(6), c.dp(16), c.dp(32));
 
         // ---- API key ----
-        col.addView(section("CİLALAMA ANAHTARI"));
+        col.addView(section("GEMINI API ANAHTARI"));
         LinearLayout k = card();
         keyState = Ui.text(c, keyLabel(), 13, p.muted, 500);
-        k.addView(row(Icon.Kind.KEY, "API anahtarı", null, keyState));
+        k.addView(row(Icon.Kind.KEY, "Gemini API anahtarı", null, keyState));
         key = new EditText(c.a);
         key.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         key.setSingleLine(true); key.setHint("Anahtarı buraya yapıştır");
