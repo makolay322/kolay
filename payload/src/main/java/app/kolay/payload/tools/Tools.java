@@ -1,0 +1,12 @@
+package app.kolay.payload.tools;
+
+import app.kolay.payload.tools.ocr.OcrTool;
+
+/** The toolbox contents, in display order. Add a line here to add a tool. */
+public final class Tools {
+    private Tools() {}
+
+    public static final Tool[] ALL = {
+        new OcrTool(),
+    };
+}

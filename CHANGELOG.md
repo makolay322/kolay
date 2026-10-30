@@ -1,0 +1,18 @@
+# Değişiklik günlüğü
+
+Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `tools/release.sh` ile yayınlanır
+(görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
+
+## [Yayınlanmadı]
+
+## 1.0.1 — ilk yayın
+### Eklendi
+- Uygulama adı **Kolay**; çok araçlı kutu mimarisi (ana sayfa + araç kaydı).
+- Yeni arayüz sistemi: açık/koyu tema, animasyonlu gezinme, dokunma geri bildirimi, yönlü geçişler, özel ikonlar.
+- Ayarlar ekranı: API anahtarı, ekran görüntüsü engeli, güncelleme durumu.
+- Sayfa sırasını düzelten çoklu fotoğraf OCR akışı; iptal edilebilir ilerleme ekranı.
+- Güncelleme: çoklu imza anahtarı (rotasyon), indirme sunucusu doğrulaması, "Yeni sürüm hazır" bandı ve canlı yenileme.
+- Güvenlik: yedekleme/aktarım kapalı, ağ güvenliği yapılandırması, Gradle bağımlılık doğrulaması, hassas pano işareti.
+- Düz (flat) yeni simge: K harfi + devre izi; Android tema simgesi (monochrome) desteği.
+- Tıbbi OCR aracı: Tesseract + yerel isim maskeleme + cilalama.
+- Eski deneme sürümleri (v2, v3) ve etiketleri silindi; bu sürüm tek başlangıç noktasıdır.

@@ -1,0 +1,22 @@
+name: build
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Secret scan (patterns that must never be committed)
+        run: |
+          if git grep -nIE 'AIza[0-9A-Za-z_-]{35}|-----BEGIN (EC |RSA )?PRIVATE KEY-----|gemini\.key=' -- . ':!.github' ':!SECURITY.md' ':!CLAUDE.md' ':!docs'; then
+            echo "::error::possible secret committed"; exit 1; fi
+      - name: Build (debug-signed; no release keys exist in CI)
+        run: ./gradlew --no-daemon :shell:assembleRelease

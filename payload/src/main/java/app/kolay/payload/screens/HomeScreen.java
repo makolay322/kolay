@@ -1,0 +1,113 @@
+package app.kolay.payload.screens;
+
+import android.view.*;
+import android.widget.*;
+import app.kolay.payload.tools.Tool;
+import app.kolay.payload.tools.Tools;
+import app.kolay.payload.ui.*;
+import java.util.ArrayList;
+import java.util.List;
+
+/** Landing page: the toolbox. */
+public final class HomeScreen extends Screen {
+    private final List<View> entrance = new ArrayList<>();
+    private LinearLayout banner;
+
+    @Override public View create() {
+        Palette p = c.p;
+        LinearLayout col = new LinearLayout(c.a);
+        col.setOrientation(LinearLayout.VERTICAL);
+        col.setPadding(c.dp(20), c.dp(18), c.dp(20), c.dp(24));
+
+        // Header: wordmark + settings
+        LinearLayout head = new LinearLayout(c.a);
+        head.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout titles = new LinearLayout(c.a);
+        titles.setOrientation(LinearLayout.VERTICAL);
+        TextView name = Ui.text(c, "Kolay", 36, p.ink, 700);
+        name.setLetterSpacing(-0.02f);
+        titles.addView(name);
+        TextView sub = Ui.text(c, "Araç kutun", 15, p.muted, 400);
+        titles.addView(sub, Ui.lp(-2, -2, 0, c.dp(4), 0, 0));
+        head.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
+        head.addView(Ui.iconButton(c, Icon.Kind.SETTINGS, "Ayarlar", () -> c.nav.push(new SettingsScreen())));
+        col.addView(head);
+        entrance.add(head);
+
+        // "New version" banner (only when a staged payload waits)
+        banner = new LinearLayout(c.a);
+        banner.setGravity(Gravity.CENTER_VERTICAL);
+        banner.setPadding(c.dp(16), c.dp(12), c.dp(16), c.dp(12));
+        Ui.surface(c, banner, p.primarySoft, 16, false);
+        banner.setClickable(true);
+        banner.addView(Ui.icon(c, Icon.Kind.REFRESH, p.onPrimarySoft, 20));
+        TextView bt = Ui.text(c, "Yeni sürüm hazır — dokun, yenilensin", 14, p.onPrimarySoft, 600);
+        banner.addView(bt, Ui.lp(0, -2, c.dp(12), 0, 0, 0));
+        ((LinearLayout.LayoutParams) bt.getLayoutParams()).weight = 1;
+        banner.setOnClickListener(v -> { Ui.haptic(v, HapticFeedbackConstants.CONFIRM); c.host.restart(); });
+        Ui.press(banner);
+        banner.setVisibility(View.GONE);
+        col.addView(banner, Ui.lp(-1, -2, 0, c.dp(20), 0, 0));
+
+        TextView label = Ui.text(c, "ARAÇLAR", 12, p.muted, 600);
+        label.setLetterSpacing(0.1f);
+        col.addView(label, Ui.lp(-2, -2, c.dp(4), c.dp(28), 0, c.dp(12)));
+        entrance.add(label);
+
+        for (Tool t : Tools.ALL) {
+            View card = toolCard(t);
+            col.addView(card, Ui.lp(-1, -2, 0, 0, 0, c.dp(12)));
+            entrance.add(card);
+        }
+
+        TextView foot = Ui.text(c, "Kolay · modül " + c.host.payloadName() + " · kabuk " + c.host.shellVersion(), 12, p.muted, 400);
+        foot.setGravity(Gravity.CENTER);
+        col.addView(foot, Ui.lp(-1, -2, 0, c.dp(24), 0, 0));
+        entrance.add(foot);
+
+        for (View v : entrance) v.setAlpha(0f);
+        ScrollView sv = new ScrollView(c.a);
+        sv.setVerticalScrollBarEnabled(false);
+        sv.addView(col);
+        return sv;
+    }
+
+    private View toolCard(Tool t) {
+        Palette p = c.p;
+        LinearLayout card = new LinearLayout(c.a);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+        card.setPadding(c.dp(16), c.dp(16), c.dp(16), c.dp(16));
+        Ui.surface(c, card, p.surface, 22, true);
+        card.setClickable(true);
+
+        FrameLayout tile = new FrameLayout(c.a);
+        tile.setBackground(Ui.rounded(c, p.primarySoft, 16));
+        tile.addView(Ui.icon(c, t.icon(), p.onPrimarySoft, 26), new FrameLayout.LayoutParams(c.dp(26), c.dp(26), Gravity.CENTER));
+        card.addView(tile, new LinearLayout.LayoutParams(c.dp(52), c.dp(52)));
+
+        LinearLayout txt = new LinearLayout(c.a);
+        txt.setOrientation(LinearLayout.VERTICAL);
+        txt.addView(Ui.text(c, t.title(), 17, p.ink, 600));
+        txt.addView(Ui.text(c, t.subtitle(), 13, p.muted, 400), Ui.lp(-2, -2, 0, c.dp(3), 0, 0));
+        card.addView(txt, Ui.lp(0, -2, c.dp(16), 0, c.dp(8), 0));
+        ((LinearLayout.LayoutParams) txt.getLayoutParams()).weight = 1;
+
+        card.addView(Ui.icon(c, Icon.Kind.CHEVRON, p.muted, 20));
+        card.setOnClickListener(v -> { Ui.haptic(v, HapticFeedbackConstants.VIRTUAL_KEY); c.nav.push(t.open(c)); });
+        Ui.press(card);
+        return card;
+    }
+
+    @Override public void onShown() {
+        long d = 40;
+        for (View v : entrance) { Ui.appear(v, d); d += 55; }
+        c.host.onUpdateReady(this::showBanner);
+        if (c.host.updateReady()) showBanner();
+    }
+
+    private void showBanner() {
+        if (banner == null || banner.getVisibility() == View.VISIBLE) return;
+        banner.setVisibility(View.VISIBLE);
+        Ui.appear(banner, 0);
+    }
+}

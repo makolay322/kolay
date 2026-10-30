@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- flat "K": teal stem + upper arm, blue leg, circuit trace ending in a node -->
+    <group android:scaleX="0.74" android:scaleY="0.74" android:pivotX="54" android:pivotY="54" android:translateX="-1" android:translateY="1">
+        <path android:fillColor="#2BB8A8" android:pathData="M33,30h11v48H33z"/>
+        <path android:fillColor="#2BB8A8" android:pathData="M44,54L66,30H80L53,63H44z"/>
+        <path android:fillColor="#38A8F8" android:pathData="M60,61H71L87,78H73z"/>
+        <path android:strokeColor="#7DD3FC" android:strokeWidth="2.6" android:strokeLineJoin="round" android:strokeLineCap="round" android:pathData="M56,66L66,54H71L81,42L86,36"/>
+        <path android:fillColor="#67E8F9" android:pathData="M88,33m-4.6,0a4.6,4.6 0 1,0 9.2,0a4.6,4.6 0 1,0 -9.2,0"/>
+    </group>
+</vector>
