@@ -7,7 +7,9 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 ### Eklendi
 - Otomatik yayın: `main`'e modül değişikliği push edilince GitHub Actions derler, imzalar, Release açar (`release.yml`). Sürüm numarası artık durumsuz (son manifest'ten).
 - YouTube Özeti aracı: yapıştırılan bağlantının transkripti özgün dilinde alınır, Gemini ile Türkçe özetlenir.
+- Fotoğraf Sıkıştır aracı: seçilen fotoğrafın %90 kaliteli JPEG kopyası Pictures/Kolay'a kaydedilir (EXIF/konum taşınmaz).
 ### Değişti
+- Ana sayfa: araçlar dikdörtgen liste yerine 2 sütunlu karo düzeninde.
 - Ayarlar: "Cilalama anahtarı" alanı "Gemini API anahtarı" olarak yeniden adlandırıldı.
 
 ## 1.0.1 — ilk yayın

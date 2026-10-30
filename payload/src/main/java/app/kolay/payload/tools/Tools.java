@@ -1,5 +1,6 @@
 package app.kolay.payload.tools;
 
+import app.kolay.payload.tools.compress.CompressTool;
 import app.kolay.payload.tools.ocr.OcrTool;
 import app.kolay.payload.tools.youtube.YoutubeTool;
 
@@ -10,5 +11,6 @@ public final class Tools {
     public static final Tool[] ALL = {
         new OcrTool(),
         new YoutubeTool(),
+        new CompressTool(),
     };
 }

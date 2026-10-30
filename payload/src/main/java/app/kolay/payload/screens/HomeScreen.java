@@ -54,10 +54,18 @@ public final class HomeScreen extends Screen {
         col.addView(label, Ui.lp(-2, -2, c.dp(4), c.dp(28), 0, c.dp(12)));
         entrance.add(label);
 
-        for (Tool t : Tools.ALL) {
-            View card = toolCard(t);
-            col.addView(card, Ui.lp(-1, -2, 0, 0, 0, c.dp(12)));
-            entrance.add(card);
+        // Two-column tile grid; an odd last tool leaves an empty slot.
+        final int gap = c.dp(12);
+        for (int i = 0; i < Tools.ALL.length; i += 2) {
+            LinearLayout row = new LinearLayout(c.a);
+            for (int j = i; j < i + 2; j++) {
+                View tile = j < Tools.ALL.length ? toolCard(Tools.ALL[j]) : new Space(c.a);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -1, 1);
+                if (j == i) lp.setMarginEnd(gap / 2); else lp.setMarginStart(gap / 2);
+                row.addView(tile, lp);
+                if (j < Tools.ALL.length) entrance.add(tile);
+            }
+            col.addView(row, Ui.lp(-1, -2, 0, 0, 0, gap));
         }
 
         TextView foot = Ui.text(c, "Kolay · modül " + c.host.payloadName() + " · kabuk " + c.host.shellVersion(), 12, p.muted, 400);
@@ -75,8 +83,9 @@ public final class HomeScreen extends Screen {
     private View toolCard(Tool t) {
         Palette p = c.p;
         LinearLayout card = new LinearLayout(c.a);
-        card.setGravity(Gravity.CENTER_VERTICAL);
+        card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding(c.dp(16), c.dp(16), c.dp(16), c.dp(16));
+        card.setMinimumHeight(c.dp(148));
         Ui.surface(c, card, p.surface, 22, true);
         card.setClickable(true);
 
@@ -85,14 +94,9 @@ public final class HomeScreen extends Screen {
         tile.addView(Ui.icon(c, t.icon(), p.onPrimarySoft, 26), new FrameLayout.LayoutParams(c.dp(26), c.dp(26), Gravity.CENTER));
         card.addView(tile, new LinearLayout.LayoutParams(c.dp(52), c.dp(52)));
 
-        LinearLayout txt = new LinearLayout(c.a);
-        txt.setOrientation(LinearLayout.VERTICAL);
-        txt.addView(Ui.text(c, t.title(), 17, p.ink, 600));
-        txt.addView(Ui.text(c, t.subtitle(), 13, p.muted, 400), Ui.lp(-2, -2, 0, c.dp(3), 0, 0));
-        card.addView(txt, Ui.lp(0, -2, c.dp(16), 0, c.dp(8), 0));
-        ((LinearLayout.LayoutParams) txt.getLayoutParams()).weight = 1;
+        card.addView(Ui.text(c, t.title(), 16, p.ink, 600), Ui.lp(-2, -2, 0, c.dp(14), 0, 0));
+        card.addView(Ui.text(c, t.subtitle(), 13, p.muted, 400), Ui.lp(-2, -2, 0, c.dp(3), 0, 0));
 
-        card.addView(Ui.icon(c, Icon.Kind.CHEVRON, p.muted, 20));
         card.setOnClickListener(v -> { Ui.haptic(v, HapticFeedbackConstants.VIRTUAL_KEY); c.nav.push(t.open(c)); });
         Ui.press(card);
         return card;
