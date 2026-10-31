@@ -12,8 +12,12 @@ import java.util.function.Consumer;
  * ({@code app.kolay.api}); the shell refuses payloads that need more than it offers.
  */
 public interface Host {
-    /** Contract version implemented by this shell. */
-    int API = 1;
+    /**
+     * Contract version implemented by this shell.
+     * 2: shell bundles ZXing core, declares the CAMERA permission and the quick-settings tile, forwards {@link Module#onPause()},
+     *    and can download + install a newer shell ({@link #shellUpdateAvailable()}, {@link #installShellUpdate}).
+     */
+    int API = 2;
 
     /** The shell's activity: the payload builds its whole UI inside it. */
     Activity activity();
@@ -56,6 +60,13 @@ public interface Host {
     void checkForUpdates(Consumer<String> done);
     /** {@code r} runs on the main thread whenever a new payload gets staged. Replaces any earlier listener. */
     void onUpdateReady(Runnable r);
+    /** True when the newest release offers a signed shell APK newer than the installed one (API 2). */
+    boolean shellUpdateAvailable();
+    /**
+     * Downloads, verifies and hands that shell APK to the system installer, which asks the user to confirm (API 2).
+     * {@code progress} gets short status texts on the main thread. May first send the user to the "install unknown apps" setting.
+     */
+    void installShellUpdate(Consumer<String> progress);
     /** Re-creates the activity so the newest staged payload takes over. Call on the main thread. */
     void restart();
     String releasesUrl();

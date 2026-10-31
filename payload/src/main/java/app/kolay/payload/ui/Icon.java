@@ -5,7 +5,7 @@ import android.graphics.drawable.Drawable;
 
 /** Stroke icons on a 24-unit grid, drawn with paths so they stay crisp at any size and take any color. */
 public final class Icon extends Drawable {
-    public enum Kind { BACK, CHEVRON, CHECK, COPY, SHARE, SETTINGS, SCAN, SHIELD, KEY, REFRESH, LINK }
+    public enum Kind { BACK, CHEVRON, CHECK, COPY, SHARE, SETTINGS, SCAN, SHIELD, KEY, REFRESH, LINK, QR, FLASH }
 
     private final Kind kind;
     private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -56,6 +56,16 @@ public final class Icon extends Drawable {
             case REFRESH:
                 path.addArc(new RectF(5, 5, 19, 19), -50, 280);
                 path.moveTo(16.5f, 3.5f); path.lineTo(17.2f, 6.9f); path.lineTo(13.8f, 7.6f);
+                break;
+            case QR:
+                path.addRoundRect(4, 4, 10, 10, 1.5f, 1.5f, Path.Direction.CW);
+                path.addRoundRect(14, 4, 20, 10, 1.5f, 1.5f, Path.Direction.CW);
+                path.addRoundRect(4, 14, 10, 20, 1.5f, 1.5f, Path.Direction.CW);
+                path.moveTo(14, 14); path.lineTo(14, 20); path.moveTo(17, 14); path.lineTo(20, 14);
+                path.moveTo(17, 17.5f); path.lineTo(20, 17.5f); path.moveTo(17.5f, 20); path.lineTo(20, 20);
+                break;
+            case FLASH:
+                path.moveTo(13, 3); path.lineTo(6, 13.5f); path.lineTo(12, 13.5f); path.lineTo(11, 21); path.lineTo(18, 10.5f); path.lineTo(12, 10.5f); path.close();
                 break;
             case LINK:
                 path.moveTo(10, 14); path.lineTo(14, 10);

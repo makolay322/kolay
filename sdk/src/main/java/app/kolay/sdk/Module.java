@@ -12,6 +12,8 @@ import android.os.Bundle;
 public interface Module {
     void onCreate(Host host, Bundle saved);
     default void onResume() {}
+    /** Activity left the foreground (API 2). Release the camera and other exclusive resources here. */
+    default void onPause() {}
     default void onPermissionResult(int req, String[] perms, int[] results) {}
     /** @return true if the payload consumed the back press. */
     default boolean onBackPressed() { return false; }

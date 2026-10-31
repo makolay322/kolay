@@ -58,6 +58,15 @@ cat > "$OUT/manifest.json" <<JSON
 {"versionCode":$VC,"versionName":"$VN","api":$API,"size":$SIZE,"sha256":"$SHA","signature":"$SIG","url":"https://github.com/$REPO/releases/download/v$VN/payload.apk"}
 JSON
 
+# Shell entry for in-app shell updates: signed fresh when this run builds the shell (local), otherwise carried over from the previous release.
+if [ "$CI_MODE" = true ]; then
+  [ -f "$TMP/latest.json" ] && tools/manifest_shell.py carry "$OUT/manifest.json" "$TMP/latest.json"
+else
+  SVC=$(sed -n "s/.*versionCode \([0-9]*\).*/\1/p" shell/build.gradle | head -1)
+  SVN=$(sed -n "s/.*versionName '\([^']*\)'.*/\1/p" shell/build.gradle | head -1)
+  tools/manifest_shell.py add "$OUT/manifest.json" "$OUT/Kolay.apk" "$KEY" "$SVC" "$SVN" "https://github.com/$REPO/releases/download/v$VN/Kolay.apk"
+fi
+
 FILES=("$OUT/payload.apk" "$OUT/manifest.json"); [ "$CI_MODE" = true ] || FILES+=("$OUT/Kolay.apk")
 gh release create "v$VN" "${FILES[@]}" --target "$SHA_HEAD" --title "$VN" --notes "Payload $VN (versionCode $VC) — commit ${SHA_HEAD:0:7}" --latest
 echo "released v$VN (versionCode $VC)"

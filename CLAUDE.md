@@ -6,13 +6,13 @@ Bu depo birden fazla oturumdan yönetilir. **Önce bunu oku**, sonra [docs/ARCHI
 | Dizin | Rol | Değişiklik sıklığı | Kural |
 |---|---|---|---|
 | `sdk/` | Kabuk↔modül sözleşmesi (`Host`, `Module`) | çok nadir | **Yalnızca ekle.** Metot silme/değiştirme yok. `Module`'e sadece `default` metot. Kırıcı değişiklikte `Host.API` + `Config.SHELL_API` + modül manifestindeki `app.kolay.api` birlikte artar. |
-| `shell/` | Kararlı çekirdek APK (`app.kolay`) | nadir | Mantığı ince tut. Yeni özellik buraya değil `payload/`'a. Değiştirirsen yeni kabuk APK'sı elle yüklenmeli. |
+| `shell/` | Kararlı çekirdek APK (`app.kolay`) | nadir | Mantığı ince tut. Yeni özellik buraya değil `payload/`'a. Değiştirirsen yeni kabuk APK'sı yüklenmeli (kabuk ≥ 1.0.5: Ayarlar → “Kabuğu indir ve yükle”; `tools/release-shell.sh`). |
 | `payload/` | Arayüz + araçlar (`app.kolay.payload`) | sık | Normal geliştirme burada. `Entry` giriş noktasıdır; yeniden adlandırma. |
 
 ## Değişmez kurallar (ihlal = güvenlik/stabilite hatası)
 1. **Depoya sır girmez**: API anahtarı, `*.keystore`, `*.pem`, `keystore.properties`, `local.properties`. Anahtar cihazda Ayarlar'dan girilir (`Host.secret`).
 2. Hasta verisi/örnek belge/gerçek isim depoya girmez (test örneklerinde uydurma isim kullan).
-3. `payload/` **`compileOnly`** bağımlılık kullanır (sdk, Tesseract). Bunları payload içine paketleme: sınıf çakışması ve çift yükleme olur.
+3. `payload/` **`compileOnly`** bağımlılık kullanır (sdk, Tesseract, ZXing). Bunları payload içine paketleme: sınıf çakışması ve çift yükleme olur.
 4. Payload `host.ready()` çağırmalı (ilk ekran görününce). Çağırmayan sürüm "bozuk açılış" sayılır, 2 kez üst üste olursa kara listeye girer.
 5. `versionCode` yalnızca artar (`tools/release.sh` yönetir). Geri alma = eski kodla **daha yüksek** sürüm yayınlamak.
 6. İmza anahtarları depo dışında: hepsi `~/.kolay/` altında; **yalnızca güncelleme anahtarı** (`update_key.pem`) ayrıca GitHub Secret `UPDATE_KEY_PEM` olarak durur (otomatik yayın için). APK keystore'u (`release.keystore`) **asla** GitHub'a yüklenmez. Asla commit etme, asla çıktıya yazma; iş akışını (`release.yml`) anahtarı yazdıracak/yükletecek biçimde değiştirme.

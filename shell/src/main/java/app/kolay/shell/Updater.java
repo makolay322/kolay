@@ -54,9 +54,13 @@ final class Updater {
 
         if (!url.startsWith(Config.REPO_BASE + "releases/download/")) throw new SecurityException("beklenmeyen indirme adresi");
         if (size <= 0 || size > Config.MAX_PAYLOAD_BYTES) throw new IOException("geçersiz boyut");
+        boolean shellOffered = shellOffered(ctx, mf);
+        reg.setShellApkAvailable(shellOffered);
         if (api > Config.SHELL_API) {
             reg.setNeedsShellUpdate(true);
-            return "Yeni sürüm (" + name + ") daha yeni bir kabuk gerektiriyor. Sürüm sayfasından kabuk APK'sını yükle.";
+            return shellOffered
+                ? "Yeni sürüm (" + name + ") daha yeni bir kabuk gerektiriyor. Aşağıdaki “Kabuğu indir ve yükle” düğmesini kullan."
+                : "Yeni sürüm (" + name + ") daha yeni bir kabuk gerektiriyor. Sürüm sayfasından kabuk APK'sını yükle.";
         }
         reg.setNeedsShellUpdate(false);
         if (api < Config.MIN_PAYLOAD_API) return "Son sürüm (" + name + ") bu kabukla uyumsuz, atlandı.";
@@ -89,6 +93,23 @@ final class Updater {
         } finally { tmp.delete(); }
     }
 
+    /** True when the manifest carries a well-formed shell entry that is newer than the installed shell. Only metadata is checked here; ShellInstaller verifies the file. */
+    static boolean shellOffered(Context ctx, JSONObject mf) {
+        try {
+            if (!mf.has("shellVersionCode")) return false;
+            long size = mf.getLong("shellSize");
+            return mf.getLong("shellVersionCode") > installedShellVersion(ctx)
+                && mf.getString("shellUrl").startsWith(Config.REPO_BASE + "releases/download/")
+                && size > 0 && size <= Config.MAX_SHELL_BYTES
+                && !mf.getString("shellSha256").isEmpty() && !mf.getString("shellSignature").isEmpty();
+        } catch (Exception e) { return false; }
+    }
+
+    static long installedShellVersion(Context ctx) {
+        try { return ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0).getLongVersionCode(); }
+        catch (Exception e) { return Long.MAX_VALUE; }  // unknown: never offer
+    }
+
     private static HttpURLConnection open(String u) throws IOException {
         HttpURLConnection c = (HttpURLConnection) new URL(u).openConnection();
         c.setConnectTimeout(15000); c.setReadTimeout(30000);
@@ -103,7 +124,7 @@ final class Updater {
         if (!"https".equals(u.getProtocol()) || !Config.trustedHost(u.getHost())) throw new SecurityException("güvenilmeyen sunucu: " + u.getHost());
     }
 
-    private static byte[] fetch(String u, int max) throws IOException {
+    static byte[] fetch(String u, int max) throws IOException {
         HttpURLConnection c = open(u);
         try {
             if (c.getResponseCode() != 200) throw new IOException("HTTP " + c.getResponseCode());
@@ -116,7 +137,7 @@ final class Updater {
         } finally { c.disconnect(); }
     }
 
-    private static void download(String u, File to, long expected) throws IOException {
+    static void download(String u, File to, long expected) throws IOException {
         HttpURLConnection c = open(u);
         try {
             if (c.getResponseCode() != 200) throw new IOException("HTTP " + c.getResponseCode());

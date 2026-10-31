@@ -135,6 +135,8 @@ public class MainActivity extends Activity {
                 runOnUiThread(() -> done.accept(s));
             }, "update-check").start();
         }
+        @Override public boolean shellUpdateAvailable() { return reg.shellApkAvailable(); }
+        @Override public void installShellUpdate(Consumer<String> progress) { ShellInstaller.run(MainActivity.this, progress); }
         @Override public void onUpdateReady(Runnable r) { Updater.onStaged = r; }
         @Override public void restart() { recreate(); }
         @Override public String releasesUrl() { return Config.RELEASES_PAGE; }
@@ -143,6 +145,8 @@ public class MainActivity extends Activity {
     // ---- lifecycle forwarding: a payload fault must never take the shell down ------------------
 
     @Override protected void onResume() { super.onResume(); guard(() -> { if (module != null) module.onResume(); }); }
+
+    @Override protected void onPause() { guard(() -> { if (module != null) module.onPause(); }); super.onPause(); }
 
     @Override public void onRequestPermissionsResult(int req, String[] p, int[] r) {
         super.onRequestPermissionsResult(req, p, r);

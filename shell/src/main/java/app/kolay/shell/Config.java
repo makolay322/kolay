@@ -4,7 +4,7 @@ package app.kolay.shell;
 final class Config {
     private Config() {}
     /** Contract version the shell implements (see sdk Host.API). */
-    static final int SHELL_API = 1;
+    static final int SHELL_API = 2;
     /** Oldest payload contract the shell still understands. */
     static final int MIN_PAYLOAD_API = 1;
     static final String PAYLOAD_PKG = "app.kolay.payload";
@@ -31,4 +31,5 @@ final class Config {
     static final long CHECK_INTERVAL_MS = 6L * 3600 * 1000;
     static final long RETRY_AFTER_FAIL_MS = 30L * 60 * 1000;
     static final long MAX_PAYLOAD_BYTES = 40L << 20;
+    static final long MAX_SHELL_BYTES = 120L << 20;
 }

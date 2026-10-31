@@ -46,7 +46,8 @@ Anahtar rotasyonunda yeni anahtarı aynı komutla yükle (bkz. aşağıdaki rota
 Kabuk, yalnızca sözleşme (`Host`) büyüdüğünde, yerel kütüphane/izin/manifest değiştiğinde veya imza anahtarı rotasyonunda değişir.
 1. `shell/build.gradle` içinde `versionCode`/`versionName` artır (+ gerekiyorsa `Host.API`, `Config.SHELL_API`).
 2. `tools/release.sh` (kabuk `Kolay.apk` olarak Release'e eklenir; bunu yalnızca elle/yerelde çıkar, çünkü keystore GitHub'da yok).
-3. Kullanıcı (sen) `Kolay.apk`'yı elle yükler. Yeni modül daha yüksek `api` istiyorsa, eski kabuklu cihazlar "kabuk güncellemesi gerekli" uyarısı görür ve modülü almaz — **önce kabuğu dağıt, sonra o API'yi isteyen modülü yayınla.**
+3. CI sürümü (`main` push) önce çıktıysa: `tools/release-shell.sh` kabuğu derleyip imzalar, **son** Release'e ve manifestine ekler. Kabuğu ≥ 1.0.5 olan telefonlar Ayarlar'dan “Kabuğu indir ve yükle” ile alır.
+4. Uygulama içi yol yoksa (eski kabuk, ilk kurulum) kullanıcı (sen) `Kolay.apk`'yı elle yükler. Yeni modül daha yüksek `api` istiyorsa, eski kabuklu cihazlar "kabuk güncellemesi gerekli" uyarısı görür ve modülü almaz — **önce kabuğu dağıt, sonra o API'yi isteyen modülü yayınla.**
 
 ## Geri alma (kötü sürüm yayınlandı)
 Cihazlar `versionCode` düşürmez; bu yüzden **düzeltme ileriye doğrudur**:

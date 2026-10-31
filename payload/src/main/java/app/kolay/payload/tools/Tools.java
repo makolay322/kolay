@@ -2,6 +2,7 @@ package app.kolay.payload.tools;
 
 import app.kolay.payload.tools.compress.CompressTool;
 import app.kolay.payload.tools.ocr.OcrTool;
+import app.kolay.payload.tools.qr.QrTool;
 import app.kolay.payload.tools.weather.WeatherTool;
 import app.kolay.payload.tools.youtube.YoutubeTool;
 
@@ -13,6 +14,7 @@ public final class Tools {
         new OcrTool(),
         new YoutubeTool(),
         new CompressTool(),
+        new QrTool(),
         new WeatherTool(),
     };
 }

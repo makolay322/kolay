@@ -152,6 +152,10 @@ final class Registry {
     boolean needsShellUpdate() { return p.getBoolean("needs_shell", false); }
     void setNeedsShellUpdate(boolean b) { p.edit().putBoolean("needs_shell", b).apply(); }
 
+    /** True when the newest manifest offers a verified-by-signature shell APK newer than the installed one. */
+    boolean shellApkAvailable() { return p.getBoolean("shell_avail", false); }
+    void setShellApkAvailable(boolean b) { p.edit().putBoolean("shell_avail", b).apply(); }
+
     // ---- APK metadata -----------------------------------------------------------------------
 
     Meta readMeta(File apk) {
