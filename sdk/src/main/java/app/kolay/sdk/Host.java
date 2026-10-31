@@ -12,8 +12,11 @@ import java.util.function.Consumer;
  * ({@code app.kolay.api}); the shell refuses payloads that need more than it offers.
  */
 public interface Host {
-    /** Contract version implemented by this shell. */
-    int API = 1;
+    /**
+     * Contract version implemented by this shell.
+     * 2: shell bundles ZXing core, declares the CAMERA permission and the quick-settings tile, and forwards {@link Module#onPause()}.
+     */
+    int API = 2;
 
     /** The shell's activity: the payload builds its whole UI inside it. */
     Activity activity();

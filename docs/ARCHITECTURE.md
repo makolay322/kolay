@@ -11,7 +11,7 @@ Android bir APK'yı sessizce kendi kendine güncelleyemez (her güncelleme kulla
 | Modül | Paket | Çıktı | İçerik |
 |---|---|---|---|
 | `sdk` | `app.kolay.sdk` | (kabuğa gömülü kütüphane) | `Host`, `Module` arayüzleri |
-| `shell` | `app.kolay.shell` | `Kolay.apk` (`app.kolay`) | `MainActivity`, `Registry`, `Loader`, `Updater`, `UpdateJob`, `SecretStore`, `Verify`, `Config`; Tesseract `.so` + `deu.traineddata`; gömülü yedek modül |
+| `shell` | `app.kolay.shell` | `Kolay.apk` (`app.kolay`) | `MainActivity`, `Registry`, `Loader`, `Updater`, `UpdateJob`, `SecretStore`, `Verify`, `Config`; `QrTileService` (hızlı ayar kutucuğu); Tesseract `.so` + `deu.traineddata`; ZXing çözücüsü; gömülü yedek modül |
 | `payload` | `app.kolay.payload` | `payload.apk` (`app.kolay.payload`, kurulabilir değil) | `Entry`, `ui/*` (tasarım sistemi), `screens/*`, `tools/*` |
 
 Bağımlılık yönü: `payload → sdk`, `shell → sdk`. Payload, sdk ve Tesseract'a **yalnızca derleme zamanı** (`compileOnly`) bağlıdır;
@@ -56,7 +56,7 @@ Bir sonraki açılışta `evaluatePreviousSession`: ready değilse **veya** cras
 
 ## Sözleşme (`sdk`)
 - `Host` (kabuk → modül): etkinlik, sırlar, tessdata konumu, `ready()`, sürüm bilgisi, ekran görüntüsü engeli, güncelleme durumu/denetimi/`restart()`.
-- `Module` (modül → kabuk): `onCreate`, `onResume`, `onPermissionResult`, `onBackPressed`, `onDestroy`.
+- `Module` (modül → kabuk): `onCreate`, `onResume`, `onPause` (API 2), `onPermissionResult`, `onBackPressed`, `onDestroy`.
 - **Uyumluluk kuralı:** yalnızca eklenir. Modül `app.kolay.api` meta verisiyle ihtiyacı olan sözleşme düzeyini bildirir;
   kabuk `MIN_PAYLOAD_API ≤ api ≤ SHELL_API` dışındakini yüklemez, güncelleyici de indirmez ("kabuk güncellemesi gerekli" uyarısı çıkar).
 
@@ -67,6 +67,7 @@ ui/                      Palette, Ctx, Ui, Icon, Nav, Screen, Header, Arc, Bar, 
 screens/                 HomeScreen, SettingsScreen
 tools/Tool, Tools        araç arayüzü + kayıt listesi                                   → docs/ADDING_A_TOOL.md
 tools/ocr/               Tıbbi OCR: OcrTool, Picker/Progress/ResultScreen, Ocr, Mask, Session
+tools/qr/                QR Okuyucu: QrTool, QrScreen (arayüz), QrCamera (camera2), QrDecoder (ZXing)
 ```
 UI tamamen programatiktir (XML kaynak yok): payload sınıf yükleyiciyle gelir, kabuğun `Resources` nesnesinde kendi kaynakları bulunmaz.
 
@@ -78,3 +79,9 @@ UI tamamen programatiktir (XML kaynak yok): payload sınıf yükleyiciyle gelir,
 5. `ResultScreen`: kopyala / paylaş. Hiçbir şey diske yazılmaz.
 
 Bulut isteği başarısız olursa maskeli ham OCR gösterilir (uyarı notuyla).
+
+## QR Okuyucu ve hızlı ayar kutucuğu
+- `QrCamera`: arka kamera, tek arka plan iş parçacığı; önizleme (`TextureView`) + YUV akışı. Yalnızca en yeni kare çözülür (eskiler atılır) → gecikme birikmez. Uygulama arka plana geçince (`Module.onPause`) kamera bırakılır.
+- `QrDecoder`: ZXing `QRCodeReader`, yalnızca QR; ters renkli kodlar her 3. boş karede denenir. Saf Java.
+- Sonuç diske/loga yazılmaz; bağlantı kendiliğinden açılmaz, kullanıcı "Bağlantıyı aç"a dokunur (yalnızca http/https).
+- Kutucuk: `QrTileService` (kabuk) `app.kolay.action.QR_SCAN` eylemiyle `MainActivity`'yi açar; `Entry` ilk açılışta bu eylemi görürse ana sayfanın üstüne QR ekranını iter ve eylemi tüketir (yeniden oluşturmada tekrar açılmaz).

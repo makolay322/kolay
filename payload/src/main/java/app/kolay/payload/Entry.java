@@ -1,9 +1,11 @@
 package app.kolay.payload;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.FrameLayout;
 import app.kolay.payload.screens.HomeScreen;
+import app.kolay.payload.tools.qr.QrTool;
 import app.kolay.payload.ui.*;
 import app.kolay.sdk.Host;
 import app.kolay.sdk.Module;
@@ -29,7 +31,24 @@ public class Entry implements Module {
         a.setContentView(root);
 
         new Nav(c, root).push(new HomeScreen());
+        // Opened from the quick-settings tile: show the QR reader on top of home (so Back lands on home).
+        // Only on a fresh start, and consume the action so a later recreate() does not reopen it.
+        Intent in = a.getIntent();
+        if (saved == null && in != null && QrTool.ACTION_QR.equals(in.getAction())) {
+            in.setAction(Intent.ACTION_MAIN);
+            c.nav.push(new QrTool().open(c));
+        }
         host.ready();
+    }
+
+    @Override public void onResume() {
+        Screen s = c == null ? null : c.nav.top();
+        if (s != null) s.onResume();
+    }
+
+    @Override public void onPause() {
+        Screen s = c == null ? null : c.nav.top();
+        if (s != null) s.onPause();
     }
 
     @Override public void onPermissionResult(int req, String[] perms, int[] results) {

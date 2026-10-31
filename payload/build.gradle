@@ -27,4 +27,5 @@ android {
 dependencies {
     compileOnly project(':sdk')
     compileOnly 'com.github.adaptech-cz.Tesseract4Android:tesseract4android-openmp:4.8.0'
+    compileOnly 'com.google.zxing:core:3.5.3'
 }

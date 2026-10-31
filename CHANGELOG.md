@@ -5,6 +5,8 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 
 ## [Yayınlanmadı]
 ### Eklendi
+- QR Okuyucu aracı: kamera açılır açılmaz tarar (arka kamera, fener, yalnızca en yeni kare çözülür); sonuç önce gösterilir, bağlantı ancak dokununca açılır. Bildirim panelinde (hızlı ayarlar) "QR Okuyucu" kutucuğu: tek dokunuşla uygulamayı QR ekranında açar; araç ekranındaki "Hızlı ayarlara ekle" düğmesi (Android 13+) kutucuğu tek onayla ekler.
+- **Kabuk 1.0.2 (elle yüklenmeli) + sözleşme API 2:** kabuk CAMERA izni, ZXing çözücüsü ve hızlı ayar kutucuğu servisini taşır; `Module.onPause()` eklendi (kamera arka plana geçince bırakılır). QR'lı modül `api=2` ister; eski kabuklu cihazlar "kabuk güncellemesi gerekli" görür.
 - Otomatik yayın: `main`'e modül değişikliği push edilince GitHub Actions derler, imzalar, Release açar (`release.yml`). Sürüm numarası artık durumsuz (son manifest'ten).
 - YouTube Özeti aracı: yapıştırılan bağlantının transkripti özgün dilinde alınır, Gemini ile Türkçe özetlenir.
 - Fotoğraf Sıkıştır aracı: seçilen fotoğrafın %90 kaliteli JPEG kopyası Pictures/Kolay'a kaydedilir (tarih, cihaz ve çekim EXIF bilgileri taşınır; konum, Android izin kısıtı nedeniyle taşınmayabilir).

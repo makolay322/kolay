@@ -12,7 +12,7 @@ Bu depo birden fazla oturumdan yönetilir. **Önce bunu oku**, sonra [docs/ARCHI
 ## Değişmez kurallar (ihlal = güvenlik/stabilite hatası)
 1. **Depoya sır girmez**: API anahtarı, `*.keystore`, `*.pem`, `keystore.properties`, `local.properties`. Anahtar cihazda Ayarlar'dan girilir (`Host.secret`).
 2. Hasta verisi/örnek belge/gerçek isim depoya girmez (test örneklerinde uydurma isim kullan).
-3. `payload/` **`compileOnly`** bağımlılık kullanır (sdk, Tesseract). Bunları payload içine paketleme: sınıf çakışması ve çift yükleme olur.
+3. `payload/` **`compileOnly`** bağımlılık kullanır (sdk, Tesseract, ZXing). Bunları payload içine paketleme: sınıf çakışması ve çift yükleme olur.
 4. Payload `host.ready()` çağırmalı (ilk ekran görününce). Çağırmayan sürüm "bozuk açılış" sayılır, 2 kez üst üste olursa kara listeye girer.
 5. `versionCode` yalnızca artar (`tools/release.sh` yönetir). Geri alma = eski kodla **daha yüksek** sürüm yayınlamak.
 6. İmza anahtarları depo dışında: hepsi `~/.kolay/` altında; **yalnızca güncelleme anahtarı** (`update_key.pem`) ayrıca GitHub Secret `UPDATE_KEY_PEM` olarak durur (otomatik yayın için). APK keystore'u (`release.keystore`) **asla** GitHub'a yüklenmez. Asla commit etme, asla çıktıya yazma; iş akışını (`release.yml`) anahtarı yazdıracak/yükletecek biçimde değiştirme.

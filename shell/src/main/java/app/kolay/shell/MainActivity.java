@@ -144,6 +144,8 @@ public class MainActivity extends Activity {
 
     @Override protected void onResume() { super.onResume(); guard(() -> { if (module != null) module.onResume(); }); }
 
+    @Override protected void onPause() { guard(() -> { if (module != null) module.onPause(); }); super.onPause(); }
+
     @Override public void onRequestPermissionsResult(int req, String[] p, int[] r) {
         super.onRequestPermissionsResult(req, p, r);
         guard(() -> { if (module != null) module.onPermissionResult(req, p, r); });
