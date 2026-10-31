@@ -67,7 +67,9 @@ ui/                      Palette, Ctx, Ui, Icon, Nav, Screen, Header, Arc, Bar, 
 screens/                 HomeScreen, SettingsScreen
 tools/Tool, Tools        araç arayüzü + kayıt listesi                                   → docs/ADDING_A_TOOL.md
 tools/ocr/               Tıbbi OCR: OcrTool, Picker/Progress/ResultScreen, Ocr, Mask, Session
-tools/qr/                QR Okuyucu: QrTool, QrScreen (arayüz), QrCamera (camera2), QrDecoder (ZXing)
+tools/qr/                QR Okuyucu: QrTool, QrScreen (arayüz), QrCamera (camera2; kipler QR / PRODUCT barkod / TEXT fotoğraf), QrDecoder (ZXing)
+tools/halal/             Helal Sorgu: HelalTool, ScanScreen/LabelScreen (CamScreen tabanı), Off (Open Food Facts), LabelOcr, Halal (istem + karar), WorkScreen, VerdictScreen
+tools/voice/             Sesli Not: VoiceTool, VoiceScreen (kayıt + yazı + çeviri), Recorder (bellekte PCM → WAV)
 ```
 UI tamamen programatiktir (XML kaynak yok): payload sınıf yükleyiciyle gelir, kabuğun `Resources` nesnesinde kendi kaynakları bulunmaz.
 
@@ -85,3 +87,17 @@ Bulut isteği başarısız olursa maskeli ham OCR gösterilir (uyarı notuyla).
 - `QrDecoder`: ZXing `QRCodeReader`, yalnızca QR; ters renkli kodlar her 3. boş karede denenir. Saf Java.
 - Sonuç diske/loga yazılmaz; bağlantı kendiliğinden açılmaz, kullanıcı "Bağlantıyı aç"a dokunur (yalnızca http/https).
 - Kutucuk: `QrTileService` (kabuk) `app.kolay.action.QR_SCAN` eylemiyle `MainActivity`'yi açar; `Entry` ilk açılışta bu eylemi görürse ana sayfanın üstüne QR ekranını iter ve eylemi tüketir (yeniden oluşturmada tekrar açılmaz).
+
+## Helal Sorgu akışı
+1. `ScanScreen`: kamera `PRODUCT` kipinde; kare 90° döndürülüp EAN-13/8, UPC-A/E, Code 128 okunur (1-B okuyucular yalnızca satır tarar).
+2. `WorkScreen`: `Off.lookup` Open Food Facts'e **yalnızca barkod rakamlarını** gönderir; içindekiler (tr → genel → de → en) alınır.
+3. Barkod yoksa/içindekiler boşsa/ağ yoksa `LabelScreen` (kamera `TEXT` kipi, ≤3,5 MP gri kare) → `LabelOcr` (Tesseract `deu`) açılır. Fotoğraf OCR biter bitmez geri dönüştürülür; metin diske yazılmaz.
+4. `Halal.judge`: içindekiler tek istekte Hanefi ölçütleriyle değerlendirilir (sıcaklık 0). Çıktının 1. satırı `HELAL | HARAM | ŞÜPHELİ`, gerisi gerekçe. Belirsiz/bozuk liste → ŞÜPHELİ.
+5. `VerdictScreen`: renkli karar + gerekçe + kullanılan içindekiler. "Fetva değildir" notu sabittir.
+Not: gömülü OCR verisi yalnızca `deu`; Türkçe özel harfler (ş ğ ı) yanlış okunabilir, istem bunu bağlamdan düzeltmesini ister.
+
+## Sesli Not akışı
+- Mikrofon izni (`RECORD_AUDIO`) **kabuk manifestindedir** (kabuk ≥ 1.001). Eski kabukta ekran "kabuk güncellemesi gerekli" der.
+- `Recorder`: 16 kHz mono PCM, yalnızca bellekte, en fazla 5 dk; sessiz kayıt (tepe < 400) hiç gönderilmez; uygulama arka plana giderse kayıt kapanır ve yazıya çevrilir.
+- Kayıt WAV olarak Gemini'ye **ses girdisi** (`inline_data`) ile gider; Almanca/Türkçe karışık konuşma, her bölüm konuşulduğu dilde yazılır (çeviri yok). Ses işlendikten sonra atılır.
+- Aynı sayfada metin düzenlenebilir; dil çipine dokununca (Türkçe, Almanca, İngilizce, Arapça, Rusça, …) metnin tamamı hedef dile çevrilir; karışık dilli metin de desteklenir.
