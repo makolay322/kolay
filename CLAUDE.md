@@ -6,7 +6,7 @@ Bu depo birden fazla oturumdan yönetilir. **Önce bunu oku**, sonra [docs/ARCHI
 | Dizin | Rol | Değişiklik sıklığı | Kural |
 |---|---|---|---|
 | `sdk/` | Kabuk↔modül sözleşmesi (`Host`, `Module`) | çok nadir | **Yalnızca ekle.** Metot silme/değiştirme yok. `Module`'e sadece `default` metot. Kırıcı değişiklikte `Host.API` + `Config.SHELL_API` + modül manifestindeki `app.kolay.api` birlikte artar. |
-| `shell/` | Kararlı çekirdek APK (`app.kolay`) | nadir | Mantığı ince tut. Yeni özellik buraya değil `payload/`'a. Değiştirirsen yeni kabuk APK'sı elle yüklenmeli. |
+| `shell/` | Kararlı çekirdek APK (`app.kolay`) | nadir | Mantığı ince tut. Yeni özellik buraya değil `payload/`'a. Değiştirirsen yeni kabuk APK'sı yüklenmeli (kabuk ≥ 1.0.5: Ayarlar → “Kabuğu indir ve yükle”; `tools/release-shell.sh`). |
 | `payload/` | Arayüz + araçlar (`app.kolay.payload`) | sık | Normal geliştirme burada. `Entry` giriş noktasıdır; yeniden adlandırma. |
 
 ## Değişmez kurallar (ihlal = güvenlik/stabilite hatası)

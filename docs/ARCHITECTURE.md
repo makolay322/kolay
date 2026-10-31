@@ -11,7 +11,7 @@ Android bir APK'yı sessizce kendi kendine güncelleyemez (her güncelleme kulla
 | Modül | Paket | Çıktı | İçerik |
 |---|---|---|---|
 | `sdk` | `app.kolay.sdk` | (kabuğa gömülü kütüphane) | `Host`, `Module` arayüzleri |
-| `shell` | `app.kolay.shell` | `Kolay.apk` (`app.kolay`) | `MainActivity`, `Registry`, `Loader`, `Updater`, `UpdateJob`, `SecretStore`, `Verify`, `Config`; `QrTileService` (hızlı ayar kutucuğu); Tesseract `.so` + `deu.traineddata`; ZXing çözücüsü; gömülü yedek modül |
+| `shell` | `app.kolay.shell` | `Kolay.apk` (`app.kolay`) | `MainActivity`, `Registry`, `Loader`, `Updater`, `UpdateJob`, `SecretStore`, `Verify`, `Config`; `QrTileService` (hızlı ayar kutucuğu), `ShellInstaller` + `InstallResultReceiver` (uygulama içi kabuk güncellemesi); Tesseract `.so` + `deu.traineddata`; ZXing çözücüsü; gömülü yedek modül |
 | `payload` | `app.kolay.payload` | `payload.apk` (`app.kolay.payload`, kurulabilir değil) | `Entry`, `ui/*` (tasarım sistemi), `screens/*`, `tools/*` |
 
 Bağımlılık yönü: `payload → sdk`, `shell → sdk`. Payload, sdk ve Tesseract'a **yalnızca derleme zamanı** (`compileOnly`) bağlıdır;

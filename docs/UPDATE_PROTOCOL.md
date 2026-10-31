@@ -24,6 +24,7 @@ Cihaz yalnızca şu sabit adresi sorgular (GitHub "latest" yönlendirmesi, API a
   "url": "https://github.com/makolay322/kolay/releases/download/v1.0.1/payload.apk"
 }
 ```
+- İsteğe bağlı kabuk alanları (hepsi birlikte): `shellVersionCode`, `shellVersionName`, `shellSize`, `shellSha256`, `shellSignature` (aynı güncelleme anahtarıyla, `Kolay.apk` baytları üzerinde), `shellUrl` (`REPO_BASE + "releases/download/"` ile başlamalı). Yalnızca yerelde (keystore'lu makinede) eklenir: `tools/release.sh` yerel modu veya `tools/release-shell.sh`. Yalnızca-modül (CI) sürümleri önceki manifestten **aynen taşır** (`tools/manifest_shell.py carry`).
 - `signature` **dosya baytlarını** imzalar (manifest alanlarını değil). `versionCode` APK'nın kendi içinde olduğundan imzalı veriye dahildir.
 - `api`, modülün `AndroidManifest.xml`'indeki `app.kolay.api` ile aynı olmalı (cihaz çapraz kontrol eder).
 
@@ -53,3 +54,10 @@ Gömülü modül kabuk APK'sının içinde olduğu için (Android imzasıyla kor
 openssl dgst -sha256 -sign ~/.kolay/update_key.pem payload.apk | base64 | tr -d '\n'
 ```
 Açık anahtar üretimi: `openssl ec -in ~/.kolay/update_key.pem -pubout -outform DER | base64 | tr -d '\n'`.
+
+## Kabuk güncellemesi (cihaz tarafı, `ShellInstaller`)
+Kullanıcı Ayarlar'da “Kabuğu indir ve yükle”ye dokununca (düğme, manifestte `shellVersionCode` > yüklü kabuk olduğunda görünür):
+1. `canRequestPackageInstalls()` yoksa “bilinmeyen kaynaklardan yükleme” ayarı açılır; kullanıcı izin verip tekrar dokunur.
+2. Manifest yeniden alınır; `shellUrl` ön eki, boyut (≤120 MB), sürüm kontrol edilir; indirme `Updater.download` ile (yalnızca GitHub, HTTPS).
+3. SHA-256 → ECDSA imzası → `getPackageArchiveInfo`: paket adı `app.kolay`, `versionCode` manifestle aynı, imza sertifikası yüklü kabukla aynı.
+4. `PackageInstaller` oturumu açılır; `InstallResultReceiver` sistem onay ekranını gösterir. **Onayı Android ister; sessiz yükleme yoktur.** Hata `Registry` durumuna yazılır.
