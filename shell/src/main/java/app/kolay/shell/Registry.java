@@ -55,6 +55,14 @@ final class Registry {
             f.delete();
             if (!tmp.renameTo(f)) throw new IOException("bundled payload could not be placed");
         }
+        // A new shell ships a new bundled payload: forget old blacklist entries up to it, so a payload dropped by an earlier
+        // session cannot keep the freshly installed bundled version from running.
+        if (vc != bundledVc()) {
+            Set<String> keep = new HashSet<>();
+            for (String s : p.getStringSet("bad", Collections.emptySet()))
+                try { if (Integer.parseInt(s) > vc) keep.add(s); } catch (NumberFormatException ignored) { }
+            p.edit().putStringSet("bad", keep).remove("fail_" + vc).commit();
+        }
         p.edit().putInt("bundled_vc", vc).apply();
     }
 
@@ -67,7 +75,7 @@ final class Registry {
             int vc;
             try { vc = Integer.parseInt(k.getName()); } catch (NumberFormatException e) { continue; }
             File apk = new File(k, "payload.apk");
-            if (!apk.isFile() || bad.contains(String.valueOf(vc))) continue;
+            if (!apk.isFile() || (bad.contains(String.valueOf(vc)) && vc != bundledVc())) continue;
             out.add(new Cand(vc, apk, new File(k, "payload.sig"), vc == bundledVc()));
         }
         out.sort((a, b) -> Integer.compare(b.vc, a.vc));
