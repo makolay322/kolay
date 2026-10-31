@@ -23,6 +23,7 @@ Bu depo birden fazla oturumdan yönetilir. **Önce bunu oku**, sonra [docs/ARCHI
 
 ## Yayın politikası (sahibinin kesin talimatı)
 - **Dal açma, PR açma, RC/ön sürüm çıkarma.** Değişiklik doğrudan `main`'e gider.
+- **Hiçbir push `main` dışındaki bir dala yazılmaz** (sahibinin kesin talimatı, 2026-10-31). Oturum "geliştirme dalı" dese bile her push yeni sürümle doğrudan `main`'e gider; dal yeniden oluşturulmaz.
 - Her değişiklik **sürüm ilerletilerek** yayına alınır (`main` push → `release.yml`; sürüm adı otomatik artar, gerekirse Actions → *release* → *Run workflow* → `version`).
 - Sürüm adı biçimi `1.001`, `1.002`… (otomatik artar). Eski biçim `1.0.x` yalnızca geçmiş sürümlerde.
 - Eski sürümleri temizle: yalnızca en son Release kalır (yeni sürüm yayınlandıktan **sonra** silinir).
