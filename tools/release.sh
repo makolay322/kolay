@@ -33,7 +33,11 @@ if curl -fsSL "https://github.com/$REPO/releases/latest/download/manifest.json" 
   [ -n "$LVC" ] && [ "$LVC" -ge "$VC" ] && { VC=$LVC; CUR=$LVN; }
 fi
 VC=$(( VC + 1 ))
-VN="${1:-${CUR%.*}.$(( ${CUR##*.} + 1 ))}"   # default: bump the patch number (1.0.1 -> 1.0.2)
+# Default name: bump the last part. "1.001" style (three-digit minor) -> 1.002; classic "1.0.4" -> 1.0.5.
+if [[ "$CUR" =~ ^1\.0\.[0-9]+$ ]]; then NEXT="1.001"   # legacy 1.0.x names switch to the 1.001 scheme
+elif [[ "$CUR" =~ ^([0-9]+)\.([0-9]{3})$ ]]; then NEXT=$(printf '%s.%03d' "${BASH_REMATCH[1]}" $(( 10#${BASH_REMATCH[2]} + 1 )))
+else NEXT="${CUR%.*}.$(( ${CUR##*.} + 1 ))"; fi
+VN="${1:-$NEXT}"
 gh release view "v$VN" >/dev/null 2>&1 && { echo "release v$VN already exists"; exit 1; }
 printf 'versionCode=%s\nversionName=%s\n' "$VC" "$VN" > "$PROP"
 

@@ -21,6 +21,12 @@ Bu depo birden fazla oturumdan yönetilir. **Önce bunu oku**, sonra [docs/ARCHI
 8. OCR metni diske/loga yazılmaz. Loglara kişisel veri koyma.
 9. Gradle bağımlılık doğrulaması açık (`gradle/verification-metadata.xml`); bağımlılık eklersen `./gradlew --write-verification-metadata sha256 :shell:assembleRelease` ile güncelle ve farkı gözle incele.
 
+## Yayın politikası (sahibinin kesin talimatı)
+- **Dal açma, PR açma, RC/ön sürüm çıkarma.** Değişiklik doğrudan `main`'e gider.
+- Her değişiklik **sürüm ilerletilerek** yayına alınır (`main` push → `release.yml`; sürüm adı otomatik artar, gerekirse Actions → *release* → *Run workflow* → `version`).
+- Sürüm adı biçimi `1.001`, `1.002`… (otomatik artar). Eski biçim `1.0.x` yalnızca geçmiş sürümlerde.
+- Eski sürümleri temizle: yalnızca en son Release kalır (yeni sürüm yayınlandıktan **sonra** silinir).
+
 ## Sık işler
 ```bash
 ./gradlew :shell:assembleRelease          # yerel derleme (gerekli: JDK 17, Android SDK, local.properties → sdk.dir)

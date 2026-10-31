@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths: ['payload/**', 'sdk/**', 'gradle/**', 'build.gradle', 'settings.gradle', '!payload/version.properties']
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version name to publish (empty = next automatic)'
+        required: false
+        default: ''
 permissions:
   contents: read
 concurrency:
@@ -31,4 +36,5 @@ jobs:
         env:
           UPDATE_KEY_PEM: ${{ secrets.UPDATE_KEY_PEM }}
           GH_TOKEN: ${{ github.token }}
-        run: tools/release.sh
+          VERSION_NAME: ${{ inputs.version }}
+        run: tools/release.sh "$VERSION_NAME"

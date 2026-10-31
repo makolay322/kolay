@@ -3,7 +3,7 @@
 Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `tools/release.sh` ile yayınlanır
 (görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
 
-## 1.0.5
+## 1.001
 ### Eklendi
 - Uygulama içi kabuk güncellemesi: yeni sürüm daha yeni kabuk istediğinde Ayarlar'da “Kabuğu indir ve yükle” çıkar; kabuk APK'sı Release'ten indirilir, SHA-256 + güncelleme anahtarı imzası + paket adı/sürüm/imza sertifikası doğrulanır, sistem yükleyicisine verilir (onayı Android sorar, sessiz yükleme mümkün değil). İlk kez “bilinmeyen kaynaktan yükleme” izni istenir. Manifest'e `shell*` alanları eklendi; `tools/release-shell.sh` ve `tools/manifest_shell.py`.
 - QR Okuyucu aracı: kamera açılır açılmaz tarar (arka kamera, fener, yalnızca en yeni kare çözülür); sonuç önce gösterilir, bağlantı ancak dokununca açılır. Bildirim panelinde (hızlı ayarlar) "QR Okuyucu" kutucuğu: tek dokunuşla uygulamayı QR ekranında açar; araç ekranındaki "Hızlı ayarlara ekle" düğmesi (Android 13+) kutucuğu tek onayla ekler.
