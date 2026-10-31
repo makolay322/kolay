@@ -91,7 +91,7 @@ Bulut isteği başarısız olursa maskeli ham OCR gösterilir (uyarı notuyla).
 ## Helal Sorgu akışı
 1. `ScanScreen`: kamera `PRODUCT` kipinde; kare 90° döndürülüp EAN-13/8, UPC-A/E, Code 128 okunur (1-B okuyucular yalnızca satır tarar).
 2. `WorkScreen`: `Off.lookup` Open Food Facts'e **yalnızca barkod rakamlarını** gönderir; içindekiler (tr → genel → de → en) alınır.
-3. Barkod yoksa/içindekiler boşsa/ağ yoksa `LabelScreen` (kamera `TEXT` kipi, ≤3,5 MP gri kare) → `LabelOcr` (Tesseract `deu`) açılır. Fotoğraf OCR biter bitmez geri dönüştürülür; metin diske yazılmaz.
+3. Barkod yoksa/içindekiler boşsa/ağ yoksa `LabelScreen` (kamera `TEXT` kipi, ≤3,5 MP gri kare) → `CropScreen` (kullanıcı yalnızca içindekiler kısmını çerçeveler; çevre yazı OCR girdisini gürültülü yapar) → `LabelOcr` (Tesseract `deu`) açılır. Fotoğraf OCR biter bitmez geri dönüştürülür; metin diske yazılmaz.
 4. `Halal.judge`: içindekiler tek istekte Hanefi ölçütleriyle değerlendirilir (sıcaklık 0). Çıktının 1. satırı `HELAL | HARAM | ŞÜPHELİ`, gerisi gerekçe. Belirsiz/bozuk liste → ŞÜPHELİ.
 5. `VerdictScreen`: renkli karar + gerekçe + kullanılan içindekiler. "Fetva değildir" notu sabittir.
 Not: gömülü OCR verisi yalnızca `deu`; Türkçe özel harfler (ş ğ ı) yanlış okunabilir, istem bunu bağlamdan düzeltmesini ister.

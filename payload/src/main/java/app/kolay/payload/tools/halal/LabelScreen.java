@@ -6,7 +6,7 @@ import android.widget.*;
 import app.kolay.payload.tools.qr.QrCamera;
 import app.kolay.payload.ui.*;
 
-/** Step 2 (only when the barcode gave no ingredients): photograph the ingredient list. The photo lives in memory only. */
+/** Step 2 (only when the barcode gave no ingredients): photograph the ingredient list, then crop it ({@link CropScreen}). The photo lives in memory only. */
 final class LabelScreen extends CamScreen {
     private final String barcode, note;
     private TextView shoot;
@@ -40,6 +40,6 @@ final class LabelScreen extends CamScreen {
     @Override public void onStill(Bitmap still) {
         finish();
         Ui.haptic(footer, HapticFeedbackConstants.CONFIRM);
-        c.nav.replace(new WorkScreen(barcode, still));
+        c.nav.replace(new CropScreen(barcode, note, still));
     }
 }
