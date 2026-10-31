@@ -30,6 +30,7 @@ tools/release.sh                          # yeni modül sürümü yayınla (çal
 - Sürüm/anahtar/geri alma: [docs/OPERATIONS.md](docs/OPERATIONS.md).
 
 ## Test gerçekliği
+Derleme yalnızca GitHub Actions'ta (`release.yml`) yapılır; başarısız derleme sürüm çıkarmaz ve telefon sessizce eski sürümde kalır. `main`'e push ettikten sonra çalışmanın **başarıyla bittiğini** ve Release'in açıldığını doğrula; bitmeden "yayınlandı" deme.
 Cihaz testi elle yapılır (emülatör yok). Saf Java parçalar (`Verify`, `Mask`) masaüstünde JVM ile denenebilir.
 Bir değişikliği "çalışıyor" diye raporlamadan önce neyin gerçekten çalıştırıldığını yaz; cihazda denenmediyse söyle.
 
