@@ -14,7 +14,7 @@ public final class SettingsScreen extends Screen {
     public static final String LLM_SECRET = "llm";
 
     private final List<View> entrance = new ArrayList<>();
-    private TextView keyState, updateState, checkBtn;
+    private TextView keyState, updateState, checkBtn, shellBtn;
     private EditText key;
     private LinearLayout updateBox;
 
@@ -78,6 +78,10 @@ public final class SettingsScreen extends Screen {
         checkBtn = Ui.button(c, "Şimdi denetle", Ui.Style.TONAL, null);
         checkBtn.setOnClickListener(v -> checkNow());
         updateBox.addView(checkBtn, Ui.lp(-1, c.dp(48), 0, c.dp(14), 0, 0));
+        shellBtn = Ui.button(c, "Kabuğu indir ve yükle", Ui.Style.PRIMARY, Icon.Kind.REFRESH);
+        shellBtn.setOnClickListener(v -> installShell());
+        updateBox.addView(shellBtn, Ui.lp(-1, c.dp(48), 0, c.dp(10), 0, 0));
+        renderShellButton();
         renderUpdateButtons();
         col.addView(updateBox);
 
@@ -125,6 +129,22 @@ public final class SettingsScreen extends Screen {
         } catch (Exception e) { Toast.makeText(c.a, e.getMessage(), Toast.LENGTH_LONG).show(); }
     }
 
+    /** Offered whenever the release carries a newer shell APK (a "shell update needed" payload is the usual reason). */
+    private void renderShellButton() {
+        shellBtn.setVisibility(c.host.shellUpdateAvailable() ? View.VISIBLE : View.GONE);
+    }
+
+    private void installShell() {
+        if (!shellBtn.isEnabled()) return;
+        shellBtn.setEnabled(false);
+        c.host.installShellUpdate(msg -> {
+            updateState.animate().cancel(); updateState.setAlpha(1f); updateState.setTranslationY(0);
+            updateState.setText(msg);
+            // Failure and "grant permission first" are the only final texts; re-enable then so a retry is possible.
+            if (msg.startsWith("Kabuk güncellenemedi") || msg.startsWith("Önce")) shellBtn.setEnabled(true);
+        });
+    }
+
     private static final String READY_TEXT = "Yeni sürüm indirildi. Uygulamak için “Şimdi yenile”ye dokun.";
 
     private void checkNow() {
@@ -137,6 +157,7 @@ public final class SettingsScreen extends Screen {
             if (c.host.updateReady()) { renderUpdateButtons(); return; }
             Ui.swapText(checkBtn, "Şimdi denetle");
             Ui.swapText(updateState, status);
+            renderShellButton();
         });
     }
 

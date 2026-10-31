@@ -31,4 +31,5 @@ final class Config {
     static final long CHECK_INTERVAL_MS = 6L * 3600 * 1000;
     static final long RETRY_AFTER_FAIL_MS = 30L * 60 * 1000;
     static final long MAX_PAYLOAD_BYTES = 40L << 20;
+    static final long MAX_SHELL_BYTES = 120L << 20;
 }

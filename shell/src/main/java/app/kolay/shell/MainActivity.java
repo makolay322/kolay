@@ -135,6 +135,8 @@ public class MainActivity extends Activity {
                 runOnUiThread(() -> done.accept(s));
             }, "update-check").start();
         }
+        @Override public boolean shellUpdateAvailable() { return reg.shellApkAvailable(); }
+        @Override public void installShellUpdate(Consumer<String> progress) { ShellInstaller.run(MainActivity.this, progress); }
         @Override public void onUpdateReady(Runnable r) { Updater.onStaged = r; }
         @Override public void restart() { recreate(); }
         @Override public String releasesUrl() { return Config.RELEASES_PAGE; }
