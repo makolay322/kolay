@@ -1,7 +1,17 @@
 # İşletme
 
+## Bağımsız çalışma (bilgisayara bağlı olmadan)
+Yayın hattı tamamen GitHub'dadır; hiçbir makine gerekmez:
+- **Düzenle:** github.com'da dosyayı aç → kalem, ya da `.` tuşu (web editör) / Codespaces. Yerel kurulum gerekmez.
+- **Yayınla:** `main`'e commit/merge. `payload/**`, `shell/**`, `sdk/**` veya `gradle/**` değiştiyse `release.yml` derler, imzalar, `vX` Release'ini ve `Kolay.apk` + `payload.apk` + `manifest.json`'u yayınlar. Sürüm numarası son manifestten türetilir, depoya geri yazılmaz. Elle tetik: Actions → *release* → *Run workflow*.
+- **Doğrula:** Actions'ta `build` ve `release` yeşil olmalı; telefonda Ayarlar → *Şimdi denetle*.
+- **Eski Release temizliği:** Actions → *purge-releases* (elle).
+- **Gereken Secret'lar:** `UPDATE_KEY_PEM`, `KEYSTORE_B64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` (Settings → Secrets and variables → Actions). Eksikse `release` işi uyarı verir ya da kabuksuz çıkar.
+- **Yerelde ne kaldı:** yalnızca anahtar yedeği (`~/.kolay`, parola yöneticisi/şifreli disk) ve APK'yı telefona ilk kez kurmak. Yerel `tools/release.sh` / `release-shell.sh` acil durum yedeğidir.
+- **Dikkat:** Release/anahtar iş akışlarını (`.github/workflows/`) ve `tools/release.sh`'ı değiştiren her PR'ı dikkatle incele; Secret'ları bunlar kullanır. `main` dalını korumalı tut (zorunlu PR, 2FA).
+
 ## Anahtarlar
-Hepsi **depo dışında**, `~/.kolay/` (izin 700). Aşağıdakileri **yedekle** (şifreli taşınabilir disk / parola yöneticisi).
+Asıl kaynak **depo dışında**, `~/.kolay/` (izin 700); CI için kopyaları GitHub Secrets'ta durur. **GitHub Secrets yalnızca yazılır, geri okunamaz**: yerel dosyalar yedeksiz kaybolursa tek kopya CI'da kalır ve elinize geri gelmez. Aşağıdakileri **yedekle** (şifreli taşınabilir disk / parola yöneticisi).
 
 | Dosya | Ne işe yarar | Kaybolursa |
 |---|---|---|
@@ -33,7 +43,7 @@ tools/release.sh      # veya: tools/release.sh 1.1.0  (sürüm adı; verilmezse 
 ```
 Aynı betik yerelde `~/.kolay` anahtarlarını kullanır ve ayrıca keystore ile imzalı `Kolay.apk`'yı Release'e ekler. Aynı anda ikisi çalışırsa ikinci "release vX already exists" der; sorun değil.
 
-Sürüm adı `1.0.x` biçimindedir, etiket `v1.0.x`. Cihazlar en geç 6–12 saatte alır (ya da Ayarlar → *Şimdi denetle*).
+Sürüm adı `1.NNN` biçimindedir (örn. 1.002), etiket `v1.NNN`. Cihazlar en geç 6–12 saatte alır (ya da Ayarlar → *Şimdi denetle*).
 Yayından sonra: `curl -sL .../releases/latest/download/manifest.json` ile kontrol et ve CHANGELOG'u güncelle.
 
 **Secret kurulumu / yenileme** (bir kez; değer ekrana yazılmaz):
@@ -44,7 +54,7 @@ base64 -i ~/.kolay/release.keystore | gh secret set KEYSTORE_B64
 # storePassword, keyAlias, keyPassword değerleri ~/.kolay/keystore.properties içindedir:
 gh secret set KEYSTORE_PASSWORD   # KEY_ALIAS ve KEY_PASSWORD için de aynısı
 ```
-Keystore Secret'ları 2026-10-31'de yüklendi. **Not:** `release.yml` henüz kabuğu CI'da imzalamıyor; şimdilik kabuk `tools/release-shell.sh` ile yerelde imzalanır. CI imzası eklendiğinde workflow `KEYSTORE_B64`'ü geçici dosyaya açıp işten sonra silmelidir.
+Keystore Secret'ları 2026-10-31'de yüklendi; `release.yml` bunları kullanıp kabuğu CI'da imzalar (anahtar geçici dosyaya açılır, iş sonunda silinir).
 Anahtar rotasyonunda yeni anahtarı aynı komutla yükle (bkz. aşağıdaki rotasyon adımları).
 
 ## Kabuk sürümü yayınlama (nadir)
@@ -52,8 +62,8 @@ Anahtar rotasyonunda yeni anahtarı aynı komutla yükle (bkz. aşağıdaki rota
 **Elle (yedek):**
 Kabuk, yalnızca sözleşme (`Host`) büyüdüğünde, yerel kütüphane/izin/manifest değiştiğinde veya imza anahtarı rotasyonunda değişir.
 1. `shell/build.gradle` içinde `versionCode`/`versionName` artır (+ gerekiyorsa `Host.API`, `Config.SHELL_API`).
-2. `tools/release.sh` (kabuk `Kolay.apk` olarak Release'e eklenir; bunu yalnızca elle/yerelde çıkar, CI henüz keystore'u kullanmıyor; Secret'lar hazır, workflow'a bağlanması bekliyor).
-3. CI sürümü (`main` push) önce çıktıysa: `tools/release-shell.sh` kabuğu derleyip imzalar, **son** Release'e ve manifestine ekler. Kabuğu ≥ 1.0.5 olan telefonlar Ayarlar'dan “Kabuğu indir ve yükle” ile alır.
+2. `main`'e push et: `shell/**` değişikliği `release.yml`'i tetikler, `Kolay.apk` Release'e eklenir (elle: `tools/release.sh`).
+3. Kabuk CI'da eklenemediyse (Secret eksik) yedek yol: `tools/release-shell.sh` kabuğu derleyip imzalar, **son** Release'e ve manifestine ekler. Kabuğu ≥ 1.0.5 olan telefonlar Ayarlar'dan “Kabuğu indir ve yükle” ile alır.
 4. Uygulama içi yol yoksa (eski kabuk, ilk kurulum) kullanıcı (sen) `Kolay.apk`'yı elle yükler. Yeni modül daha yüksek `api` istiyorsa, eski kabuklu cihazlar "kabuk güncellemesi gerekli" uyarısı görür ve modülü almaz — **önce kabuğu dağıt, sonra o API'yi isteyen modülü yayınla.**
 
 ## Geri alma (kötü sürüm yayınlandı)

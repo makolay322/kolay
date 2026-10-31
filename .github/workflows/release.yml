@@ -3,7 +3,7 @@ name: release
 on:
   push:
     branches: [main]
-    paths: ['payload/**', 'sdk/**', 'gradle/**', 'build.gradle', 'settings.gradle', '!payload/version.properties']
+    paths: ['payload/**', 'shell/**', 'sdk/**', 'gradle/**', 'build.gradle', 'settings.gradle', '!payload/version.properties']
   workflow_dispatch:
     inputs:
       version:

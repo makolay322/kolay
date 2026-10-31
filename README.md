@@ -52,7 +52,7 @@ Tam model: [SECURITY.md](SECURITY.md).
 | Mimari, açılış akışı, durum makinesi | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | Güncelleme protokolü ve manifest biçimi | [docs/UPDATE_PROTOCOL.md](docs/UPDATE_PROTOCOL.md) |
 | Derleme, kurulum, test | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) |
-| Sürüm çıkarma, anahtarlar, geri alma, olay müdahalesi | [docs/OPERATIONS.md](docs/OPERATIONS.md) |
+| Sürüm çıkarma, bağımsız (makinesiz) çalışma, anahtarlar, geri alma, olay müdahalesi | [docs/OPERATIONS.md](docs/OPERATIONS.md) |
 | Yeni araç ekleme | [docs/ADDING_A_TOOL.md](docs/ADDING_A_TOOL.md) |
 | Arayüz sistemi ve hareket ilkeleri | [docs/UI.md](docs/UI.md) |
 | Başka oturumlar / yapay zekâ için çalışma kuralları | [CLAUDE.md](CLAUDE.md) |
