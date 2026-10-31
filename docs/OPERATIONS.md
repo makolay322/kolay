@@ -39,13 +39,18 @@ Yayından sonra: `curl -sL .../releases/latest/download/manifest.json` ile kontr
 **Secret kurulumu / yenileme** (bir kez; değer ekrana yazılmaz):
 ```bash
 gh secret set UPDATE_KEY_PEM < ~/.kolay/update_key.pem
+# Kabuk imzası (keystore) için:
+base64 -i ~/.kolay/release.keystore | gh secret set KEYSTORE_B64
+# storePassword, keyAlias, keyPassword değerleri ~/.kolay/keystore.properties içindedir:
+gh secret set KEYSTORE_PASSWORD   # KEY_ALIAS ve KEY_PASSWORD için de aynısı
 ```
+Keystore Secret'ları 2026-10-31'de yüklendi. **Not:** `release.yml` henüz kabuğu CI'da imzalamıyor; şimdilik kabuk `tools/release-shell.sh` ile yerelde imzalanır. CI imzası eklendiğinde workflow `KEYSTORE_B64`'ü geçici dosyaya açıp işten sonra silmelidir.
 Anahtar rotasyonunda yeni anahtarı aynı komutla yükle (bkz. aşağıdaki rotasyon adımları).
 
 ## Kabuk sürümü yayınlama (nadir)
 Kabuk, yalnızca sözleşme (`Host`) büyüdüğünde, yerel kütüphane/izin/manifest değiştiğinde veya imza anahtarı rotasyonunda değişir.
 1. `shell/build.gradle` içinde `versionCode`/`versionName` artır (+ gerekiyorsa `Host.API`, `Config.SHELL_API`).
-2. `tools/release.sh` (kabuk `Kolay.apk` olarak Release'e eklenir; bunu yalnızca elle/yerelde çıkar, çünkü keystore GitHub'da yok).
+2. `tools/release.sh` (kabuk `Kolay.apk` olarak Release'e eklenir; bunu yalnızca elle/yerelde çıkar, CI henüz keystore'u kullanmıyor; Secret'lar hazır, workflow'a bağlanması bekliyor).
 3. CI sürümü (`main` push) önce çıktıysa: `tools/release-shell.sh` kabuğu derleyip imzalar, **son** Release'e ve manifestine ekler. Kabuğu ≥ 1.0.5 olan telefonlar Ayarlar'dan “Kabuğu indir ve yükle” ile alır.
 4. Uygulama içi yol yoksa (eski kabuk, ilk kurulum) kullanıcı (sen) `Kolay.apk`'yı elle yükler. Yeni modül daha yüksek `api` istiyorsa, eski kabuklu cihazlar "kabuk güncellemesi gerekli" uyarısı görür ve modülü almaz — **önce kabuğu dağıt, sonra o API'yi isteyen modülü yayınla.**
 

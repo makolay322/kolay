@@ -15,7 +15,7 @@ Bu depo birden fazla oturumdan yönetilir. **Önce bunu oku**, sonra [docs/ARCHI
 3. `payload/` **`compileOnly`** bağımlılık kullanır (sdk, Tesseract, ZXing). Bunları payload içine paketleme: sınıf çakışması ve çift yükleme olur.
 4. Payload `host.ready()` çağırmalı (ilk ekran görününce). Çağırmayan sürüm "bozuk açılış" sayılır, 2 kez üst üste olursa kara listeye girer.
 5. `versionCode` yalnızca artar (`tools/release.sh` yönetir). Geri alma = eski kodla **daha yüksek** sürüm yayınlamak.
-6. İmza anahtarları depo dışında: hepsi `~/.kolay/` altında; **yalnızca güncelleme anahtarı** (`update_key.pem`) ayrıca GitHub Secret `UPDATE_KEY_PEM` olarak durur (otomatik yayın için). APK keystore'u (`release.keystore`) **asla** GitHub'a yüklenmez. Asla commit etme, asla çıktıya yazma; iş akışını (`release.yml`) anahtarı yazdıracak/yükletecek biçimde değiştirme.
+6. İmza anahtarları depo dışında: hepsi `~/.kolay/` altında; güncelleme anahtarı (`update_key.pem` → Secret `UPDATE_KEY_PEM`) ve APK keystore'u (`release.keystore` → Secret'lar `KEYSTORE_B64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) ayrıca GitHub Secrets'ta durur (cihaza bağlı kalmadan, CI'da imzalamak için; sahibi bilerek onayladı, 2026-10-31). Asla commit etme, asla çıktıya yazma; iş akışını (`release.yml`) anahtarı yazdıracak/yükletecek biçimde değiştirme.
 7. `main`'e `payload/**` veya `sdk/**` değişikliği push etmek **otomatik olarak yeni sürüm yayınlar** (`.github/workflows/release.yml`). Yarım iş main'e girmesin; sürüm elle de çıkarılabilir (`tools/release.sh`).
 7. Ağ yalnızca HTTPS; güncelleme adresi `Config.REPO_BASE` ile başlamalı, indirme sunucusu `Config.trustedHost` ile sınırlı.
 8. OCR metni diske/loga yazılmaz. Loglara kişisel veri koyma.
