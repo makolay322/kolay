@@ -48,6 +48,8 @@ Keystore Secret'ları 2026-10-31'de yüklendi. **Not:** `release.yml` henüz kab
 Anahtar rotasyonunda yeni anahtarı aynı komutla yükle (bkz. aşağıdaki rotasyon adımları).
 
 ## Kabuk sürümü yayınlama (nadir)
+**Otomatik:** `KEYSTORE_B64` (release.keystore base64) ile birlikte `KEYSTORE_PROPERTIES` (keystore.properties içeriği) **veya** `KEYSTORE_PASSWORD` + `KEY_ALIAS` + `KEY_PASSWORD` Secret'ları tanımlıysa `release.yml` kabuğu da derler, imzalar, `Kolay.apk`'yı Release'e ekler ve manifestine yazar. Tanımlı değilse yalnızca modül çıkar, manifestteki kabuk alanları önceki sürümden taşınır.
+**Elle (yedek):**
 Kabuk, yalnızca sözleşme (`Host`) büyüdüğünde, yerel kütüphane/izin/manifest değiştiğinde veya imza anahtarı rotasyonunda değişir.
 1. `shell/build.gradle` içinde `versionCode`/`versionName` artır (+ gerekiyorsa `Host.API`, `Config.SHELL_API`).
 2. `tools/release.sh` (kabuk `Kolay.apk` olarak Release'e eklenir; bunu yalnızca elle/yerelde çıkar, CI henüz keystore'u kullanmıyor; Secret'lar hazır, workflow'a bağlanması bekliyor).

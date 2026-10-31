@@ -9,11 +9,27 @@ cd "$(dirname "$0")/.."
 command -v gh >/dev/null || { echo "gh not installed"; exit 1; }
 CI_MODE=${GITHUB_ACTIONS:-false}
 KEYDIR="$HOME/.kolay"
-TMP=$(mktemp -d); trap 'rm -rf "$TMP"; git checkout -q -- payload/version.properties 2>/dev/null || true' EXIT
+TMP=$(mktemp -d)
+cleanup() { rm -rf "$TMP"; git checkout -q -- payload/version.properties 2>/dev/null || true
+  [ "$CI_MODE" = true ] && rm -f "$KEYDIR/release.keystore" "$KEYDIR/keystore.properties" || true; }
+trap cleanup EXIT
+SHELL_BUILT=false
 
 if [ "$CI_MODE" = true ]; then
   [ -n "${UPDATE_KEY_PEM:-}" ] || { echo "secret UPDATE_KEY_PEM missing"; exit 1; }
   ( umask 077; printf '%s\n' "$UPDATE_KEY_PEM" > "$TMP/update_key.pem" )
+  # Optional: with the keystore secrets the CI also builds + signs the shell (Kolay.apk). Never printed; removed again on exit.
+  # Accepts either one KEYSTORE_PROPERTIES secret or the separate KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD secrets.
+  if [ -n "${KEYSTORE_B64:-}" ] && { [ -n "${KEYSTORE_PROPERTIES:-}" ] || [ -n "${KEYSTORE_PASSWORD:-}" ]; }; then
+    ( umask 077; mkdir -p "$KEYDIR"
+      printf '%s' "$KEYSTORE_B64" | base64 -d > "$KEYDIR/release.keystore"
+      if [ -n "${KEYSTORE_PROPERTIES:-}" ]; then
+        printf '%s\n' "$KEYSTORE_PROPERTIES" | sed "s#^storeFile=.*#storeFile=$KEYDIR/release.keystore#" > "$KEYDIR/keystore.properties"
+      else
+        printf 'storeFile=%s/release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KEYDIR" "$KEYSTORE_PASSWORD" "${KEY_ALIAS:-kolay}" "${KEY_PASSWORD:-$KEYSTORE_PASSWORD}" > "$KEYDIR/keystore.properties"
+      fi )
+    SHELL_BUILT=true
+  fi
   KEY="$TMP/update_key.pem"; SHA_HEAD=$GITHUB_SHA
 else
   for f in keystore.properties release.keystore update_key.pem; do [ -f "$KEYDIR/$f" ] || { echo "missing $KEYDIR/$f"; exit 1; }; done
@@ -43,9 +59,9 @@ printf 'versionCode=%s\nversionName=%s\n' "$VC" "$VN" > "$PROP"
 
 GRADLE=./gradlew; [ -x "$GRADLE" ] || GRADLE=gradle
 OUT=build/release; rm -rf "$OUT"; mkdir -p "$OUT"
-if [ "$CI_MODE" = true ]; then $GRADLE -q --no-daemon :payload:assembleRelease; else $GRADLE -q :payload:assembleRelease :shell:assembleRelease; fi
+if [ "$CI_MODE" = true ] && [ "$SHELL_BUILT" != true ]; then $GRADLE -q --no-daemon :payload:assembleRelease; else $GRADLE -q --no-daemon :payload:assembleRelease :shell:assembleRelease; fi
 cp payload/build/outputs/apk/release/payload-release.apk "$OUT/payload.apk"
-[ "$CI_MODE" = true ] || cp shell/build/outputs/apk/release/shell-release.apk "$OUT/Kolay.apk"
+if [ "$CI_MODE" != true ] || [ "$SHELL_BUILT" = true ]; then SHELL_BUILT=true; cp shell/build/outputs/apk/release/shell-release.apk "$OUT/Kolay.apk"; fi
 
 SHA=$(shasum -a 256 "$OUT/payload.apk" | cut -d' ' -f1)
 SIZE=$(wc -c < "$OUT/payload.apk" | tr -d ' ')
@@ -63,7 +79,7 @@ cat > "$OUT/manifest.json" <<JSON
 JSON
 
 # Shell entry for in-app shell updates: signed fresh when this run builds the shell (local), otherwise carried over from the previous release.
-if [ "$CI_MODE" = true ]; then
+if [ "$SHELL_BUILT" != true ]; then
   [ -f "$TMP/latest.json" ] && tools/manifest_shell.py carry "$OUT/manifest.json" "$TMP/latest.json"
 else
   SVC=$(sed -n "s/.*versionCode \([0-9]*\).*/\1/p" shell/build.gradle | head -1)
@@ -71,6 +87,6 @@ else
   tools/manifest_shell.py add "$OUT/manifest.json" "$OUT/Kolay.apk" "$KEY" "$SVC" "$SVN" "https://github.com/$REPO/releases/download/v$VN/Kolay.apk"
 fi
 
-FILES=("$OUT/payload.apk" "$OUT/manifest.json"); [ "$CI_MODE" = true ] || FILES+=("$OUT/Kolay.apk")
+FILES=("$OUT/payload.apk" "$OUT/manifest.json"); [ "$SHELL_BUILT" != true ] || FILES+=("$OUT/Kolay.apk")
 gh release create "v$VN" "${FILES[@]}" --target "$SHA_HEAD" --title "$VN" --notes "Payload $VN (versionCode $VC) — commit ${SHA_HEAD:0:7}" --latest
 echo "released v$VN (versionCode $VC)"
