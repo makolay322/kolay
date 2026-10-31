@@ -73,3 +73,6 @@ Cihazlar `versionCode` düşürmez; bu yüzden **düzeltme ileriye doğrudur**:
 - `main` dalı için "force push yasak / silme yasak" koruması önerilir (Settings → Branches).
 - Secret scanning ve push protection (public depoda varsayılan) açık kalsın.
 - Release'leri yalnızca `release.yml` veya `tools/release.sh` üretmeli; elle yüklenen dosya imzasız olacağı için cihazlarca reddedilir.
+
+## Eski sürümleri temizleme
+Yeni sürüm yayında olduğu doğrulandıktan sonra: GitHub → Actions → *purge-releases* → *Run workflow* (veya `gh workflow run purge-releases`). Son Release dışındakilerin hepsini ve etiketlerini siler; geri alınamaz. Önce silme: cihazlar `latest` adresini kaybeder.
