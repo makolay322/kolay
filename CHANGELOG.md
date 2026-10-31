@@ -9,6 +9,8 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 - YouTube Özeti aracı: yapıştırılan bağlantının transkripti özgün dilinde alınır, Gemini ile Türkçe özetlenir.
 - Fotoğraf Sıkıştır aracı: seçilen fotoğrafın %90 kaliteli JPEG kopyası Pictures/Kolay'a kaydedilir (tarih, cihaz ve çekim EXIF bilgileri taşınır; konum, Android izin kısıtı nedeniyle taşınmayabilir).
 - Hava Durumu aracı: aranan yer için 7 günlük tahmin ve yağış ihtimali (Open-Meteo).
+### Düzeltildi
+- Ayarlar: "Şimdi denetle"ye art arda basınca indirilen sürüm uygulanamıyor ve "güncel" deniyordu; düğme artık "Şimdi yenile"de kalıyor.
 ### Değişti
 - Ana sayfa: araçlar dikdörtgen liste yerine 2 sütunlu karo düzeninde.
 - Ayarlar: "Cilalama anahtarı" alanı "Gemini API anahtarı" olarak yeniden adlandırıldı.

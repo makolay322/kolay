@@ -125,23 +125,35 @@ public final class SettingsScreen extends Screen {
         } catch (Exception e) { Toast.makeText(c.a, e.getMessage(), Toast.LENGTH_LONG).show(); }
     }
 
+    private static final String READY_TEXT = "Yeni sürüm indirildi. Uygulamak için “Şimdi yenile”ye dokun.";
+
     private void checkNow() {
+        if (c.host.updateReady()) { renderUpdateButtons(); return; }
+        if (!checkBtn.isEnabled()) return;   // a check is already running
         checkBtn.setEnabled(false);
         Ui.swapText(checkBtn, "Denetleniyor…");
         c.host.checkForUpdates(status -> {
             checkBtn.setEnabled(true);
+            if (c.host.updateReady()) { renderUpdateButtons(); return; }
             Ui.swapText(checkBtn, "Şimdi denetle");
             Ui.swapText(updateState, status);
-            renderUpdateButtons();
         });
     }
 
+    /**
+     * A staged payload waits for a restart: the button becomes "Şimdi yenile" and the status says so, whatever the
+     * shell's last status text is (a repeat check on a staged version reports "Güncel"). Text is set directly, not
+     * through Ui.swapText, whose delayed end action would otherwise overwrite it.
+     */
     private void renderUpdateButtons() {
-        if (c.host.updateReady()) {
-            checkBtn.setText("Şimdi yenile");
-            Ui.style(c, checkBtn, Ui.Style.PRIMARY, Icon.Kind.REFRESH);
-            checkBtn.setOnClickListener(v -> { Ui.haptic(v, HapticFeedbackConstants.CONFIRM); c.host.restart(); });
-        }
+        if (!c.host.updateReady()) return;
+        checkBtn.animate().cancel(); checkBtn.setAlpha(1f); checkBtn.setTranslationY(0);
+        updateState.animate().cancel(); updateState.setAlpha(1f); updateState.setTranslationY(0);
+        updateState.setText(READY_TEXT);
+        checkBtn.setEnabled(true);
+        checkBtn.setText("Şimdi yenile");
+        Ui.style(c, checkBtn, Ui.Style.PRIMARY, Icon.Kind.REFRESH);
+        checkBtn.setOnClickListener(v -> { Ui.haptic(v, HapticFeedbackConstants.CONFIRM); c.host.restart(); });
     }
 
     // ---- small building blocks -------------------------------------------------------------
