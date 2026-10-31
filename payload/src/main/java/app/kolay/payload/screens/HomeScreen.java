@@ -68,7 +68,7 @@ public final class HomeScreen extends Screen {
             col.addView(row, Ui.lp(-1, -2, 0, 0, 0, gap));
         }
 
-        TextView foot = Ui.text(c, "Kolay · modül " + c.host.payloadName() + " · kabuk " + c.host.shellVersion(), 12, p.muted, 400);
+        TextView foot = Ui.text(c, "Kolay · modül " + c.host.payloadName() + " · kabuk " + app.kolay.payload.Versions.shellName(c.a, c.host.shellVersion()), 12, p.muted, 400);
         foot.setGravity(Gravity.CENTER);
         col.addView(foot, Ui.lp(-1, -2, 0, c.dp(24), 0, 0));
         entrance.add(foot);

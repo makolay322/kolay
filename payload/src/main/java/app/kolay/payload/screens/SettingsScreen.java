@@ -88,9 +88,9 @@ public final class SettingsScreen extends Screen {
         // ---- about ----
         col.addView(section("HAKKINDA"));
         LinearLayout ab = card();
-        ab.addView(row(Icon.Kind.SCAN, "Modül", c.host.payloadName() + " (v" + c.host.payloadVersion() + ")", null));
+        ab.addView(row(Icon.Kind.SCAN, "Modül", c.host.payloadName(), null));
         ab.addView(divider());
-        ab.addView(row(Icon.Kind.SHIELD, "Kabuk", "sürüm " + c.host.shellVersion(), null));
+        ab.addView(row(Icon.Kind.SHIELD, "Kabuk", app.kolay.payload.Versions.shellName(c.a, c.host.shellVersion()), null));
         ab.addView(divider());
         LinearLayout gh = row(Icon.Kind.LINK, "Sürüm sayfası", "GitHub", Ui.icon(c, Icon.Kind.CHEVRON, p.muted, 18));
         gh.setClickable(true);
