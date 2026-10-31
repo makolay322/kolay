@@ -70,6 +70,7 @@ tools/ocr/               Tıbbi OCR: OcrTool, Picker/Progress/ResultScreen, Ocr,
 tools/qr/                QR Okuyucu: QrTool, QrScreen (arayüz), QrCamera (camera2; kipler QR / PRODUCT barkod / TEXT fotoğraf), QrDecoder (ZXing)
 tools/halal/             Helal Sorgu: HelalTool, ScanScreen/LabelScreen (CamScreen tabanı), Off (Open Food Facts), LabelOcr, Halal (istem + karar), WorkScreen, VerdictScreen
 tools/voice/             Sesli Not: VoiceTool, VoiceScreen (kayıt + yazı + çeviri), Recorder (bellekte PCM → WAV)
+tools/friday/            Cuma Mesajı: FridayTool, FridayScreen (önizleme/kaydet/paylaş), FridayArt (Canvas ile arka plan + yazı), Hadiths (hadis listesi)
 ```
 UI tamamen programatiktir (XML kaynak yok): payload sınıf yükleyiciyle gelir, kabuğun `Resources` nesnesinde kendi kaynakları bulunmaz.
 
@@ -101,3 +102,8 @@ Not: gömülü OCR verisi yalnızca `deu`; Türkçe özel harfler (ş ğ ı) yan
 - `Recorder`: 16 kHz mono PCM, yalnızca bellekte, en fazla 5 dk; sessiz kayıt (tepe < 400) hiç gönderilmez; uygulama arka plana giderse kayıt kapanır ve yazıya çevrilir.
 - Kayıt WAV olarak Gemini'ye **ses girdisi** (`inline_data`) ile gider; Almanca/Türkçe karışık konuşma, her bölüm konuşulduğu dilde yazılır (çeviri yok). Ses işlendikten sonra atılır.
 - Aynı sayfada metin düzenlenebilir; dil çipine dokununca (Türkçe, Almanca, İngilizce, Arapça, Rusça, …) metnin tamamı hedef dile çevrilir; karışık dilli metin de desteklenir.
+
+## Cuma Mesajı akışı
+- `FridayArt.render(seed, portrait, hadis, kaynak)`: görsel tamamen Canvas ile çizilir (görsel dosyası yok): gradyan, geometrik desen (yıldız/daire), hilâl, yıldızlar, cami silueti, yarı saydam panelde hadis. Aynı seed aynı arka planı verir; seed'in yarısı siyah (koyu) temadır. Boyut 1800×1200 (3:2), "Dikey" ile 1200×1800 (2:3).
+- `Hadiths.ALL`: `{metin, kaynak}`; Buhârî, Müslim, Tirmizî'den meâl. Hadis eklemek için yeni satır ekle; basılı kaynaktan doğrula, numarayı yalnızca kesin biliyorsan yaz (aksi halde yalnızca kitap adı). ~230 karakteri geçmesin.
+- Görsel yalnızca Kaydet/Paylaş'a basılınca `Pictures/Kolay`'a yazılır (aynı görsel iki kez yazılmaz). Ağ ve Gemini kullanılmaz.
