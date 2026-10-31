@@ -5,6 +5,7 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 
 ## 1.000
 ### Eklendi
+- Namaz Vakitleri aracı + ana ekran widget'ı + hatırlatıcı: konumdan vakitler hesaplanır, widget sıradaki vakti ve geri sayımı gösterir, vakit çıkmadan 15 dk önce bildirim gelir. **Kabuk 1.005 + Host API 3 gerekir** (konum, bildirim, alarm izinleri ve widget kabukta).
 - Cuma Mesajı aracı: rastgele İslami temalı (yarısı siyah) 3:2 görsel üzerine Buhârî, Müslim ve Tirmizî'den ünlü hadislerden biri yazılır; yeni görsel/başka hadis/dikey 2:3, kaydet ve paylaş. Görsel Canvas ile üretilir, ağ gerekmez.
 - Uygulama içi kabuk güncellemesi: yeni sürüm daha yeni kabuk istediğinde Ayarlar'da “Kabuğu indir ve yükle” çıkar; kabuk APK'sı Release'ten indirilir, SHA-256 + güncelleme anahtarı imzası + paket adı/sürüm/imza sertifikası doğrulanır, sistem yükleyicisine verilir (onayı Android sorar, sessiz yükleme mümkün değil). İlk kez “bilinmeyen kaynaktan yükleme” izni istenir. Manifest'e `shell*` alanları eklendi; `tools/release-shell.sh` ve `tools/manifest_shell.py`.
 - QR Okuyucu aracı: kamera açılır açılmaz tarar (arka kamera, fener, yalnızca en yeni kare çözülür); sonuç önce gösterilir, bağlantı ancak dokununca açılır. Bildirim panelinde (hızlı ayarlar) "QR Okuyucu" kutucuğu: tek dokunuşla uygulamayı QR ekranında açar; araç ekranındaki "Hızlı ayarlara ekle" düğmesi (Android 13+) kutucuğu tek onayla ekler.

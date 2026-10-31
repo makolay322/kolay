@@ -16,8 +16,10 @@ public interface Host {
      * Contract version implemented by this shell.
      * 2: shell bundles ZXing core, declares the CAMERA permission and the quick-settings tile, forwards {@link Module#onPause()},
      *    and can download + install a newer shell ({@link #shellUpdateAvailable()}, {@link #installShellUpdate}).
+     * 3: prayer times, home-screen widget and reminders ({@link #prayerTimes} and friends); shell declares the location,
+     *    notification, exact-alarm and boot permissions.
      */
-    int API = 2;
+    int API = 3;
 
     /** The shell's activity: the payload builds its whole UI inside it. */
     Activity activity();
@@ -70,4 +72,18 @@ public interface Host {
     /** Re-creates the activity so the newest staged payload takes over. Call on the main thread. */
     void restart();
     String releasesUrl();
+
+    // ---- prayer times (API 3) ----
+
+    /** @return {latitude, longitude} saved by {@link #prayerSetLocation}, or null when none yet */
+    double[] prayerLocation();
+    /** Saves the location (kept on the device) and repaints the widget / re-arms the reminder. */
+    void prayerSetLocation(double lat, double lon);
+    /** @return 6 epoch-ms instants (Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha) for the local date (month 1-12), or null without a location */
+    long[] prayerTimes(int year, int month, int day);
+    /** Whether the "15 minutes before the prayer time ends" reminder is on. */
+    boolean prayerReminder();
+    void prayerSetReminder(boolean on);
+    /** Asks the launcher to add the prayer widget to the home screen; false when the launcher cannot do that. */
+    boolean prayerPinWidget();
 }

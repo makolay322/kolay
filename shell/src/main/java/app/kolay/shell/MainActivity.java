@@ -140,6 +140,12 @@ public class MainActivity extends Activity {
         @Override public void onUpdateReady(Runnable r) { Updater.onStaged = r; }
         @Override public void restart() { recreate(); }
         @Override public String releasesUrl() { return Config.RELEASES_PAGE; }
+        @Override public double[] prayerLocation() { return Prayer.location(MainActivity.this); }
+        @Override public void prayerSetLocation(double lat, double lon) { Prayer.setLocation(MainActivity.this, lat, lon); }
+        @Override public long[] prayerTimes(int y, int m, int d) { return Prayer.times(MainActivity.this, y, m, d); }
+        @Override public boolean prayerReminder() { return Prayer.reminder(MainActivity.this); }
+        @Override public void prayerSetReminder(boolean on) { Prayer.setReminder(MainActivity.this, on); }
+        @Override public boolean prayerPinWidget() { return Prayer.pinWidget(MainActivity.this); }
     }
 
     // ---- lifecycle forwarding: a payload fault must never take the shell down ------------------

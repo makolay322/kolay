@@ -71,6 +71,7 @@ tools/qr/                QR Okuyucu: QrTool, QrScreen (arayüz), QrCamera (camer
 tools/halal/             Helal Sorgu: HelalTool, ScanScreen/LabelScreen (CamScreen tabanı), Off (Open Food Facts), LabelOcr, Halal (istem + karar), WorkScreen, VerdictScreen
 tools/voice/             Sesli Not: VoiceTool, VoiceScreen (kayıt + yazı + çeviri), Recorder (bellekte PCM → WAV)
 tools/friday/            Cuma Mesajı: FridayTool, FridayScreen (önizleme/kaydet/paylaş), FridayArt (Canvas ile arka plan + yazı), Hadiths (hadis listesi)
+tools/namaz/             Namaz Vakitleri: NamazTool, NamazScreen (saatler, geri sayım, hatırlatıcı anahtarı, widget düğmesi, konum alma)
 ```
 UI tamamen programatiktir (XML kaynak yok): payload sınıf yükleyiciyle gelir, kabuğun `Resources` nesnesinde kendi kaynakları bulunmaz.
 
@@ -107,3 +108,10 @@ Not: gömülü OCR verisi yalnızca `deu`; Türkçe özel harfler (ş ğ ı) yan
 - `FridayArt.render(seed, portrait, hadis, kaynak)`: görsel tamamen Canvas ile çizilir (görsel dosyası yok): gradyan, geometrik desen (yıldız/daire), hilâl, yıldızlar, cami silueti, yarı saydam panelde hadis. Aynı seed aynı arka planı verir; seed'in yarısı siyah (koyu) temadır. Boyut 1800×1200 (3:2), "Dikey" ile 1200×1800 (2:3).
 - `Hadiths.ALL`: `{metin, kaynak}`; Buhârî, Müslim, Tirmizî'den meâl. Hadis eklemek için yeni satır ekle; basılı kaynaktan doğrula, numarayı yalnızca kesin biliyorsan yaz (aksi halde yalnızca kitap adı). ~230 karakteri geçmesin.
 - Görsel yalnızca Kaydet/Paylaş'a basılınca `Pictures/Kolay`'a yazılır (aynı görsel iki kez yazılmaz). Ağ ve Gemini kullanılmaz.
+
+## Namaz Vakitleri akışı (Host API 3, kabuk ≥ 1.005)
+- Hesap, widget ve alarmlar **kabukta** çalışır (uygulama kapalıyken de gerekir): `PrayerCalc` (saf Java, JVM'de denenir), `Prayer` (ayarlar + alarm + bildirim), `PrayerWidget`, `PrayerReceiver`. Payload yalnızca ön yüzdür; `Host.prayer*` metotlarıyla konuşur.
+- Konum: payload `ACCESS_COARSE_LOCATION` ister, son bilinen/anlık konumu alır, yalnızca koordinat `Host.prayerSetLocation` ile kabukta saklanır (~5 km'den az oynama yok sayılır). İnternete gönderilmez.
+- Yöntem: Diyanet açıları (imsak 18°, yatsı 17°), Hanefi ikindi (gölge 2), ihtiyat payları `PrayerCalc.TUNE_MIN` (güneş −7, öğle +5, ikindi +4, akşam +7 dk). Hafızaya dayalı; Diyanet takvimiyle karşılaştırılıp ayarlanmalı. Yüksek enlemde yatsı/imsak "gecenin açıya oranlı payı" ile hesaplanır.
+- Widget (3×1, düz): sıradaki vakit adı, saati ve `Chronometer` ile canlı geri sayım. Güncelleme: vakit değişince alarm + 30 dk'da bir sistem güncellemesi. Sıradaki vakit "Güneş" hariçtir.
+- Hatırlatıcı: her vaktin **bitmesine 15 dk kala** (Sabah→güneş, Öğle→ikindi, İkindi→akşam, Akşam→yatsı, Yatsı→ertesi imsak) bildirim. Tek seferde yalnızca sıradaki alarm kurulur; tetiklenince bir sonraki kurulur. Önyükleme, saat/saat dilimi değişimi ve kabuk güncellemesinde yeniden kurulur. Android 12+ tam zamanlı alarm izni yoksa `setAndAllowWhileIdle` (birkaç dakika kayabilir); ekrandaki düğme izin sayfasını açar.
