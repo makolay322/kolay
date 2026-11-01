@@ -122,14 +122,18 @@ final class Ocr {
         TessBaseAPI a = tess();
         a.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);
         StringBuilder out = new StringBuilder();
-        for (int i = 0; i < uris.size(); i++) {
-            if (cancelled) throw new InterruptedIOException("iptal");
-            pr.on("Sayfa " + (i + 1) + "/" + uris.size() + " okunuyor…", 0.08f + 0.9f * i / uris.size());
-            Bitmap bmp = load(uris.get(i));
-            a.setImage(bmp);
-            String raw = a.getUTF8Text();
-            bmp.recycle();
-            if (raw != null && !raw.trim().isEmpty()) out.append(raw.trim()).append("\n\n");
+        try {
+            for (int i = 0; i < uris.size(); i++) {
+                if (cancelled) throw new InterruptedIOException("iptal");
+                pr.on("Sayfa " + (i + 1) + "/" + uris.size() + " okunuyor…", 0.08f + 0.9f * i / uris.size());
+                Bitmap bmp = load(uris.get(i));
+                a.setImage(bmp);
+                String raw = a.getUTF8Text();
+                bmp.recycle();
+                if (raw != null && !raw.trim().isEmpty()) out.append(raw.trim()).append("\n\n");
+            }
+        } finally {
+            a.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_COLUMN);   // the medical mode relies on the default set in tess()
         }
         return out.toString().trim();
     }
@@ -143,7 +147,9 @@ final class Ocr {
 
     /** General mode, on request only: one cleanup request with a loose prompt. Throws on a missing key or network error. */
     static String cleanGeneral(Host host, String text) throws Exception {
-        return app.kolay.payload.tools.Gemini.generate(host, GENERAL_PROMPT + text, 0.2).trim();
+        // same on-device masking as the medical mode: names, birth dates, addresses and IBANs never leave the phone
+        String masked = Mask.apply(text, Mask.collect(java.util.Collections.singletonList(text))).trim();
+        return app.kolay.payload.tools.Gemini.generate(host, GENERAL_PROMPT + masked, 0.2).trim();
     }
 
     private String gemini(String text) throws Exception {

@@ -6,6 +6,8 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 ## 1.000
 ### Kaldırıldı
 - Sesli Not aracı (ve kabuktaki mikrofon izni), Cuma Mesajı'nda dikey/yatay seçeneği, Ayarlar'daki "Ekran görüntüsünü engelle" (kayıtlı "açık" değer kabuk açılışında temizlenir).
+### Düzeltildi
+- Genel OCR sonrası tıbbi modun Tesseract ayarı bozuluyordu; geri yüklenir. Namaz ekranında vakit geçişinde sayaç zinciri çoğalıyordu; güney yarım küre enlem etiketi; widget çift çiziliyordu. Genel moddaki “Cilala” artık metni önce cihazda maskeler.
 ### Değişti
 - Namaz widget'ına dokununca renk paleti rastgele değişir (uygulama açılmaz). Kabuk 1.008.
 - Cuma görselleri biraz aydınlatıldı; menüde "kare" yazar. Namaz ekranında satırlar/düğmeler kırpılmayacak boyuta döndü.

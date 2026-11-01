@@ -28,7 +28,6 @@ public class PrayerWidget extends AppWidgetProvider {
         {0xFFFFD6A5, 0xFFFFB5C8, 0xFFC4B5FF},   // sand - blush - lavender
     };
     @Override public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
-        for (int id : ids) paint(c, m, id);
         Prayer.refresh(c);   // keeps the alarms armed even if the app was never opened after an install
     }
 

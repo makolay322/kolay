@@ -51,7 +51,7 @@ final class ResultScreen extends Screen {
         LinearLayout bottom = new LinearLayout(c.a);
         bottom.setOrientation(LinearLayout.VERTICAL);
         if (s.general && ok) {   // general mode: the text stays on the device unless this button is pressed
-            clean = Ui.button(c, "Gemini'ye gönder (temizle)", Ui.Style.TONAL, Icon.Kind.REFRESH);
+            clean = Ui.button(c, "Cilala (maskelenip buluta gider)", Ui.Style.TONAL, Icon.Kind.REFRESH);
             clean.setOnClickListener(v -> cleanUp());
             bottom.addView(clean, Ui.lp(-1, c.dp(52), c.dp(16), c.dp(8), c.dp(16), 0));
         }
@@ -87,7 +87,7 @@ final class ResultScreen extends Screen {
         if (cleaning) return;
         if (cleaned) {   // toggle back to the raw text
             cleaned = false; text = raw; out.setText(raw);
-            Ui.style(c, clean, Ui.Style.TONAL, Icon.Kind.REFRESH); clean.setText("Gemini'ye gönder (temizle)");
+            Ui.style(c, clean, Ui.Style.TONAL, Icon.Kind.REFRESH); clean.setText("Cilala (maskelenip buluta gider)");
             return;
         }
         cleaning = true;
@@ -101,7 +101,7 @@ final class ResultScreen extends Screen {
                 cleaning = false;
                 if (!clean.isAttachedToWindow()) return;
                 clean.setEnabled(true);
-                if (e != null) { clean.setText("Gemini'ye gönder (temizle)"); android.widget.Toast.makeText(c.a, e, android.widget.Toast.LENGTH_LONG).show(); return; }
+                if (e != null) { clean.setText("Cilala (maskelenip buluta gider)"); android.widget.Toast.makeText(c.a, e, android.widget.Toast.LENGTH_LONG).show(); return; }
                 cleaned = true; text = r; out.setText(r);
                 clean.setText("Ham metni göster");
             });

@@ -15,8 +15,8 @@ Bu bir kişisel projedir; bir açık bulursan depo sahibine (`@makolay322`) GitH
 | Kararlılık | Bozuk sürüm uygulamayı kilitler | Açılış sağlık takibi, 2 kötü oturumda kara liste, gömülü yedek modül. |
 | API anahtarı | Depoya/APK'ya sızması | Depoda ve APK'larda yok; cihazda Android Keystore (AES-GCM, dışa aktarılamaz anahtar) ile şifreli. İstek başlığında gider, URL'de değil. |
 | Hasta verisi | Buluta kimlik bilgisi gitmesi | İsim/doğum tarihi/adres/IBAN **cihazda** maskelenir, yalnızca maskeli metin gider (yerel regex sınırı: aşağıya bak). |
-| Hasta verisi | Diskte/yedekte kalması | Sonuç diske yazılmaz; bulut yedek ve cihaz aktarımı kapalı (`allowBackup=false`, `dataExtractionRules`). Pano kopyası "hassas" işaretlenir. |
-| Uygulama yüzeyi | Başka uygulamaların erişimi | Tek dışa açık bileşen başlatıcı etkinlik; servis `BIND_JOB_SERVICE` izniyle korunur; yalnızca `INTERNET` ve `READ_MEDIA_IMAGES`. |
+| Hasta verisi | Diskte/yedekte kalması | Sonuç diske yazılmaz; bulut yedek ve cihaz aktarımı kapalı (`allowBackup=false`, `dataExtractionRules`). Pano kopyası "hassas" işaretlenir. Ekran görüntüsü engeli (`FLAG_SECURE`) sahibinin kararıyla kaldırıldı; ekran kaydı/son uygulamalar önizlemesi artık korunmaz. |
+| Uygulama yüzeyi | Başka uygulamaların erişimi | Dışa açık bileşenler: başlatıcı etkinlik, “YouTube Özet” paylaşım hedefi (yalnızca düz metin alır, bağlantı olarak işler) ve namaz widget alıcısı (yalnızca renk paleti değiştirir); servis `BIND_JOB_SERVICE` izniyle korunur. İzinler: `INTERNET`, `READ_MEDIA_IMAGES`, kamera, yaklaşık konum (yalnızca cihazda), bildirim, tam zamanlı alarm, açılışta başlatma (namaz hatırlatıcısı). |
 | Tedarik zinciri | Zararlı bağımlılık | Gradle bağımlılık doğrulaması (`gradle/verification-metadata.xml`, SHA-256) ve Gradle dağıtım özeti sabitlenmiş. |
 
 ## Bilinen sınırlar (dürüst liste)

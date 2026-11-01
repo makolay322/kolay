@@ -37,8 +37,7 @@ final class NamazScreen extends Screen {
     private final Runnable tick = new Runnable() {
         @Override public void run() {
             if (destroyed || !ticking) return;
-            countdown();
-            c.ui.postDelayed(this, 1000);
+            if (countdown()) c.ui.postDelayed(this, 1000);   // false: render() already restarted the loop
         }
     };
 
@@ -163,7 +162,7 @@ final class NamazScreen extends Screen {
         load();
         if (today == null) { askLocation(); return; }
         double[] loc = c.host.prayerLocation();
-        header.subtitle.setText(String.format(Locale.US, "%.2f° K · %.2f° D", loc[0], Math.abs(loc[1])).replace("° D", loc[1] >= 0 ? "° D" : "° B"));
+        header.subtitle.setText(String.format(Locale.US, "%.2f° %s · %.2f° %s", Math.abs(loc[0]), loc[0] >= 0 ? "K" : "G", Math.abs(loc[1]), loc[1] >= 0 ? "D" : "B"));
 
         body.removeAllViews();
         body.setGravity(Gravity.NO_GRAVITY);
@@ -262,12 +261,14 @@ final class NamazScreen extends Screen {
 
     // ---- countdown ----------------------------------------------------------------------------
 
-    private void countdown() {
-        if (heroLeft == null) return;
+    /** @return false when the time arrived and render() restarted the tick itself */
+    private boolean countdown() {
+        if (heroLeft == null) return true;
         long left = nextAt - System.currentTimeMillis();
-        if (left <= 0) { render(); return; }     // the time arrived: pick the following one
+        if (left <= 0) { render(); return false; }     // the time arrived: pick the following one
         long s = left / 1000;
         heroLeft.setText(String.format(Locale.US, "%d:%02d:%02d kaldı", s / 3600, (s / 60) % 60, s % 60));
+        return true;
     }
 
     private static String clock(long t) { return new SimpleDateFormat("HH:mm", Locale.GERMANY).format(new Date(t)); }
