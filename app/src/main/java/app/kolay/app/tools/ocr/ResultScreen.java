@@ -1,7 +1,6 @@
 package app.kolay.app.tools.ocr;
 
 import android.content.ClipData;
-import android.content.ClipDescription;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;

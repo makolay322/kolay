@@ -55,10 +55,6 @@ final class Prayer {
 
     static void setReminderMask(Context c, int mask) { prefs(c).edit().putInt("mask", mask & ALL_MASK).apply(); refresh(c); }
 
-    static boolean reminder(Context c) { return reminderMask(c) != 0; }
-
-    static void setReminder(Context c, boolean on) { setReminderMask(c, on ? ALL_MASK : 0); }
-
     // ---- times --------------------------------------------------------------------------------
 
     /** @return 6 instants for the given local date, or null without a saved location */
@@ -125,7 +121,7 @@ final class Prayer {
         am.cancel(tick); am.cancel(remind);
         long[] nx = next(c, now);
         if (nx != null) set(am, nx[1] + 1000, tick);     // repaint the widget right after the time changes
-        if (reminder(c)) {
+        if (reminderMask(c) != 0) {
             long[] r = nextReminder(c, now);
             if (r != null) {
                 Intent i = new Intent(c, PrayerReceiver.class).setAction(ACTION_REMIND).putExtra("i", (int) r[0]).putExtra("end", r[2]);

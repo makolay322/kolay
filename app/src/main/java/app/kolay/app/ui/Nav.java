@@ -21,7 +21,6 @@ public final class Nav {
     public Nav(Ctx c, FrameLayout root) { this.c = c; this.root = root; c.nav = this; }
 
     public Screen top() { return stack.isEmpty() ? null : stack.get(stack.size() - 1); }
-    public int depth() { return stack.size(); }
 
     private Screen build(Screen s) {
         s.attach(c);

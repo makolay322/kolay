@@ -22,6 +22,9 @@ public final class Logo extends View {
     private static final float[] HOURS = {0, 5, 6.5f, 8.5f, 10, 15, 17, 18.5f, 20, 22, 24};
     private static final int[] COLORS = {0xFF5B5BD6, 0xFF7C4DCC, 0xFFD86FA8, 0xFF4C8FD9, 0xFF1596B0, 0xFF1596B0, 0xFF3F7FD0, 0xFFD9607A, 0xFFA64DB8, 0xFF5B5BD6, 0xFF5B5BD6};
 
+    /** Length of the entrance animation. */
+    public static final long INTRO_MS = 2000;
+
     private final boolean dark;
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path k = new Path(), o = new Path();
@@ -46,7 +49,7 @@ public final class Logo extends View {
     public void intro() {
         if (enter != null) enter.cancel();
         enter = ValueAnimator.ofFloat(0f, 1f);
-        enter.setDuration(2000);
+        enter.setDuration(INTRO_MS);
         enter.setInterpolator(new LinearInterpolator());
         enter.addUpdateListener(a -> { in = (float) a.getAnimatedValue(); invalidate(); });
         in = 0f;

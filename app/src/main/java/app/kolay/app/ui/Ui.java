@@ -1,6 +1,5 @@
 package app.kolay.app.ui;
 
-import android.animation.ValueAnimator;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Outline;
@@ -274,9 +273,5 @@ public final class Ui {
 
     public static LinearLayout.LayoutParams lp(int w, int h, int l, int t, int r, int b) {
         LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(w, h); p.setMargins(l, t, r, b); return p;
-    }
-
-    public static ValueAnimator ticker(float from, float to, long ms, ValueAnimator.AnimatorUpdateListener l) {
-        ValueAnimator a = ValueAnimator.ofFloat(from, to); a.setDuration(ms); a.addUpdateListener(l); return a;
     }
 }

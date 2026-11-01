@@ -5,7 +5,7 @@ import android.graphics.drawable.Drawable;
 
 /** Stroke icons on a 24-unit grid, drawn with paths so they stay crisp at any size and take any color. */
 public final class Icon extends Drawable {
-    public enum Kind { BACK, CHEVRON, CHECK, COPY, SHARE, SETTINGS, SCAN, SHIELD, KEY, REFRESH, LINK, QR, FLASH, BARCODE, CAMERA, CRESCENT, CLOCK,
+    public enum Kind { BACK, CHEVRON, CHECK, COPY, SHARE, SETTINGS, SCAN, KEY, REFRESH, LINK, QR, FLASH, BARCODE, CAMERA, CRESCENT, CLOCK,
         IMAGE, PIN, SPARKLE, PASTE, DOWNLOAD, LAYERS, PLAY, DOC, APPS }
 
     private final Kind kind;
@@ -45,10 +45,6 @@ public final class Icon extends Drawable {
                 path.moveTo(20, 15.5f); path.lineTo(20, 17.5f); path.quadTo(20, 20, 17.5f, 20); path.lineTo(15.5f, 20);
                 path.moveTo(8.5f, 20); path.lineTo(6.5f, 20); path.quadTo(4, 20, 4, 17.5f); path.lineTo(4, 15.5f);
                 path.moveTo(8, 12); path.lineTo(16, 12);
-                break;
-            case SHIELD:
-                path.moveTo(12, 3); path.lineTo(19, 6); path.lineTo(19, 11.5f);
-                path.cubicTo(19, 16, 16, 19.5f, 12, 21); path.cubicTo(8, 19.5f, 5, 16, 5, 11.5f); path.lineTo(5, 6); path.close();
                 break;
             case KEY:
                 path.addCircle(8, 15.5f, 3.6f, Path.Direction.CW);

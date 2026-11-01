@@ -23,9 +23,18 @@ android {
             if (ks) { storeFile file(ks.storeFile); storePassword ks.storePassword; keyAlias ks.keyAlias; keyPassword ks.keyPassword }
         }
     }
-    buildTypes { release { signingConfig ks ? signingConfigs.release : signingConfigs.debug } }
+    buildTypes {
+        release {
+            signingConfig ks ? signingConfigs.release : signingConfigs.debug
+            minifyEnabled true          // R8: drops unused code (mostly from ZXing) and optimizes the rest
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
-    aaptOptions { noCompress 'traineddata' }
+    // Smaller download: every update fetches the whole APK, and the Tesseract libraries are ~80% of it. Compressed native
+    // libraries are unpacked once at install time (a few MB more on the phone, about half the download).
+    packaging { jniLibs { useLegacyPackaging true } }
 }
 
 dependencies {

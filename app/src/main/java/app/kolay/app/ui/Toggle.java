@@ -25,7 +25,6 @@ public final class Toggle extends View {
     }
 
     public void onChange(Consumer<Boolean> l) { listener = l; }
-    public boolean isChecked() { return checked; }
 
     public void set(boolean v, boolean animate) {
         checked = v;

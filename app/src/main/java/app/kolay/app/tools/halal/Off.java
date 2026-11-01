@@ -1,7 +1,6 @@
 package app.kolay.app.tools.halal;
 
 import org.json.JSONObject;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;

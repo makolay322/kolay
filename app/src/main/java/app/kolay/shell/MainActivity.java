@@ -33,13 +33,16 @@ public class MainActivity extends Activity {
         Updater.checkAsync(this, false);
     }
 
-    /** deu.traineddata ships in the APK's assets; Tesseract needs it as a plain file. */
+    /**
+     * deu.traineddata ships (compressed) in the APK's assets; Tesseract needs it as a plain file. Copied again whenever the
+     * app version changes, so a new file in a release reaches the phone.
+     */
     private void ensureTessdata() throws IOException {
         File dir = new File(getFilesDir(), "tessdata");
         File f = new File(dir, "deu.traineddata");
-        long len;
-        try (android.content.res.AssetFileDescriptor fd = getAssets().openFd("tessdata/deu.traineddata")) { len = fd.getLength(); }
-        if (!f.exists() || f.length() != len) {
+        android.content.SharedPreferences p = getSharedPreferences("tessdata", MODE_PRIVATE);
+        long vc = Updater.installedVersion(this);
+        if (!f.isFile() || p.getLong("copied_for", -1) != vc) {
             dir.mkdirs();
             File tmp = new File(dir, "deu.tmp");
             try (InputStream in = getAssets().open("tessdata/deu.traineddata"); OutputStream o = new FileOutputStream(tmp)) {
@@ -47,6 +50,7 @@ public class MainActivity extends Activity {
             }
             f.delete();
             if (!tmp.renameTo(f)) throw new IOException("tessdata could not be placed");
+            p.edit().putLong("copied_for", vc).apply();
         }
     }
 

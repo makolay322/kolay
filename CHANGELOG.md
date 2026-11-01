@@ -4,6 +4,9 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 (görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
 
 ## 1.000
+### Değişti (1.016)
+- Ana sayfa başlığı logonun giriş animasyonu bitince daralır (logo ve “Kolay” yazısı küçülür, “Araç kutun” katlanır); araçlar yukarı çıkar. “Yeni sürüm hazır” bandı da inceldi.
+- APK küçültüldü: R8 kod küçültme + kullanılmayan kaynakların atılması, Tesseract kütüphaneleri ve OCR verisi APK içinde sıkıştırılmış (her güncellemede inen dosya ~10,7 MB'den yaklaşık yarısına iner; kütüphaneler kurulumda bir kez açılır). Kullanılmayan kod (eski hatırlatıcı açma/kapama, ikon, yardımcılar, import'lar) silindi.
 ### Değişti (1.015)
 - Namaz: ikindi vakti Diyanet takvimindeki gibi **asr-ı evvel** (gölge = boy) ile hesaplanır; önceden Hanefi asr-ı sani (gölge = 2 boy) idi ve kışın ~40 dk geç çıkıyordu (Mettmann, 1 Kasım: 15:20 → 14:42). Widget ve hatırlatıcılar da buna göre kayar.
 ### Değişti (tek APK — 1.014)

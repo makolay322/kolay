@@ -19,7 +19,7 @@ güncelleme imzası üretemez. Sürüm yayınlamak için anahtarlar gerekir ([OP
 |---|---|
 | `./gradlew :app:assembleRelease` | `app/build/outputs/apk/release/app-release.apk` (yayında `Kolay.apk` adıyla) |
 
-Tek Gradle modülü vardır (`app/`). Sürüm bilgisi `app/version.properties`'te yalnızca **taban** değerdir; gerçek sürümü yayın betiği
+Tek Gradle modülü vardır (`app/`). Release derlemesi R8 ile küçültülür (`minifyEnabled`, `shrinkResources`; kurallar `app/proguard-rules.pro`: Tesseract/Leptonica sınıfları yerel koddan adla çağrıldığı için tutulur, isimler karıştırılmaz). Yeni bir kütüphane yansıma/JNI ile sınıf arıyorsa oraya `-keep` ekle. Yerel kütüphaneler ve `deu.traineddata` APK'da sıkıştırılmıştır (`useLegacyPackaging`); OCR verisi her yeni sürümün ilk açılışında dosyaya kopyalanır. Sürüm bilgisi `app/version.properties`'te yalnızca **taban** değerdir; gerçek sürümü yayın betiği
 son manifest'ten türetip derlemeden önce yazar (sonra geri alır, depoya commit edilmez).
 
 ## Telefona yükleme
