@@ -13,7 +13,8 @@ import android.widget.RemoteViews;
 
 /**
  * Home-screen widget: only the next prayer's time, 24-hour, as pastel-gradient light text with no background. It adapts to its
- * size: tap = new color palette; one line when wide, hours above minutes otherwise, always scaled to fill the widget. Tapping it opens the app.
+ * size: tap = new color palette; one line when wide, hours above minutes otherwise, always scaled to fill the widget. A small lowercase
+ * letter in the top-right corner names the prayer the time belongs to (s, ö, i, a, y).
  */
 public class PrayerWidget extends AppWidgetProvider {
     private static final String ACTION_PALETTE = "app.kolay.shell.PALETTE";
@@ -27,6 +28,9 @@ public class PrayerWidget extends AppWidgetProvider {
         {0xFFFFB8B8, 0xFFFFC9E8, 0xFFD4C2FF},   // coral - pink - violet
         {0xFFFFD6A5, 0xFFFFB5C8, 0xFFC4B5FF},   // sand - blush - lavender
     };
+    /** Corner letter per prayer index (Prayer.NAMES order; sunrise is never shown). */
+    private static final String[] LETTERS = {"s", "", "ö", "i", "a", "y"};
+
     @Override public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
         Prayer.refresh(c);   // keeps the alarms armed even if the app was never opened after an install
     }
@@ -65,18 +69,19 @@ public class PrayerWidget extends AppWidgetProvider {
 
         long[] n = Prayer.next(c, System.currentTimeMillis());
         String t = n == null ? "--:--" : Prayer.clock(n[1]);
+        String letter = n == null ? "" : LETTERS[(int) n[0]];
 
         RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_prayer);
         v.setOnClickPendingIntent(R.id.root, PendingIntent.getBroadcast(c, 0,
             new Intent(c, PrayerWidget.class).setAction(ACTION_PALETTE),
             PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
-        v.setImageViewBitmap(R.id.img, draw(c, t, w, h, stacked));
-        v.setContentDescription(R.id.root, n == null ? "Namaz vakitleri" : "Sıradaki namaz vakti " + t);
+        v.setImageViewBitmap(R.id.img, draw(c, t, letter, w, h, stacked));
+        v.setContentDescription(R.id.root, n == null ? "Namaz vakitleri" : "Sıradaki namaz vakti: " + Prayer.NAMES[(int) n[0]] + " " + t);
         m.updateAppWidget(id, v);
     }
 
     /** Pastel-gradient time on a transparent bitmap, text scaled to fill the widget (bitmap kept small: RemoteViews has a size limit). */
-    private static Bitmap draw(Context c, String t, float wDp, float hDp, boolean stacked) {
+    private static Bitmap draw(Context c, String t, String letter, float wDp, float hDp, boolean stacked) {
         float d = c.getResources().getDisplayMetrics().density;
         float scale = Math.min(1f, 640f / Math.max(wDp * d, hDp * d));
         int bw = Math.max(32, Math.round(wDp * d * scale)), bh = Math.max(32, Math.round(hDp * d * scale));
@@ -91,7 +96,9 @@ public class PrayerWidget extends AppWidgetProvider {
 
         String[] lines = stacked && t.length() == 5 ? new String[]{t.substring(0, 2), t.substring(3)} : new String[]{t};
         float pad = Math.min(bw, bh) * 0.04f;
-        float availW = bw - 2 * pad, availH = bh - 2 * pad;
+        // the corner letter gets its own band above the digits; the time is centred in the space below it
+        float letterH = letter.isEmpty() ? 0f : Math.min(bw, bh) * 0.12f, band = letterH * 1.6f;
+        float availW = bw - 2 * pad, availH = bh - 2 * pad - band;
         // fit: measure at a reference size, then scale to the tighter of width and height
         p.setTextSize(100f);
         float maxW = 0;
@@ -109,8 +116,16 @@ public class PrayerWidget extends AppWidgetProvider {
         p.setShader(new LinearGradient(pad, pad, bw - pad, bh - pad,
             PALETTES[Math.floorMod(c.getSharedPreferences("prayer", Context.MODE_PRIVATE).getInt("pal", 0), PALETTES.length)], new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP));
         p.setShadowLayer(Math.max(2f, k * 6f), 0, k * 2f, 0x66000000);
-        float y = (bh - blockH) / 2f + digitH;
+        float y = pad + band + (availH - blockH) / 2f + digitH;
         for (String l : lines) { cv.drawText(l, bw / 2f, y, p); y += digitH + gap; }
+        if (!letter.isEmpty()) {
+            // x-height is about half the text size; size it so the letter's body is letterH tall
+            p.setTextSize(letterH / 0.52f);
+            p.setLetterSpacing(0f);
+            p.setTextAlign(Paint.Align.RIGHT);
+            p.setShadowLayer(Math.max(1.5f, letterH * 0.12f), 0, letterH * 0.04f, 0x66000000);
+            cv.drawText(letter, bw - pad, pad + letterH * 1.5f, p);   // room above for the dots of ö and i
+        }
         return bmp;
     }
 }
