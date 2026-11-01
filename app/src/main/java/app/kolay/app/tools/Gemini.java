@@ -10,8 +10,9 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
-/** Minimal Gemini calls (text) using the key from Settings. Nothing is logged or stored. */
+/** Minimal Gemini calls (text, single prompt or multi-turn chat) using the key from Settings. Nothing is logged or stored. */
 public final class Gemini {
     private static final String MODEL = "gemini-flash-lite-latest";
     private Gemini() {}
@@ -23,15 +24,30 @@ public final class Gemini {
     /** Text in, text out. Low {@code temperature} for tasks that must stay faithful (verdicts, translation). */
     public static String generate(Host host, String prompt, double temperature) throws Exception {
         JSONArray parts = new JSONArray().put(new JSONObject().put("text", prompt));
-        return call(host, parts, temperature, 8192, 120000);
+        return call(host, new JSONArray().put(new JSONObject().put("parts", parts)), null, temperature, 8192, 120000);
     }
 
-    private static String call(Host host, JSONArray parts, double temperature, int maxTokens, int readTimeoutMs) throws Exception {
+    /**
+     * Multi-turn chat. {@code turns} alternate user / model, oldest first, and must end with the user's new message;
+     * each entry is {role ("user" or "model"), text}. {@code system} sets the assistant's standing instructions.
+     */
+    public static String chat(Host host, List<String[]> turns, String system, double temperature) throws Exception {
+        JSONArray contents = new JSONArray();
+        for (String[] t : turns)
+            contents.put(new JSONObject().put("role", t[0]).put("parts", new JSONArray().put(new JSONObject().put("text", t[1]))));
+        return call(host, contents, system, temperature, 4096, 90000);
+    }
+
+    public static boolean hasKey(Host host) { return !host.secret(SettingsScreen.LLM_SECRET).isEmpty(); }
+
+    private static String call(Host host, JSONArray contents, String system, double temperature, int maxTokens, int readTimeoutMs) throws Exception {
         String key = host.secret(SettingsScreen.LLM_SECRET);
-        if (key.isEmpty()) throw new IOException("Gemini API anahtarı girilmemiş (Ayarlar)");
+        if (key.isEmpty()) throw new IOException("Anahtar girilmemiş (Ayarlar)");
         JSONObject body = new JSONObject()
-            .put("contents", new JSONArray().put(new JSONObject().put("parts", parts)))
+            .put("contents", contents)
             .put("generationConfig", new JSONObject().put("temperature", temperature).put("maxOutputTokens", maxTokens));
+        if (system != null)
+            body.put("systemInstruction", new JSONObject().put("parts", new JSONArray().put(new JSONObject().put("text", system))));
         HttpURLConnection c = (HttpURLConnection) new URL("https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent").openConnection();
         c.setRequestMethod("POST"); c.setDoOutput(true); c.setConnectTimeout(10000); c.setReadTimeout(readTimeoutMs);
         c.setRequestProperty("Content-Type", "application/json");
@@ -40,11 +56,15 @@ public final class Gemini {
         int code = c.getResponseCode();
         InputStream is = code < 400 ? c.getInputStream() : c.getErrorStream();
         String resp = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-        if (code >= 400) throw new IOException("Gemini HTTP " + code);
+        if (code == 429) throw new IOException("Kullanım sınırı doldu; biraz sonra tekrar dene");
+        if (code == 401 || code == 403 || (code == 400 && resp.contains("API key")))
+            throw new IOException("Anahtar kabul edilmedi (HTTP " + code + "); Ayarlar'dan kontrol et");
+        if (code == 400) throw new IOException("İstek reddedildi (HTTP 400)");
+        if (code >= 400) throw new IOException("Sunucu hatası (HTTP " + code + ")");
         JSONArray cand = new JSONObject(resp).optJSONArray("candidates");
-        if (cand == null || cand.length() == 0) throw new IOException("Gemini yanıt vermedi (içerik engellenmiş olabilir)");
+        if (cand == null || cand.length() == 0) throw new IOException("Yanıt gelmedi (içerik engellenmiş olabilir)");
         JSONObject content = cand.getJSONObject(0).optJSONObject("content");
-        if (content == null) throw new IOException("Gemini boş yanıt döndürdü");
+        if (content == null) throw new IOException("Boş yanıt döndü");
         JSONArray out = content.getJSONArray("parts");
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < out.length(); i++) sb.append(out.getJSONObject(i).optString("text"));

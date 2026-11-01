@@ -9,13 +9,15 @@ import android.view.*;
 import android.widget.*;
 import app.kolay.app.ui.*;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Random;
 
 /** Preview of the generated card with new-image / new-hadith / save / share. Nothing is stored until Save or Share. */
 final class FridayScreen extends Screen {
     private final Random rnd = new Random();
     private long seed = rnd.nextLong();
-    private int hadith = rnd.nextInt(Hadiths.ALL.length);
+    private List<String[]> hadiths;
+    private int hadith;
     private Bitmap bmp;
     private Uri saved;          // set once the current image was written to Pictures/Kolay
     private int gen;            // guards against stale renders finishing out of order
@@ -24,6 +26,8 @@ final class FridayScreen extends Screen {
     private Arc loader;
 
     @Override public View create() {
+        hadiths = Hadiths.all(c.a);
+        hadith = rnd.nextInt(hadiths.size());
         LinearLayout page = new LinearLayout(c.a);
         page.setOrientation(LinearLayout.VERTICAL);
         page.addView(new Header(c, "Cuma Mesajı", "Rastgele görsel · hadis · 3:2", () -> c.nav.pop()).view);
@@ -65,7 +69,7 @@ final class FridayScreen extends Screen {
         share.setOnClickListener(v -> persist(true));
         f.addView(Ui.pair(c, save, share, Ui.H_BAR), Ui.lp(-1, -2, 0, c.dp(Ui.GAP), 0, 0));
 
-        TextView note = Ui.text(c, "Hadisler meâl olarak verilir; paylaşmadan önce kaynağını doğrulaman önerilir.", 12, c.p.muted, 400);
+        TextView note = Ui.text(c, "Hadisler İbrahim Canan'ın Kütüb-i Sitte tercümesinden alınmıştır; paylaşmadan önce kaynağını doğrulaman önerilir.", 12, c.p.muted, 400);
         note.setGravity(Gravity.CENTER); note.setLineSpacing(0, 1.15f);
         f.addView(note, Ui.lp(-1, -2, c.dp(8), c.dp(12), c.dp(8), 0));
         page.addView(f, new LinearLayout.LayoutParams(-1, -2));
@@ -75,13 +79,15 @@ final class FridayScreen extends Screen {
     @Override public void onShown() { render(); }
 
     private void nextHadith() {
-        int n = Hadiths.ALL.length, next = rnd.nextInt(n - 1);
+        int n = hadiths.size();
+        if (n < 2) return;
+        int next = rnd.nextInt(n - 1);
         hadith = next >= hadith ? next + 1 : next;   // never the same twice in a row
     }
 
     private void render() {
         final int my = ++gen;
-        final long s = seed; final String[] h = Hadiths.ALL[hadith];
+        final long s = seed; final String[] h = hadiths.get(hadith);
         c.io.execute(() -> {
             Bitmap b;
             try { b = FridayArt.render(s, h[0], h[1]); }

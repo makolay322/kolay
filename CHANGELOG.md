@@ -4,6 +4,12 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 (görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
 
 ## 1.000
+### Değişti (1.019)
+- **Sohbet** karosu (yeni): ufak tefek işler için sohbet kutusu — soru sor, metni düzelt, çevir, özetle, mesaj taslağı yaz. Çok turlu konuşur, yanıtlar seçilip kopyalanabilir, “Yeni sohbet” ile sıfırlanır. Ayarlar'daki anahtarı kullanır; konuşma yalnızca bellekte tutulur, diske/loga yazılmaz, ekrandan çıkınca silinir.
+- **Cuma Mesajı** hadisleri yenilendi: 189 kendi meâlimiz yerine Prof. Dr. İbrahim Canan'ın Kütüb-i Sitte tercümesinden (muhaddis.org veritabanı) seçilmiş, tekrarsız **1000 hadis**; kaynak satırında kitap ve bab numarası (ör. “Buhârî, Edeb 27”). Hadisler APK içinde `assets/hadiths.tsv` dosyasında.
+- Cilalama hata iletileri sadeleşti (kota doldu, anahtar kabul edilmedi, sunucu hatası ayrı ayrı).
+### Kaldırıldı (1.019)
+- **Tıbbi Hesap** aracı ve kodu tamamen kaldırıldı.
 ### Eklendi (1.018)
 - **Kıble** aracı: Namaz Vakitleri'nde kaydedilen konumdan kıble açısı ve Kâbe'ye uzaklık; telefonun pusulası (dönme vektörü sensörü, yoksa ivmeölçer + manyetometre) ile dönen kadran, Kâbe işareti, “Sağa/Sola X° dön” yönlendirmesi; kıbleye ±3° içinde dönünce yeşile döner ve titreşir. Manyetik sapma otomatik düzeltilir; telefon dik tutulunca veya pusula ayarsızken uyarı çıkar. Yeni izin yok.
 - **Tıbbi Hesap** aracı (çevrimdışı): eGFR (CKD-EPI 2021), kreatinin klirensi (Cockcroft–Gault), VKİ ve vücut yüzey alanı, QTc (Bazett; Fridericia/Framingham da), CHA₂DS₂-VA (ESC 2024; VASc da gösterilir), HAS-BLED, Wells (PE), CURB-65, qSOFA, Glasgow Koma Skalası, düzeltilmiş kalsiyum, anyon açığı. Kreatinin ve kalsiyumda birim seçimi (mg/dL · µmol/L / mmol/L); sonuç kartı altta sabit, her değişiklikte güncellenir. Girilen değerler hiçbir yere yazılmaz.

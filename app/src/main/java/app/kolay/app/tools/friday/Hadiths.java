@@ -1,208 +1,38 @@
 package app.kolay.app.tools.friday;
 
+import android.content.Context;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Hadiths for the Friday card. Each row is {Turkish text, source}; the source is the single collection the hadith is
- * reported in plus its number: Sahih al-Bukhari and Sahih Muslim (Muhammad Fuad Abdulbaki numbering), Jami' at-Tirmidhi.
+ * Hadiths for the Friday card, read once from {@code assets/hadiths.tsv}: one hadith per line, "text<TAB>source".
  *
- * How the list was made: every hadith was located in the printed-collection corpora of the open "hadith-api" data set
- * (https://github.com/fawazahmed0/hadith-api, editions eng-bukhari / eng-muslim / eng-tirmidhi), the number was checked
- * against the English text of that exact number, and the Turkish text is a short meaning (meâl) written from that text;
- * it is not a quotation of any published Turkish translation. For Tirmidhi only hadiths graded sahih/hasan were taken.
- * Adding one: look the hadith up in the collection, copy the number from there, keep the text under ~260 characters,
- * and never invent a number.
+ * Source: the Turkish Kütüb-i Sitte translation by Prof. Dr. İbrahim Canan as published in the muhaddis.org database
+ * (https://www.muhaddis.org/ks.zip). The text is taken verbatim apart from obvious typo fixes and «» for inner quotes;
+ * the source line is the first of Buhârî, Müslim, Tirmizî, Ebû Dâvûd, Nesâî, Muvatta that the entry cites, with its
+ * book and chapter number exactly as the database gives it. Rezin additions are left out, near-duplicates are removed
+ * (the same hadith reported in several collections appears once), and topics that do not suit a greeting card
+ * (penal law, inheritance, slavery and the like) were filtered out.
  */
 final class Hadiths {
     private Hadiths() {}
 
-    static final String[][] ALL = {
-        {"Ameller niyetlere göredir. Herkes için yalnızca niyet ettiği vardır.", "Buhârî 1"},
-        {"Müslüman, diğer Müslümanların dilinden ve elinden zarar görmediği kimsedir. Muhacir de Allah'ın yasakladığını terk eden kimsedir.", "Buhârî 10"},
-        {"Sizden biriniz, kendisi için istediğini (Müslüman) kardeşi için de istemedikçe iman etmiş olmaz.", "Buhârî 13"},
-        {"Sizden biriniz, ben kendisine babasından, çocuğundan ve bütün insanlardan daha sevgili olmadıkça iman etmiş olmaz.", "Buhârî 15"},
-        {"Bırak onu, hayâ imandandır.", "Buhârî 24"},
-        {"Münafığın alâmeti üçtür: Konuştuğunda yalan söyler, söz verdiğinde sözünden döner, kendisine güvenildiğinde hıyanet eder.", "Buhârî 33"},
-        {"Kim Kadir gecesini iman ederek ve sevabını Allah'tan umarak ibadetle geçirirse, geçmiş günahları bağışlanır.", "Buhârî 35"},
-        {"Kim iman ederek ve sevabını Allah'tan umarak Ramazan gecelerini ibadetle geçirirse, geçmiş günahları bağışlanır.", "Buhârî 37"},
-        {"Kim iman ederek ve sevabını Allah'tan umarak Ramazan orucunu tutarsa, geçmiş günahları bağışlanır.", "Buhârî 38"},
-        {"Helal bellidir, haram da bellidir. İkisinin arasında şüpheli şeyler vardır ve insanların çoğu onları bilmez.", "Buhârî 52"},
-        {"Kolaylaştırın, zorlaştırmayın; müjdeleyin, nefret ettirmeyin.", "Buhârî 69"},
-        {"Serin iki namazı (sabah ve ikindi) kılan cennete girer.", "Buhârî 574"},
-        {"Beni nasıl namaz kılarken gördüyseniz öyle kılın.", "Buhârî 631"},
-        {"Cemaatle kılınan namaz, tek başına kılınan namazdan yirmi yedi derece üstündür.", "Buhârî 645"},
-        {"Biz (dünyaya) en son gelenleriz, fakat kıyamet gününde en öndeyiz.", "Buhârî 896"},
-        {"Cuma günü bir an vardır ki, Müslüman bir kul o ana rastlayıp namaz kılarken Allah'tan bir şey isterse Allah onu mutlaka verir.", "Buhârî 935"},
-        {"Asıl sabır, musibetin ilk anında gösterilendir.", "Buhârî 1302"},
-        {"Sadakanın en hayırlısı, zenginlik bırakıp (ihtiyaçtan artan malla) verilendir. Sadakaya önce bakmakla yükümlü olduklarından başla.", "Buhârî 1426"},
-        {"Veren el, alan elden daha hayırlıdır.", "Buhârî 1429"},
-        {"Yoksul, bir iki lokma için kapı kapı dolaşan değildir; asıl yoksul, ihtiyacı olduğu halde utanıp istemeyendir.", "Buhârî 1476"},
-        {"Eskiden insanlara borç veren bir tüccar vardı; borçlusu sıkıntıya düşünce adamlarına «Onu bağışlayın; belki Allah da bizi bağışlar» derdi. Allah da onu bağışladı.", "Buhârî 2078"},
-        {"Bir Müslüman bir ağaç dikip ya da bir ekin ekip de ondan bir kuş, bir insan veya bir hayvan yerse, bu onun için sadaka olur.", "Buhârî 2320"},
-        {"Müslüman, Müslümanın kardeşidir; ona zulmetmez, onu düşmanına teslim etmez. Kim kardeşinin ihtiyacını giderirse, Allah da onun ihtiyacını giderir.", "Buhârî 2442"},
-        {"Verin, hesap yapmadan verin; yoksa Allah da size ölçülü verir. Malı saklamayın; yoksa Allah da sizden esirger.", "Buhârî 2591"},
-        {"Allah yolunda bir sabah veya bir akşam çıkmak, dünyadan ve içindekilerden hayırlıdır.", "Buhârî 2794"},
-        {"Cennette bir kırbaç boyu yer, dünyadan ve içindeki her şeyden daha hayırlıdır.", "Buhârî 3250"},
-        {"Kim Allah yolunda bir çift (mal) harcarsa, cennetin bütün kapılarından çağrılır.", "Buhârî 3666"},
-        {"Allah zalime mühlet verir; fakat onu yakaladığında bırakmaz.", "Buhârî 4686"},
-        {"Size cennetliklerden haber vereyim mi? Zayıf sayılan, hor görülen her kimse; Allah adına yemin etse Allah onu doğrular.", "Buhârî 4918"},
-        {"Allah, bir peygamberin güzel bir sesle Kur'an okumasını dinlediği kadar başka bir şeyi dinlememiştir.", "Buhârî 5023"},
-        {"Sizin en hayırlınız, Kur'an'ı öğrenen ve öğretendir.", "Buhârî 5027"},
-        {"Bir Müslüman, sevabını Allah'tan umarak ailesine harcarsa, bu onun için sadaka olur.", "Buhârî 5351"},
-        {"Müslümana yorgunluk, hastalık, keder, üzüntü, eziyet ve sıkıntı, hatta ayağına batan bir diken bile gelse, Allah bunlarla günahlarından bir kısmını siler.", "Buhârî 5642"},
-        {"Hiçbir Müslüman bir zarara uğramaz ki, Allah ağacın yapraklarını döktüğü gibi onun günahlarını dökmesin.", "Buhârî 5647"},
-        {"Açı doyurun, hastayı ziyaret edin, esiri kurtarın.", "Buhârî 5649"},
-        {"Allah, devasını da yaratmadığı hiçbir hastalık yaratmamıştır.", "Buhârî 5678"},
-        {"Akrabalık bağını kesen kimse cennete giremez.", "Buhârî 5984"},
-        {"Akrabalık bağını gerçekten gözeten, karşılık verene karşılık veren değil; kendisiyle bağı koparanla bile bağını sürdürendir.", "Buhârî 5991"},
-        {"Allah, kullarına, bir annenin çocuğuna olan merhametinden daha merhametlidir.", "Buhârî 5999"},
-        {"Ben ve yetimi himaye eden kimse cennette şöyle yan yanayız. (İşaret ve orta parmağını birleştirdi.)", "Buhârî 6005"},
-        {"Merhamet etmeyene merhamet edilmez.", "Buhârî 6013"},
-        {"Cebrail bana komşu hakkında o kadar tavsiyede bulundu ki, onu mirasçı kılacak sandım.", "Buhârî 6015"},
-        {"Komşusu kötülüğünden emin olmayan kimse iman etmiş olmaz.", "Buhârî 6016"},
-        {"Allah'a ve ahiret gününe inanan kimse, komşusuna ikram etsin; misafirine de ikramda bulunsun.", "Buhârî 6019"},
-        {"Mümin, mümine karşı, parçaları birbirini destekleyen bir bina gibidir.", "Buhârî 6027"},
-        {"Sizin en hayırlınız, ahlâkı en güzel olanınızdır.", "Buhârî 6029"},
-        {"Kim yalan sözü ve yalanla amel etmeyi bırakmazsa, Allah'ın onun yemeyi ve içmeyi bırakmasına ihtiyacı yoktur.", "Buhârî 6057"},
-        {"Zandan sakının; çünkü zan sözlerin en yalanıdır. Birbirinizin ayıbını aramayın, casusluk etmeyin, birbirinize haset etmeyin, birbirinize sırt çevirmeyin, birbirinize kin tutmayın. Ey Allah'ın kulları, kardeş olun.", "Buhârî 6064"},
-        {"Güçlü kimse güreşte rakibini yenen değildir; asıl güçlü, öfkelendiği zaman kendine hâkim olandır.", "Buhârî 6114"},
-        {"Öfkelenme!", "Buhârî 6116"},
-        {"Hayâ ancak hayır getirir.", "Buhârî 6117"},
-        {"Müminin misali, yaprakları dökülmeyen yeşil bir ağaç gibidir.", "Buhârî 6122"},
-        {"Mümin, aynı delikten iki kez ısırılmaz.", "Buhârî 6133"},
-        {"Allah'a ve ahiret gününe inanan kimse, misafirine ikram etsin.", "Buhârî 6135"},
-        {"Allah'a ve ahiret gününe inanan kimse, ya hayır söylesin ya da sussun.", "Buhârî 6136"},
-        {"Allah'a ve ahiret gününe inanan kimse, akrabalık bağlarını gözetsin.", "Buhârî 6138"},
-        {"Herkes sevdikleriyle beraberdir.", "Buhârî 6168"},
-        {"Biriniz hapşırınca «Elhamdülillâh» desin; kardeşi ya da arkadaşı da ona «Yerhamükellah» desin.", "Buhârî 6224"},
-        {"Binekli olan yürüyene, yürüyen oturana, az olan çok olana selam versin.", "Buhârî 6232"},
-        {"İnsanlara yemek yedirin; tanıdığınıza da tanımadığınıza da selam verin.", "Buhârî 6236"},
-        {"Vallahi ben, günde yetmişten fazla Allah'tan bağışlanma diler ve O'na tövbe ederim.", "Buhârî 6307"},
-        {"Biriniz acele etmediği sürece duası kabul olunur.", "Buhârî 6340"},
-        {"Kim günde yüz defa «Sübhânallâhi ve bihamdih» derse, günahları deniz köpüğü kadar bile olsa bağışlanır.", "Buhârî 6405"},
-        {"Dile hafif, mizanda ağır, Rahman'a sevimli iki söz vardır: «Sübhânallâhi ve bihamdih, Sübhânallâhil-azîm.»", "Buhârî 6406"},
-        {"İki nimet vardır ki insanların çoğu onlarda aldanmıştır: Sağlık ve boş vakit.", "Buhârî 6412"},
-        {"Dünyada bir garip, hatta bir yolcu gibi ol.", "Buhârî 6416"},
-        {"Allah buyurdu: «Sevdiği birinin canını aldığımda sabredip sevabını Benden bekleyen mümin kulum için, cennetten başka karşılığım yoktur.»", "Buhârî 6424"},
-        {"Âdemoğlunun iki vadi dolusu malı olsa üçüncüsünü ister; Âdemoğlunun karnını ancak toprak doldurur. Allah, tövbe edenin tövbesini kabul eder.", "Buhârî 6436"},
-        {"Amellerin Allah'a en sevimli olanı, az da olsa devamlı olanıdır.", "Buhârî 6464"},
-        {"Kim Allah'a kavuşmayı severse, Allah da ona kavuşmayı sever.", "Buhârî 6508"},
-        {"Sadaka verin; öyle bir zaman gelecek ki insan sadakasıyla dolaşacak da onu kabul edecek kimse bulamayacak.", "Buhârî 7120"},
-        {"İnsanlara merhamet etmeyene Allah merhamet etmez.", "Buhârî 7376"},
-        {"Allah'ın doksan dokuz ismi vardır, yüzden bir eksik; kim onları ezberlerse cennete girer.", "Buhârî 7392"},
-        {"Allah'ın eli doludur; gece gündüz harcaması onu eksiltmez.", "Buhârî 7411"},
-        {"Allah yaratmayı bitirince, Arş'ının üzerinde yanında şunu yazdı: «Rahmetim gazabımı geçmiştir.»", "Buhârî 7422"},
-        {"Allah buyurdu: «Salih kullarım için, hiçbir gözün görmediği, hiçbir kulağın işitmediği ve hiçbir insanın aklına gelmeyen nimetler hazırladım.»", "Buhârî 7498"},
-        {"Kur'an okuyan müminin misali, hem tadı hem kokusu güzel olan turunç gibidir.", "Buhârî 7560"},
-        {"İman yetmiş küsur şubedir; hayâ da imanın bir şubesidir.", "Müslim 35"},
-        {"İman etmedikçe cennete giremezsiniz; birbirinizi sevmedikçe de iman etmiş olmazsınız. Size, yaptığınızda birbirinizi seveceğiniz bir şey söyleyeyim mi? Aranızda selamı yayın.", "Müslim 54"},
-        {"Din samimiyettir (nasihattir).", "Müslim 55"},
-        {"Temizlik imanın yarısıdır.", "Müslim 223"},
-        {"Beş vakit namaz, cumadan cumaya ve ramazandan ramazana, büyük günahlardan kaçınıldığı sürece aralarındaki günahlara kefarettir.", "Müslim 233"},
-        {"Her sabah, her birinizin vücudundaki her eklem için bir sadaka gerekir. Her tesbih bir sadakadır.", "Müslim 720"},
-        {"Allah'ın anıldığı ev ile anılmadığı ev, diri ile ölü gibidir.", "Müslim 779"},
-        {"Haftanın yedi gününden birinde yıkanmak, her Müslümanın Allah'a karşı hakkıdır; o gün başını ve bedenini yıkar.", "Müslim 849"},
-        {"Cuma günü öyle bir an vardır ki, bir Müslüman o anda Allah'tan hayır dilerse Allah onu ona verir.", "Müslim 852"},
-        {"Allah bizi cuma gününe iletti; bizden öncekileri ise ondan uzaklaştırdı.", "Müslim 856"},
-        {"Allah buyurdu: «Harca ey Âdemoğlu, sana da harcanır.»", "Müslim 993"},
-        {"Ey Âdemoğlu! İhtiyacından fazlasını vermen senin için hayırlıdır; tutman ise sana zarardır.", "Müslim 1036"},
-        {"Müslüman olan, kendisine yetecek kadar rızık verilen ve Allah'ın verdiğine kanaat eden kimse kurtuluşa ermiştir.", "Müslim 1054"},
-        {"İnsanlar iftarı acele ettikleri sürece hayır üzere olurlar.", "Müslim 1098"},
-        {"Âdemoğlunun her iyiliği, on mislinden yedi yüz misline kadar katlanır.", "Müslim 1151"},
-        {"İnsan ölünce ameli kesilir; ancak üç şey hariç: Sürekli sadaka, faydalanılan ilim ve kendisine dua eden salih evlat.", "Müslim 1631"},
-        {"Kim bir hayra vesile olursa, onu yapan kimsenin sevabı kadar sevap alır.", "Müslim 1893"},
-        {"Üç kişi olduğunuzda, ikiniz üçüncüyü bırakıp gizlice konuşmayın; çünkü bu onu üzer.", "Müslim 2184"},
-        {"Her derdin bir devası vardır; deva derde isabet edince Allah'ın izniyle şifa bulunur.", "Müslim 2204"},
-        {"Allah'ın beni kendisiyle gönderdiği hidayet ve ilmin misali, yeryüzüne yağan bol yağmur gibidir.", "Müslim 2282"},
-        {"İyiliğin en güzeli, kişinin babasının sevdiklerine iyilik etmesidir.", "Müslim 2552"},
-        {"Rahim (akrabalık bağı) Arş'a asılıdır ve şöyle der: «Beni gözetenin Allah da gözetsin, beni kesenin Allah da kessin.»", "Müslim 2555"},
-        {"Rızkının genişlemesini ve ömrünün uzamasını isteyen, akrabalık bağlarını gözetsin.", "Müslim 2557"},
-        {"Birbirinize kin tutmayın, haset etmeyin, düşmanlık etmeyin; Allah'ın kulları, kardeş olun.", "Müslim 2558"},
-        {"Bir Müslümanın kardeşiyle üç günden fazla küs durması helal değildir.", "Müslim 2561"},
-        {"Allah sizin yüzlerinize ve mallarınıza değil, kalplerinize ve amellerinize bakar.", "Müslim 2564"},
-        {"Hastayı ziyaret eden, dönünceye kadar cennet meyvelerini toplamakta gibidir.", "Müslim 2568"},
-        {"Müminin başına bir diken batması bile gelse, Allah onun için bir hayır yazar ya da bir günahını siler.", "Müslim 2572"},
-        {"Ey kullarım! Ben zulmü kendime haram kıldım, onu aranızda da haram kıldım; öyleyse birbirinize zulmetmeyin.", "Müslim 2577"},
-        {"Zulüm, kıyamet günü karanlıklardır.", "Müslim 2579"},
-        {"Müminler tek bir beden gibidir; başı ağrırsa bütün beden ateşle ve uykusuzlukla ona katılır.", "Müslim 2586"},
-        {"Sadaka malı eksiltmez; Allah, affedenin ancak izzetini artırır; Allah için tevazu gösterenin de derecesini yükseltir.", "Müslim 2588"},
-        {"Gıybet, kardeşini hoşlanmayacağı bir şekilde anmandır.", "Müslim 2589"},
-        {"Dünyada bir kulun ayıbını örten kimsenin ayıbını Allah kıyamet günü örter.", "Müslim 2590"},
-        {"Ey Âişe! Allah yumuşak davranandır ve yumuşaklığı sever; yumuşaklığa, sertliğe vermediğini verir.", "Müslim 2593"},
-        {"Yumuşaklık bulunduğu her şeyi güzelleştirir; çıkarıldığı her şeyi de kusurlu kılar.", "Müslim 2594"},
-        {"Ey Ebû Zer! Çorba pişirdiğinde suyunu çok koy ve komşuna da ver.", "Müslim 2625"},
-        {"İyilikten hiçbir şeyi küçümseme; kardeşinle güler yüzle karşılaşman bile olsa.", "Müslim 2626"},
-        {"Allah bir kulu sevdiğinde Cebrail'i çağırır ve «Ben falancayı seviyorum, sen de sev» der; Cebrail de onu sever.", "Müslim 2637"},
-        {"Kuvvetli mümin, Allah katında zayıf müminden daha hayırlı ve daha sevimlidir; her ikisinde de hayır vardır.", "Müslim 2664"},
-        {"Kim hidayete çağırırsa, ona uyanların sevabı kadar sevap alır; onların sevabından hiçbir şey eksilmez.", "Müslim 2674"},
-        {"Allah, kulunun tövbesine, birinizin kaybolan devesini bulduğunda sevindiğinden daha çok sevinir.", "Müslim 2675"},
-        {"«Sübhânallâh, elhamdülillâh, lâ ilâhe illallah, Allahü ekber» demek, bana güneşin üzerine doğduğu her şeyden daha sevimlidir.", "Müslim 2695"},
-        {"Kim ilim aramak için bir yola girerse, Allah ona cennete giden yolu kolaylaştırır.", "Müslim 2699"},
-        {"Ey insanlar! Allah'a tövbe edin; ben bile günde yüz defa O'na tövbe ediyorum.", "Müslim 2702"},
-        {"Kardeşine gıyabında dua edene, görevli melek «Âmin, sana da aynısı olsun» der.", "Müslim 2732"},
-        {"Allah, bir lokma yiyip ona hamdeden veya bir yudum içip ona hamdeden kuldan razı olur.", "Müslim 2734"},
-        {"Günah işlemeseydiniz, Allah sizi giderir, yerinize günah işleyip sonra bağışlanma dileyen bir kavim getirir ve onları bağışlardı.", "Müslim 2748"},
-        {"Allah, mümin kuluna iyiliklerinde haksızlık etmez; dünyada ona nimet verir, ahirette de karşılığını verir.", "Müslim 2808"},
-        {"Hiçbiriniz yalnızca ameliyle cennete giremez; ben bile ancak Allah'ın rahmetiyle girerim.", "Müslim 2817"},
-        {"Kalpleri kuşların kalpleri gibi (tevekkülle dolu) olan topluluklar cennete girecek.", "Müslim 2840"},
-        {"Dünya mümin için bir zindan, kâfir için bir cennettir.", "Müslim 2956"},
-        {"Yetime sahip çıkan kimse, o yetim akrabası olsun olmasın, ben ve o cennette şöyle yan yana olacağız.", "Müslim 2983"},
-        {"Müminin durumu ne şaşırtıcıdır! Her işi onun için hayırdır. Sevinç gelirse şükreder, bu onun için hayırdır; sıkıntı gelirse sabreder, bu da onun için hayırdır.", "Müslim 2999"},
-        {"Cuma günü beklenen saati, ikindiden sonra güneş batıncaya kadar olan vakitte arayın.", "Tirmizî 489"},
-        {"Güneşin üzerine doğduğu en hayırlı gün cumadır: Âdem o gün yaratıldı, o gün cennete girdi ve o gün oradan indirildi.", "Tirmizî 491"},
-        {"Kim cuma günü gusleder, erkenden camiye gider, imama yaklaşıp hutbeyi dinler ve boş şeylerle uğraşmazsa, attığı her adım için bir yıllık oruç ve namaz sevabı alır.", "Tirmizî 496"},
-        {"Ameller pazartesi ve perşembe günleri arz olunur; amelimin oruçluyken arz olunmasını severim.", "Tirmizî 747"},
-        {"Arefe gününü oruçla geçirin; Allah'ın, ondan önceki ve sonraki yılın günahlarını bağışlamasını umarım.", "Tirmizî 749"},
-        {"Aşure gününü oruçla geçirin; Allah'ın, ondan önceki yılın günahlarını bağışlamasını umarım.", "Tirmizî 752"},
-        {"Allah katında salih amellerin bu on günde yapılanından daha sevimli olduğu başka günler yoktur.", "Tirmizî 757"},
-        {"Müminlerin imanca en olgunu, ahlâkı en güzel olanıdır.", "Tirmizî 1162"},
-        {"Sana emanet bırakana emaneti ver; sana hıyanet edene hıyanet etme.", "Tirmizî 1264"},
-        {"Kim kibir, ganimet hırsızlığı ve borç olmak üzere üç şeyden uzak olarak ölürse cennete girer.", "Tirmizî 1572"},
-        {"Bana zayıflarınızı arayın; çünkü rızkınız ve yardım görmeniz ancak zayıflarınız sayesindedir.", "Tirmizî 1702"},
-        {"Rahman'a ibadet edin, yemek yedirin, selamı yayın; cennete selametle girersiniz.", "Tirmizî 1855"},
-        {"Rabbin rızası babanın rızasındadır; Rabbin öfkesi de babanın öfkesindedir.", "Tirmizî 1899"},
-        {"Baba, cennetin orta kapısıdır; dilersen o kapıyı kaybet, dilersen koru.", "Tirmizî 1900"},
-        {"Merhamet edenlere Rahman merhamet eder. Yeryüzündekilere merhamet edin ki gökteki de size merhamet etsin.", "Tirmizî 1924"},
-        {"Allah katında arkadaşların en hayırlısı, arkadaşına en iyi davranandır; komşuların en hayırlısı da komşusuna en iyi davranandır.", "Tirmizî 1944"},
-        {"İnsanlara teşekkür etmeyen, Allah'a da şükretmiş olmaz.", "Tirmizî 1955"},
-        {"Bir kimse bir şey anlatırken etrafına bakınırsa, o söz emanettir.", "Tirmizî 1959"},
-        {"Her iyilik sadakadır. Kardeşini güler yüzle karşılaman da iyiliklerdendir.", "Tirmizî 1970"},
-        {"Mümin ne ayıplar, ne lanet eder, ne çirkin iş yapar, ne de ağzı bozuktur.", "Tirmizî 1977"},
-        {"Soyunuzdan, akrabalık bağlarını gözetmenize yetecek kadarını öğrenin; çünkü akrabalık bağını gözetmek akrabalar arasında sevgiyi artırır.", "Tirmizî 1979"},
-        {"Nerede olursan ol Allah'tan sakın; kötülüğün ardından iyilik yap ki onu silsin; insanlara da güzel ahlâkla davran.", "Tirmizî 1987"},
-        {"Kalbinde hardal tanesi ağırlığında kibir bulunan kimse cennete giremez.", "Tirmizî 1998"},
-        {"Kıyamet günü mümin kulun mizanında güzel ahlâktan daha ağır gelecek bir şey yoktur.", "Tirmizî 2002"},
-        {"Kendisine yumuşaklıktan nasip verilen, hayırdan nasip verilmiştir; yumuşaklıktan nasibi engellenen de hayırdan nasibi engellenmiştir.", "Tirmizî 2013"},
-        {"Kendisine bir iyilik yapılan kimse, yapana «Allah seni hayırla mükâfatlandırsın» derse, övgüde elinden geleni yapmış olur.", "Tirmizî 2035"},
-        {"Kaderi ancak dua geri çevirir; ömrü de ancak iyilik artırır.", "Tirmizî 2139"},
-        {"Müminin kendini zelil etmesi yakışmaz.", "Tirmizî 2254"},
-        {"Allah'a gereği gibi tevekkül etseydiniz, sabah aç çıkıp akşam tok dönen kuşlar gibi sizi de rızıklandırırdı.", "Tirmizî 2344"},
-        {"Kişi, dostunun dini üzeredir; öyleyse her biriniz kiminle dostluk ettiğine baksın.", "Tirmizî 2378"},
-        {"Birr (iyilik) güzel ahlâktır; günah ise içini rahatsız eden ve insanların bilmesinden hoşlanmadığın şeydir.", "Tirmizî 2389"},
-        {"Mümin olandan başkasıyla arkadaşlık etme; yemeğini de takva sahibinden başkası yemesin.", "Tirmizî 2395"},
-        {"Yiyip şükreden kimse, sabreden oruçlu gibidir.", "Tirmizî 2486"},
-        {"Âdemoğlunun hepsi çokça hata eder; hata edenlerin en hayırlısı çokça tövbe edenlerdir.", "Tirmizî 2499"},
-        {"Kim susarsa kurtulur.", "Tirmizî 2501"},
-        {"Allah'ı gözet ki O da seni gözetsin. Allah'ı gözet ki O'nu karşında bulasın. Bir şey istediğinde Allah'tan iste; yardım dilediğinde Allah'tan dile.", "Tirmizî 2516"},
-        {"Seni şüpheye düşüren şeyi bırak, şüpheye düşürmeyene bak. Doğruluk huzurdur, yalan ise şüphe.", "Tirmizî 2518"},
-        {"Müminlerin imanca en kâmili, ahlâkı en güzel olanı ve ailesine karşı en yumuşak davranandır.", "Tirmizî 2612"},
-        {"Rab olarak Allah'tan, din olarak İslam'dan, peygamber olarak Muhammed'den razı olan kimse imanın tadını almıştır.", "Tirmizî 2623"},
-        {"Kim ilim öğrenmek için bir yola girerse, Allah ona cennete giden yolu kolaylaştırır.", "Tirmizî 2646"},
-        {"İki Müslüman karşılaşıp tokalaşırsa, ayrılmadan önce Allah ikisini de bağışlar.", "Tirmizî 2727"},
-        {"Biriniz hapşırınca «Elhamdülillâhi alâ külli hâl» desin; yanındaki de ona «Yerhamükellah» desin.", "Tirmizî 2741"},
-        {"Allah, nimetinin eserini kulu üzerinde görmeyi sever.", "Tirmizî 2819"},
-        {"Kendisine danışılan kimse emanet sahibidir.", "Tirmizî 2822"},
-        {"Kur'an'da otuz âyetlik bir sure vardır ki, kendisini okuyan kişi bağışlanıncaya kadar ona şefaat eder: Tebâreke sûresi.", "Tirmizî 2891"},
-        {"Sizin en hayırlınız, Kur'an'ı öğrenen ve öğretendir.", "Tirmizî 2909"},
-        {"Kur'an'ı açıktan okuyan, sadakayı açıktan veren gibidir; gizli okuyan da sadakayı gizli veren gibidir.", "Tirmizî 2919"},
-        {"Allah'ım! Sen bağışlarsan hepsini bağışlarsın; kulların arasında küçük günahı işlemeyen kim vardır?", "Tirmizî 3284"},
-        {"Allah'tan istemeyene Allah öfkelenir.", "Tirmizî 3373"},
-        {"Dilin Allah'ı zikretmekle ıslak (meşgul) olmaktan hiç ayrılmasın.", "Tirmizî 3375"},
-        {"Hiçbir kul dua etmez ki Allah ya ona istediğini verir ya da istediğine denk bir kötülüğü ondan uzaklaştırır.", "Tirmizî 3381"},
-        {"Kim, sıkıntı ve üzüntü anında duasının kabul edilmesini isterse, rahat zamanında çokça dua etsin.", "Tirmizî 3382"},
-        {"Zikrin en hayırlısı «Lâ ilâhe illallah», duanın en hayırlısı «Elhamdülillâh»'tır.", "Tirmizî 3383"},
-        {"Ben öyle bir söz biliyorum ki, onu söylese öfkesi geçer: «Eûzü billâhi mineşşeytânirracîm».", "Tirmizî 3452"},
-        {"Kim «Sübhânallâhil-azîm ve bihamdih» derse, onun için cennette bir hurma ağacı dikilir.", "Tirmizî 3465"},
-        {"Allah'a, icabet edileceğine kesin inanarak dua edin; bilin ki Allah, gafil ve oyalanan bir kalpten gelen duayı kabul etmez.", "Tirmizî 3479"},
-        {"Allah yüz rahmet yarattı; bir rahmetini yaratıkları arasında koydu, onunla birbirlerine merhamet ederler. Doksan dokuzunu ise kıyamet günü için sakladı.", "Tirmizî 3541"},
-        {"Allah hayâ sahibi ve cömerttir; kul ona ellerini açtığında onları boş çevirmekten hayâ eder.", "Tirmizî 3556"},
-    };
+    private static List<String[]> all;
+
+    static synchronized List<String[]> all(Context ctx) {
+        if (all != null) return all;
+        List<String[]> out = new ArrayList<>(1000);
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(ctx.getAssets().open("hadiths.tsv"), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = r.readLine()) != null) {
+                int tab = line.indexOf('\t');
+                if (tab > 0 && tab < line.length() - 1) out.add(new String[]{line.substring(0, tab), line.substring(tab + 1)});
+            }
+        } catch (Exception ignored) { }
+        if (out.isEmpty()) out.add(new String[]{"Ameller niyetlere göredir.", "Buhârî, Bed'ü'l-Vahy 1"});
+        return all = out;
+    }
 }
