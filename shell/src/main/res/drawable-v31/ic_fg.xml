@@ -1,7 +1,0 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="768" android:viewportHeight="768">
-    <!-- "Ko" mark; scaled so the K's corners stay inside the adaptive-icon safe circle -->
-    <group android:scaleX="0.87" android:scaleY="0.87" android:pivotX="384" android:pivotY="384">
-        <path android:fillColor="@color/logo_icon_fg" android:fillType="evenOdd" android:pathData="M168,222H248V328L355,222H470L310,383L470,545H355L248,440V545H168Z M341,284a12,12 0 1,0 24,0a12,12 0 1,0 -24,0Z"/>
-        <path android:fillColor="@color/logo_icon_fg" android:fillType="evenOdd" android:pathData="M395,388a102,102 0 1,0 204,0a102,102 0 1,0 -204,0Z M454,388a43,43 0 1,0 86,0a43,43 0 1,0 -86,0Z"/>
-    </group>
-</vector>

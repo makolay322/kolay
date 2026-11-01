@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Dynamic (wallpaper) colors for the launcher icon and the splash mark -->
-    <color name="logo_icon_bg">@android:color/system_accent1_100</color>
-    <color name="logo_icon_fg">@android:color/system_accent1_700</color>
+    <!-- Dynamic (wallpaper) colors for the launcher icon and the splash mark; light theme -->
+    <color name="logo_icon_bg">@android:color/system_accent1_200</color>
+    <color name="logo_icon_fg">@android:color/system_accent1_800</color>
     <color name="logo_splash">@android:color/system_accent1_600</color>
 </resources>

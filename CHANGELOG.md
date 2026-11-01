@@ -4,6 +4,9 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 (görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
 
 ## 1.000
+### Değişti
+- Uygulama ikonunun arka planı açık/koyu temaya göre seçilir (açıkta yumuşak renkli zemin, koyuda koyu zemin + açık logo; Android 12+ duvar kağıdı renkleriyle). Açılış animasyonu ~2,2 sn'ye yavaşladı ve başlatıcıdan açılışta sonuna kadar ekranda kalır (QR kutucuğu ve paylaşım hedefi beklemeden açılır). **Kabuk 1.012 gerekir.**
+- Cuma Mesajı: hilal küçültülüp başlığın üstüne alındı, başlığa gölge eklendi ve başlık bandına yıldız düşmez; hilal artık yazıyla çakışmaz.
 ### Değişti (logo)
 - Yeni “Ko” logosu uygulama ikonu oldu. Android 12+ cihazlarda ikonun renkleri duvar kağıdından gelir (dinamik renk); Android 13+ temalı ikon desteği vardır. Açılış ekranında logo animasyonla belirir (K kayar, O yaylanarak açılır, nokta belirir). **Kabuk 1.011 gerekir** (Ayarlar → “Kabuğu indir ve yükle”).
 - Ana sayfada canlı logo: saat gibi günün saatine göre renk değiştirir (sabah pembe-mavi, gündüz turkuaz, akşam mercan-mor, gece çivit), parıltısı yavaşça döner, nokta hafifçe nabız atar. Başlatıcıdaki ikon bu şekilde canlandırılamaz; Android bunu yalnızca Google'ın Saat/Takvim uygulamalarına tanır.

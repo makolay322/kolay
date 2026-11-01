@@ -91,12 +91,13 @@ final class FridayArt {
 
     private static void moon(Canvas cv, int w, int h, Theme t, Random r) {
         boolean left = r.nextBoolean();
-        float rad = Math.min(w, h) * 0.085f;
-        float cx = left ? w * 0.13f : w * 0.87f, cy = h * (0.12f + r.nextFloat() * 0.03f);
+        // Kept in the top band, clear of the title line below it (title cap height starts around 0.17·h).
+        float rad = Math.min(w, h) * 0.062f;
+        float cx = left ? w * 0.11f : w * 0.89f, cy = h * (0.078f + r.nextFloat() * 0.012f);
         float dir = left ? 1 : -1;
         Paint g = new Paint(Paint.ANTI_ALIAS_FLAG);
-        g.setShader(new RadialGradient(cx, cy, rad * 3f, (t.accent & 0x00FFFFFF) | 0x38000000, t.accent & 0x00FFFFFF, Shader.TileMode.CLAMP));
-        cv.drawCircle(cx, cy, rad * 3f, g);
+        g.setShader(new RadialGradient(cx, cy, rad * 2.4f, (t.accent & 0x00FFFFFF) | 0x30000000, t.accent & 0x00FFFFFF, Shader.TileMode.CLAMP));
+        cv.drawCircle(cx, cy, rad * 2.4f, g);
         Path outer = new Path(), inner = new Path();
         outer.addCircle(cx, cy, rad, Path.Direction.CW);
         inner.addCircle(cx + dir * rad * 0.42f, cy - rad * 0.12f, rad * 0.82f, Path.Direction.CW);
@@ -112,6 +113,7 @@ final class FridayArt {
         int n = 22 + r.nextInt(18);
         for (int i = 0; i < n; i++) {
             float x = r.nextFloat() * w, y = r.nextFloat() * h * 0.62f, s = 2f + r.nextFloat() * 5f * Math.min(w, h) / 1200f;
+            if (y > h * 0.14f && y < h * 0.24f && x > w * 0.12f && x < w * 0.88f) continue;   // title band
             p.setColor(t.accent);
             p.setAlpha(90 + r.nextInt(150));
             if (r.nextInt(3) == 0) cv.drawPath(star(x, y, s * 2.4f, s * 0.7f, 4), p);
@@ -169,7 +171,9 @@ final class FridayArt {
         tp.setColor(t.text);
         tp.setTextSize(76 * u);
         tp.setTypeface(Typeface.create(Typeface.SERIF, Typeface.BOLD));
-        cv.drawText("Cumamız Mübarek Olsun", w / 2f, h * 0.175f, tp);
+        tp.setShadowLayer(14 * u, 0, 3 * u, 0xB3000000);   // keeps the title legible over sparkles and the moon's glow
+        cv.drawText("Cumamız Mübarek Olsun", w / 2f, h * 0.215f, tp);
+        tp.clearShadowLayer();
 
         float pl = w * 0.07f, pr = w * 0.93f, pt = h * 0.26f, pb = h * 0.76f;
         Paint pp = new Paint(Paint.ANTI_ALIAS_FLAG);

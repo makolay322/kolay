@@ -10,6 +10,6 @@
         <!-- animated "Ko" mark on the system splash screen -->
         <item name="android:windowSplashScreenBackground">@color/window_bg</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_anim</item>
-        <item name="android:windowSplashScreenAnimationDuration">850</item>
+        <item name="android:windowSplashScreenAnimationDuration">2200</item>
     </style>
 </resources>
