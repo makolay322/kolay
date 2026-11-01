@@ -10,14 +10,12 @@ import java.util.List;
 /**
  * Hadiths for the Friday card, read once from {@code assets/hadiths.tsv}: one hadith per line, "text<TAB>source".
  *
- * Source: the Turkish Kütüb-i Sitte translation by Prof. Dr. İbrahim Canan as published in the muhaddis.org database
- * (https://www.muhaddis.org/ks.zip). The text is taken verbatim apart from obvious typo fixes and «» for inner quotes;
- * the source line is the first of Buhârî, Müslim, Tirmizî, Ebû Dâvûd, Nesâî, Muvatta that the entry cites, with its
- * book and chapter number exactly as the database gives it. Rezin additions are left out, near-duplicates are removed
- * (the same hadith reported in several collections appears once), and topics that do not suit a greeting card
- * (penal law, inheritance, slavery and the like) were filtered out. Only hadiths that carry advice for the reader
- * remain: prophecies, descriptions of the hereafter, praise of companions, narrations of practice, bare supplication
- * texts and technical rulings were removed.
+ * Source: Diyanet İşleri Başkanlığı, "Hadislerle İslâm" (7 volumes, modern Turkish), as published at
+ * https://hadislerleislam.diyanet.gov.tr: the hadiths quoted on the hadith page at the start of each chapter. Only the
+ * Prophet's own words are kept (no narrator chain or story), verbatim apart from typographic quotes; the source line
+ * is the Buhârî or Müslim reference when the book cites one, otherwise its first reference, with book and chapter.
+ * Only hadiths that carry advice for the reader remain: prophecies, descriptions of the hereafter, praise of
+ * companions, narrations of practice, bare supplication texts and technical rulings were left out, as were repeats.
  */
 final class Hadiths {
     private Hadiths() {}
@@ -26,7 +24,7 @@ final class Hadiths {
 
     static synchronized List<String[]> all(Context ctx) {
         if (all != null) return all;
-        List<String[]> out = new ArrayList<>(400);
+        List<String[]> out = new ArrayList<>(300);
         try (BufferedReader r = new BufferedReader(new InputStreamReader(ctx.getAssets().open("hadiths.tsv"), StandardCharsets.UTF_8))) {
             String line;
             while ((line = r.readLine()) != null) {

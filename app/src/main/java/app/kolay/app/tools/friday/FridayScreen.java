@@ -69,7 +69,7 @@ final class FridayScreen extends Screen {
         share.setOnClickListener(v -> persist(true));
         f.addView(Ui.pair(c, save, share, Ui.H_BAR), Ui.lp(-1, -2, 0, c.dp(Ui.GAP), 0, 0));
 
-        TextView note = Ui.text(c, "Hadisler İbrahim Canan'ın Kütüb-i Sitte tercümesinden alınmıştır; paylaşmadan önce kaynağını doğrulaman önerilir.", 12, c.p.muted, 400);
+        TextView note = Ui.text(c, "Hadisler Diyanet'in Hadislerle İslâm eserinden alınmıştır.", 12, c.p.muted, 400);
         note.setGravity(Gravity.CENTER); note.setLineSpacing(0, 1.15f);
         f.addView(note, Ui.lp(-1, -2, c.dp(8), c.dp(12), c.dp(8), 0));
         page.addView(f, new LinearLayout.LayoutParams(-1, -2));

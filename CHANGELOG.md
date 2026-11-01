@@ -4,6 +4,8 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 (görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
 
 ## 1.000
+### Değişti (1.021)
+- **Cuma Mesajı** hadisleri daha temiz bir kaynaktan yenilendi: Diyanet'in *Hadislerle İslâm* eserinden, bugünkü Türkçeyle, yalnızca Peygamber'in sözü (ravi zinciri, olay anlatımı ve köşeli açıklama kalabalığı yok), öğüt içeren **274** hadis.
 ### Değişti (1.020)
 - **Cuma Mesajı** hadisleri ayıklandı: 1000 hadisten yalnızca Müslümana öğüt içeren **327** hadis kaldı. Kehanetler ve kıyamet alametleri, cennet-cehennem tasvirleri, sahabe menkıbeleri, siyer anlatıları, salt dua metinleri ve teknik fıkıh hükümleri (alım-satım, zekat oranları, namaz/oruç ayrıntıları) çıkarıldı; kalan birkaç tekrar da silindi.
 ### Değişti (1.019)
