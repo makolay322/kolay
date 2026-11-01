@@ -15,7 +15,9 @@ import java.util.List;
  * the source line is the first of Buhârî, Müslim, Tirmizî, Ebû Dâvûd, Nesâî, Muvatta that the entry cites, with its
  * book and chapter number exactly as the database gives it. Rezin additions are left out, near-duplicates are removed
  * (the same hadith reported in several collections appears once), and topics that do not suit a greeting card
- * (penal law, inheritance, slavery and the like) were filtered out.
+ * (penal law, inheritance, slavery and the like) were filtered out. Only hadiths that carry advice for the reader
+ * remain: prophecies, descriptions of the hereafter, praise of companions, narrations of practice, bare supplication
+ * texts and technical rulings were removed.
  */
 final class Hadiths {
     private Hadiths() {}
@@ -24,7 +26,7 @@ final class Hadiths {
 
     static synchronized List<String[]> all(Context ctx) {
         if (all != null) return all;
-        List<String[]> out = new ArrayList<>(1000);
+        List<String[]> out = new ArrayList<>(400);
         try (BufferedReader r = new BufferedReader(new InputStreamReader(ctx.getAssets().open("hadiths.tsv"), StandardCharsets.UTF_8))) {
             String line;
             while ((line = r.readLine()) != null) {

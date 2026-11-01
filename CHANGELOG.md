@@ -4,6 +4,8 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 (görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
 
 ## 1.000
+### Değişti (1.020)
+- **Cuma Mesajı** hadisleri ayıklandı: 1000 hadisten yalnızca Müslümana öğüt içeren **327** hadis kaldı. Kehanetler ve kıyamet alametleri, cennet-cehennem tasvirleri, sahabe menkıbeleri, siyer anlatıları, salt dua metinleri ve teknik fıkıh hükümleri (alım-satım, zekat oranları, namaz/oruç ayrıntıları) çıkarıldı; kalan birkaç tekrar da silindi.
 ### Değişti (1.019)
 - **Sohbet** karosu (yeni): ufak tefek işler için sohbet kutusu — soru sor, metni düzelt, çevir, özetle, mesaj taslağı yaz. Çok turlu konuşur, yanıtlar seçilip kopyalanabilir, “Yeni sohbet” ile sıfırlanır. Ayarlar'daki anahtarı kullanır; konuşma yalnızca bellekte tutulur, diske/loga yazılmaz, ekrandan çıkınca silinir.
 - **Cuma Mesajı** hadisleri yenilendi: 189 kendi meâlimiz yerine Prof. Dr. İbrahim Canan'ın Kütüb-i Sitte tercümesinden (muhaddis.org veritabanı) seçilmiş, tekrarsız **1000 hadis**; kaynak satırında kitap ve bab numarası (ör. “Buhârî, Edeb 27”). Hadisler APK içinde `assets/hadiths.tsv` dosyasında.
