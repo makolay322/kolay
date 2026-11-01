@@ -31,33 +31,42 @@ final class CompressScreen extends Screen {
 
     private final List<Uri> photos = new ArrayList<>();
     private FrameLayout content;
-    private boolean destroyed;
+    private boolean destroyed, askedOnce, busy;
 
     @Override public View create() {
         LinearLayout page = new LinearLayout(c.a);
         page.setOrientation(LinearLayout.VERTICAL);
-        page.addView(new Header(c, "Fotoğraf Sıkıştır", "Bir fotoğraf seç — %" + QUALITY + " JPEG kopyası kaydedilir", () -> c.nav.pop()).view);
+        page.addView(new Header(c, "Fotoğraf Sıkıştır", "Fotoğraf seç · %" + QUALITY + " JPEG kopyası kaydedilir", () -> c.nav.pop()).view);
         content = new FrameLayout(c.a);
         page.addView(content, new LinearLayout.LayoutParams(-1, 0, 1));
-        if (c.a.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) showGrid();
+        if (granted()) showGrid();
         else c.a.requestPermissions(new String[]{Manifest.permission.READ_MEDIA_IMAGES}, 1);
         return page;
     }
 
+    private boolean granted() { return c.a.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED; }
+
+    /** Back from the app settings with the permission granted: show the photos. */
+    @Override public void onResume() { if (askedOnce && !busy && granted()) { askedOnce = false; showGrid(); } }
+
     @Override public void onPermission(int req, String[] perms, int[] r) {
         if (r.length > 0 && r[0] == PackageManager.PERMISSION_GRANTED) showGrid();
-        else message("Fotoğraflara erişim izni gerekli", "Ayarlar → Uygulamalar → Kolay → İzinler");
+        else {
+            askedOnce = true;
+            boolean again = c.a.shouldShowRequestPermissionRationale(Manifest.permission.READ_MEDIA_IMAGES);
+            show(Ui.state(c, Icon.Kind.IMAGE, "Fotoğraflara erişim gerekli", "Sıkıştırılacak fotoğrafı seçebilmek için izin ver.",
+                again ? "İzin ver" : "Ayarları aç", () -> {
+                    if (c.a.shouldShowRequestPermissionRationale(Manifest.permission.READ_MEDIA_IMAGES))
+                        c.a.requestPermissions(new String[]{Manifest.permission.READ_MEDIA_IMAGES}, 1);
+                    else c.a.startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", c.a.getPackageName(), null)));
+                }));
+        }
     }
 
     @Override public void onDestroy() { destroyed = true; }
 
-    private void message(String title, String body) {
-        LinearLayout l = new LinearLayout(c.a);
-        l.setOrientation(LinearLayout.VERTICAL); l.setGravity(Gravity.CENTER);
-        l.setPadding(c.dp(32), 0, c.dp(32), c.dp(64));
-        TextView t = Ui.text(c, title, 18, c.p.ink, 600); t.setGravity(Gravity.CENTER);
-        TextView b = Ui.text(c, body, 14, c.p.muted, 400); b.setGravity(Gravity.CENTER);
-        l.addView(t); l.addView(b, Ui.lp(-2, -2, 0, c.dp(8), 0, 0));
+    private void show(View l) {
         content.removeAllViews();
         content.addView(l, new FrameLayout.LayoutParams(-1, -1));
         Ui.appear(l, 0);
@@ -70,12 +79,12 @@ final class CompressScreen extends Screen {
             while (cur != null && cur.moveToNext() && photos.size() < MAX_PHOTOS)
                 photos.add(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cur.getLong(0)));
         } catch (Exception ignored) { }
-        if (photos.isEmpty()) { message("Fotoğraf bulunamadı", "Çekilen fotoğraflar burada görünür"); return; }
+        if (photos.isEmpty()) { show(Ui.state(c, Icon.Kind.IMAGE, "Fotoğraf bulunamadı", "Çektiğin fotoğraflar burada görünür.", null, null)); return; }
 
         GridView grid = new GridView(c.a);
         grid.setNumColumns(3);
         grid.setHorizontalSpacing(c.dp(6)); grid.setVerticalSpacing(c.dp(6));
-        grid.setPadding(c.dp(12), c.dp(4), c.dp(12), c.dp(24));
+        grid.setPadding(c.dp(Ui.GUTTER), c.dp(2), c.dp(Ui.GUTTER), c.dp(24));
         grid.setClipToPadding(false); grid.setSelector(android.R.color.transparent);
         grid.setVerticalScrollBarEnabled(false);
         grid.setAdapter(new BaseAdapter() {
@@ -97,7 +106,8 @@ final class CompressScreen extends Screen {
     }
 
     private void compress(Uri src) {
-        message("Sıkıştırılıyor…", "Fotoğraf yeniden kodlanıyor");
+        busy = true;
+        show(Ui.busy(c, "Sıkıştırılıyor…", "Fotoğraf yeniden kodlanıyor"));
         c.io.execute(() -> {
             String error = null; Uri out = null; long before = size(src), after = 0;
             try {
@@ -131,30 +141,22 @@ final class CompressScreen extends Screen {
                 error = t.getMessage() == null ? "Sıkıştırma başarısız" : t.getMessage();
             }
             final Uri result = out; final String err = error; final long b = before, a = after;
-            c.ui.post(() -> { if (!destroyed) showResult(result, err, b, a); });
+            c.ui.post(() -> { busy = false; if (!destroyed) showResult(result, err, b, a); });
         });
     }
 
     private void showResult(Uri out, String error, long before, long after) {
-        if (out == null) { message("Olmadı", error); return; }
-        LinearLayout l = new LinearLayout(c.a);
-        l.setOrientation(LinearLayout.VERTICAL); l.setGravity(Gravity.CENTER);
-        l.setPadding(c.dp(32), 0, c.dp(32), c.dp(32));
-        TextView t = Ui.text(c, "Kaydedildi", 20, c.p.ink, 700); t.setGravity(Gravity.CENTER);
+        if (out == null) { show(Ui.state(c, Icon.Kind.IMAGE, "Sıkıştırılamadı", error, "Başka fotoğraf", this::showGrid)); return; }
         String sizes = before > 0 ? kb(before) + " → " + kb(after) : kb(after);
-        TextView b = Ui.text(c, sizes + "\nPictures/Kolay klasörüne yeni kopya olarak eklendi; özgün fotoğraf korunur.", 14, c.p.muted, 400);
-        b.setGravity(Gravity.CENTER);
-        l.addView(t); l.addView(b, Ui.lp(-2, -2, 0, c.dp(8), 0, c.dp(24)));
-        TextView share = Ui.button(c, "Paylaş", Ui.Style.TONAL, Icon.Kind.SHARE);
+        LinearLayout l = Ui.state(c, Icon.Kind.CHECK, "Kaydedildi", sizes + "\nPictures/Kolay klasörüne yeni kopya olarak eklendi; özgün fotoğraf korunur.", null, null);
+        TextView share = Ui.button(c, "Paylaş", Ui.Style.PRIMARY, Icon.Kind.SHARE);
         share.setOnClickListener(v -> c.a.startActivity(Intent.createChooser(new Intent(Intent.ACTION_SEND)
                 .setType("image/jpeg").putExtra(Intent.EXTRA_STREAM, out).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION), null)));
-        TextView again = Ui.button(c, "Başka fotoğraf", Ui.Style.PRIMARY, Icon.Kind.SCAN);
+        TextView again = Ui.button(c, "Başka fotoğraf", Ui.Style.TONAL, Icon.Kind.IMAGE);
         again.setOnClickListener(v -> showGrid());
-        l.addView(share, Ui.lp(-1, c.dp(52)));
-        l.addView(again, Ui.lp(-1, c.dp(52), 0, c.dp(12), 0, 0));
-        content.removeAllViews();
-        content.addView(l, new FrameLayout.LayoutParams(-1, -1));
-        Ui.appear(l, 0);
+        l.addView(share, Ui.lp(-1, c.dp(Ui.H_BTN), 0, c.dp(24), 0, 0));
+        l.addView(again, Ui.lp(-1, c.dp(Ui.H_BTN), 0, c.dp(Ui.GAP), 0, 0));
+        show(l);
     }
 
     /** Camera/date/GPS tags worth carrying over; size and thumbnail tags are deliberately left out. */

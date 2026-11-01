@@ -10,6 +10,6 @@ public final class OcrTool implements Tool {
     @Override public String id() { return "ocr"; }
     @Override public String title() { return "OCR"; }
     @Override public String subtitle() { return "Belge ve fotoğraftan metin"; }
-    @Override public Icon.Kind icon() { return Icon.Kind.SCAN; }
+    @Override public Icon.Kind icon() { return Icon.Kind.DOC; }
     @Override public Screen open(Ctx c) { return new PickerScreen(new Session()); }
 }

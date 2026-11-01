@@ -11,7 +11,7 @@ import app.kolay.payload.ui.*;
 import java.io.OutputStream;
 import java.util.Random;
 
-/** Preview of the generated card with new-image / new-hadith / orientation / save / share. Nothing is stored until Save or Share. */
+/** Preview of the generated card with new-image / new-hadith / save / share. Nothing is stored until Save or Share. */
 final class FridayScreen extends Screen {
     private final Random rnd = new Random();
     private long seed = rnd.nextLong();
@@ -21,47 +21,53 @@ final class FridayScreen extends Screen {
     private int gen;            // guards against stale renders finishing out of order
     private boolean destroyed;
     private ImageView preview;
+    private Arc loader;
 
     @Override public View create() {
         LinearLayout page = new LinearLayout(c.a);
         page.setOrientation(LinearLayout.VERTICAL);
         page.addView(new Header(c, "Cuma Mesajı", "Rastgele görsel · hadis · kare", () -> c.nav.pop()).view);
 
+        // Square preview, as large as the space allows, with rounded corners and a loader until the first render.
         FrameLayout box = new FrameLayout(c.a);
-        box.setPadding(c.dp(16), c.dp(4), c.dp(16), c.dp(8));
+        box.setPadding(c.dp(Ui.GUTTER), c.dp(4), c.dp(Ui.GUTTER), c.dp(8));
+        FrameLayout square = new FrameLayout(c.a) {
+            @Override protected void onMeasure(int w, int h) {
+                int side = Math.min(MeasureSpec.getSize(w), MeasureSpec.getSize(h));
+                int spec = MeasureSpec.makeMeasureSpec(side, MeasureSpec.EXACTLY);
+                super.onMeasure(spec, spec);
+            }
+        };
+        Ui.surface(c, square, c.p.surface2, 22, true);
+        square.setClipToOutline(true);
+        loader = new Arc(c.a, c.p.primarySoft, c.p.primary, c.dp(4));
+        square.addView(loader, new FrameLayout.LayoutParams(c.dp(40), c.dp(40), Gravity.CENTER));
         preview = new ImageView(c.a);
-        preview.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        preview.setAdjustViewBounds(true);
-        box.addView(preview, new FrameLayout.LayoutParams(-1, -1));
+        preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        preview.setContentDescription("Cuma görseli önizlemesi");
+        square.addView(preview, new FrameLayout.LayoutParams(-1, -1));
+        box.addView(square, new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER));
         page.addView(box, new LinearLayout.LayoutParams(-1, 0, 1));
 
         LinearLayout f = new LinearLayout(c.a);
         f.setOrientation(LinearLayout.VERTICAL);
-        f.setPadding(c.dp(20), c.dp(4), c.dp(20), c.dp(16));
-        TextView fresh = Ui.button(c, "Yeni görsel", Ui.Style.PRIMARY, Icon.Kind.REFRESH);
+        f.setPadding(c.dp(Ui.GUTTER), c.dp(4), c.dp(Ui.GUTTER), c.dp(Ui.GUTTER));
+
+        TextView fresh = Ui.button(c, "Yeni görsel", Ui.Style.TONAL, Icon.Kind.REFRESH);
         fresh.setOnClickListener(v -> { seed = rnd.nextLong(); nextHadith(); render(); });
-        f.addView(fresh, Ui.lp(-1, c.dp(54)));
-
-        LinearLayout row1 = new LinearLayout(c.a);
-        TextView other = Ui.button(c, "Başka hadis", Ui.Style.TONAL, null);
+        TextView other = Ui.button(c, "Başka hadis", Ui.Style.TONAL, Icon.Kind.DOC);
         other.setOnClickListener(v -> { nextHadith(); render(); });
-        row1.addView(other, new LinearLayout.LayoutParams(-1, c.dp(48)));
-        f.addView(row1, Ui.lp(-1, -2, 0, c.dp(8), 0, 0));
+        f.addView(Ui.pair(c, fresh, other, Ui.H_GHOST));
 
-        LinearLayout row2 = new LinearLayout(c.a);
-        TextView save = Ui.button(c, "Kaydet", Ui.Style.TONAL, Icon.Kind.CHECK);
+        TextView save = Ui.button(c, "Kaydet", Ui.Style.TONAL, Icon.Kind.DOWNLOAD);
         save.setOnClickListener(v -> persist(false));
-        TextView share = Ui.button(c, "Paylaş", Ui.Style.TONAL, Icon.Kind.SHARE);
+        TextView share = Ui.button(c, "Paylaş", Ui.Style.PRIMARY, Icon.Kind.SHARE);
         share.setOnClickListener(v -> persist(true));
-        row2.addView(save, new LinearLayout.LayoutParams(0, c.dp(48), 1));
-        LinearLayout.LayoutParams gap2 = new LinearLayout.LayoutParams(0, c.dp(48), 1);
-        gap2.setMarginStart(c.dp(10));
-        row2.addView(share, gap2);
-        f.addView(row2, Ui.lp(-1, -2, 0, c.dp(8), 0, 0));
+        f.addView(Ui.pair(c, save, share, Ui.H_BAR), Ui.lp(-1, -2, 0, c.dp(Ui.GAP), 0, 0));
 
         TextView note = Ui.text(c, "Hadisler meâl olarak verilir; paylaşmadan önce kaynağını doğrulaman önerilir.", 12, c.p.muted, 400);
-        note.setGravity(Gravity.CENTER);
-        f.addView(note, Ui.lp(-1, -2, 0, c.dp(10), 0, 0));
+        note.setGravity(Gravity.CENTER); note.setLineSpacing(0, 1.15f);
+        f.addView(note, Ui.lp(-1, -2, c.dp(8), c.dp(12), c.dp(8), 0));
         page.addView(f, new LinearLayout.LayoutParams(-1, -2));
         return page;
     }
@@ -85,6 +91,10 @@ final class FridayScreen extends Screen {
                 Bitmap old = bmp;
                 bmp = b; saved = null;
                 preview.setImageBitmap(b);
+                if (loader.getVisibility() == View.VISIBLE) {
+                    loader.setVisibility(View.GONE);
+                    preview.setAlpha(0f); preview.animate().alpha(1f).setDuration(220).start();
+                }
                 if (old != null) old.recycle();     // only after the view no longer shows it
             });
         });

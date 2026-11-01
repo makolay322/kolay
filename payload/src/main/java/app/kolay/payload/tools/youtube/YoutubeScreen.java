@@ -20,6 +20,8 @@ final class YoutubeScreen extends Screen {
 
     private EditText link;
     private TextView go, status, result;
+    private LinearLayout statusRow;
+    private Arc spinner;
     private View resultCard, actions;
     private volatile boolean destroyed;
     private boolean busy;
@@ -37,51 +39,43 @@ final class YoutubeScreen extends Screen {
 
         LinearLayout col = new LinearLayout(c.a);
         col.setOrientation(LinearLayout.VERTICAL);
-        col.setPadding(c.dp(16), c.dp(6), c.dp(16), c.dp(24));
+        col.setPadding(c.dp(Ui.GUTTER), 0, c.dp(Ui.GUTTER), c.dp(24));
 
-        link = new EditText(c.a);
-        link.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
-        link.setSingleLine(true); link.setHint("https://youtu.be/…");
-        link.setTextColor(p.ink); link.setHintTextColor(p.muted); link.setTextSize(15);
-        link.setBackground(Ui.rounded(c, p.surface2, 14));
-        link.setPadding(c.dp(14), c.dp(13), c.dp(14), c.dp(13));
-        link.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO);
+        link = Ui.input(c, "https://youtu.be/…", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+        link.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_GO);
+        link.setOnEditorActionListener((v, action, ev) -> { start(); return true; });
         col.addView(link, Ui.lp(-1, -2));
 
-        LinearLayout row = new LinearLayout(c.a);
-        TextView paste = Ui.button(c, "Yapıştır", Ui.Style.TONAL, Icon.Kind.COPY);
-        go = Ui.button(c, "Özetle", Ui.Style.PRIMARY, Icon.Kind.CHECK);
+        TextView paste = Ui.button(c, "Yapıştır", Ui.Style.TONAL, Icon.Kind.PASTE);
+        go = Ui.button(c, "Özetle", Ui.Style.PRIMARY, Icon.Kind.SPARKLE);
         paste.setOnClickListener(v -> pasteFromClipboard());
         go.setOnClickListener(v -> start());
-        row.addView(paste, Ui.lp(0, c.dp(52), 0, 0, c.dp(10), 0));
-        ((LinearLayout.LayoutParams) paste.getLayoutParams()).weight = 1;
-        row.addView(go, Ui.lp(0, c.dp(52)));
-        ((LinearLayout.LayoutParams) go.getLayoutParams()).weight = 1;
-        col.addView(row, Ui.lp(-1, -2, 0, c.dp(12), 0, 0));
+        col.addView(Ui.pair(c, paste, go, Ui.H_BTN), Ui.lp(-1, -2, 0, c.dp(12), 0, 0));
 
-        status = Ui.text(c, "", 13, p.muted, 500);
-        status.setVisibility(View.GONE);
-        col.addView(status, Ui.lp(-1, -2, c.dp(4), c.dp(16), 0, 0));
+        // status line: a small loader while working, red text on error
+        statusRow = new LinearLayout(c.a);
+        statusRow.setGravity(Gravity.CENTER_VERTICAL);
+        spinner = new Arc(c.a, p.primarySoft, p.primary, c.dp(2.5f));
+        statusRow.addView(spinner, Ui.lp(c.dp(18), c.dp(18), 0, 0, c.dp(10), 0));
+        status = Ui.text(c, "", 14, p.muted, 500);
+        status.setLineSpacing(0, 1.2f);
+        statusRow.addView(status, new LinearLayout.LayoutParams(0, -2, 1));
+        statusRow.setVisibility(View.GONE);
+        col.addView(statusRow, Ui.lp(-1, -2, c.dp(4), c.dp(18), c.dp(4), 0));
 
         result = Ui.text(c, "", 15, p.ink, 400);
         result.setLineSpacing(0, 1.3f);
-        LinearLayout card = new LinearLayout(c.a);
-        card.setPadding(c.dp(18), c.dp(18), c.dp(18), c.dp(18));
-        Ui.surface(c, card, p.surface, 22, true);
+        LinearLayout card = Ui.card(c, p.surface, 18);
         card.addView(result);
         card.setVisibility(View.GONE);
         resultCard = card;
         col.addView(card, Ui.lp(-1, -2, 0, c.dp(16), 0, 0));
 
-        LinearLayout act = new LinearLayout(c.a);
         TextView copy = Ui.button(c, "Kopyala", Ui.Style.TONAL, Icon.Kind.COPY);
         TextView share = Ui.button(c, "Paylaş", Ui.Style.TONAL, Icon.Kind.SHARE);
-        copy.setOnClickListener(v -> copy(v));
+        copy.setOnClickListener(v -> copy(copy));
         share.setOnClickListener(v -> c.a.startActivity(Intent.createChooser(new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, summary), null)));
-        act.addView(copy, Ui.lp(0, c.dp(52), 0, 0, c.dp(10), 0));
-        ((LinearLayout.LayoutParams) copy.getLayoutParams()).weight = 1;
-        act.addView(share, Ui.lp(0, c.dp(52)));
-        ((LinearLayout.LayoutParams) share.getLayoutParams()).weight = 1;
+        LinearLayout act = Ui.pair(c, copy, share, Ui.H_BTN);
         act.setVisibility(View.GONE);
         actions = act;
         col.addView(act, Ui.lp(-1, -2, 0, c.dp(12), 0, 0));
@@ -109,7 +103,9 @@ final class YoutubeScreen extends Screen {
         Ui.haptic(go, HapticFeedbackConstants.VIRTUAL_KEY);
         go.setEnabled(false);
         resultCard.setVisibility(View.GONE); actions.setVisibility(View.GONE);
-        status.setVisibility(View.VISIBLE); status.setTextColor(c.p.muted);
+        ((android.view.inputmethod.InputMethodManager) c.a.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(link.getWindowToken(), 0);
+        link.clearFocus();
+        statusRow.setVisibility(View.VISIBLE); spinner.setVisibility(View.VISIBLE); status.setTextColor(c.p.muted);
         Ui.swapText(status, "Transkript alınıyor…");
         c.io.execute(() -> {
             String out = null, err = null;
@@ -127,9 +123,9 @@ final class YoutubeScreen extends Screen {
 
     private void done(String out, String err) {
         busy = false; go.setEnabled(true);
-        if (err != null) { status.setTextColor(c.p.danger); Ui.swapText(status, "Hata: " + err); return; }
+        if (err != null) { spinner.setVisibility(View.GONE); status.setTextColor(c.p.danger); Ui.swapText(status, err); return; }
         summary = out;
-        status.setVisibility(View.GONE);
+        statusRow.setVisibility(View.GONE);
         result.setText(out);
         resultCard.setVisibility(View.VISIBLE); actions.setVisibility(View.VISIBLE);
         Ui.appear(resultCard, 0); Ui.appear(actions, 80);
@@ -138,11 +134,10 @@ final class YoutubeScreen extends Screen {
 
     private void post(Runnable r) { c.ui.post(() -> { if (!destroyed) r.run(); }); }
 
-    private void copy(View v) {
+    private void copy(TextView btn) {
         ClipData clip = ClipData.newPlainText("Özet", summary);
         ((ClipboardManager) c.a.getSystemService(Context.CLIPBOARD_SERVICE)).setPrimaryClip(clip);
-        Ui.haptic(v, HapticFeedbackConstants.CONFIRM);
-        Toast.makeText(c.a, "Kopyalandı", Toast.LENGTH_SHORT).show();
+        Ui.flashCopied(c, btn, Ui.Style.TONAL);
     }
 
     @Override public void onShown() {

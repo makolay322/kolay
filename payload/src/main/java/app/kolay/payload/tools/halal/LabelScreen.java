@@ -30,7 +30,7 @@ final class LabelScreen extends CamScreen {
             shoot.setText("Çekiliyor…");
             cam.capture();
         });
-        f.addView(shoot, Ui.lp(-1, c.dp(56)));
+        f.addView(shoot, Ui.lp(-1, c.dp(Ui.H_BAR)));
     }
 
     @Override void leave() { c.nav.replace(new ScanScreen(null)); }

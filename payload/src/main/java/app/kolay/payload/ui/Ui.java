@@ -22,6 +22,11 @@ public final class Ui {
 
     public enum Style { PRIMARY, TONAL, GHOST }
 
+    /** Button heights (dp): bottom action bar, buttons inside content, low-emphasis ghost buttons. */
+    public static final int H_BAR = 56, H_BTN = 52, H_GHOST = 48;
+    /** Page side gutter and gap between cards / paired buttons (dp). */
+    public static final int GUTTER = 16, GAP = 10;
+
     public static TextView text(Ctx c, CharSequence s, float sp, int color, int weight) {
         TextView t = new TextView(c.a);
         t.setText(s); t.setTextSize(sp); t.setTextColor(color);
@@ -131,6 +136,138 @@ public final class Ui {
         } else if (v.getVisibility() == View.VISIBLE) {
             v.animate().alpha(0f).translationY(offsetPx).setDuration(200).setInterpolator(EXIT).withEndAction(() -> v.setVisibility(View.INVISIBLE)).start();
         }
+    }
+
+    /** Uppercase section label above a card or list. */
+    public static TextView label(Ctx c, String s) {
+        TextView t = text(c, s, 12, c.p.muted, 600);
+        t.setLetterSpacing(0.1f);
+        return t;
+    }
+
+    /** Content card: rounded surface (raised in light theme) with inner padding. */
+    public static LinearLayout card(Ctx c, int fill, int padDp) {
+        LinearLayout l = new LinearLayout(c.a);
+        l.setOrientation(LinearLayout.VERTICAL);
+        l.setPadding(c.dp(padDp), c.dp(padDp), c.dp(padDp), c.dp(padDp));
+        surface(c, l, fill, 22, fill == c.p.surface);
+        return l;
+    }
+
+    /** Single-line text field in the shared input style. */
+    public static EditText input(Ctx c, String hint, int inputType) {
+        EditText e = new EditText(c.a);
+        e.setInputType(inputType);
+        e.setSingleLine(true); e.setHint(hint);
+        e.setTextColor(c.p.ink); e.setHintTextColor(c.p.muted); e.setTextSize(15);
+        e.setBackground(rounded(c, c.p.surface2, 14));
+        e.setPadding(c.dp(14), c.dp(14), c.dp(14), c.dp(14));
+        e.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO);
+        return e;
+    }
+
+    /** Two equal-width views side by side with the standard gap. */
+    public static LinearLayout pair(Ctx c, View a, View b, int heightDp) {
+        LinearLayout row = new LinearLayout(c.a);
+        LinearLayout.LayoutParams la = new LinearLayout.LayoutParams(0, c.dp(heightDp), 1), lb = new LinearLayout.LayoutParams(0, c.dp(heightDp), 1);
+        lb.setMarginStart(c.dp(GAP));
+        row.addView(a, la); row.addView(b, lb);
+        return row;
+    }
+
+    /** Bottom action area: a full-width row with page gutters, sitting under scrolling content. */
+    public static LinearLayout bottomBar(Ctx c) {
+        LinearLayout l = new LinearLayout(c.a);
+        l.setOrientation(LinearLayout.VERTICAL);
+        l.setPadding(c.dp(GUTTER), c.dp(8), c.dp(GUTTER), c.dp(GUTTER));
+        return l;
+    }
+
+    /**
+     * Centered empty / error / permission state: icon badge, title, explanation and an optional button.
+     * {@code btn} may be null for a purely informative state.
+     */
+    public static LinearLayout state(Ctx c, Icon.Kind icon, String title, String body, String btn, Runnable action) {
+        LinearLayout l = new LinearLayout(c.a);
+        l.setOrientation(LinearLayout.VERTICAL); l.setGravity(Gravity.CENTER);
+        l.setPadding(c.dp(28), c.dp(24), c.dp(28), c.dp(48));
+        FrameLayout badge = new FrameLayout(c.a);
+        badge.setBackground(rounded(c, c.p.primarySoft, 22));
+        badge.addView(icon(c, icon, c.p.onPrimarySoft, 30), new FrameLayout.LayoutParams(c.dp(30), c.dp(30), Gravity.CENTER));
+        l.addView(badge, new LinearLayout.LayoutParams(c.dp(68), c.dp(68)));
+        TextView t = text(c, title, 18, c.p.ink, 600); t.setGravity(Gravity.CENTER);
+        l.addView(t, lp(-2, -2, 0, c.dp(18), 0, 0));
+        if (body != null && !body.isEmpty()) {
+            TextView b = text(c, body, 14, c.p.muted, 400); b.setGravity(Gravity.CENTER); b.setLineSpacing(0, 1.25f);
+            l.addView(b, lp(-2, -2, 0, c.dp(8), 0, 0));
+        }
+        if (btn != null) {
+            TextView go = button(c, btn, Style.PRIMARY, null);
+            go.setMinWidth(c.dp(160));
+            go.setOnClickListener(v -> { haptic(v, HapticFeedbackConstants.VIRTUAL_KEY); action.run(); });
+            l.addView(go, lp(-2, c.dp(H_BTN), 0, c.dp(22), 0, 0));
+        }
+        return l;
+    }
+
+    /** Centered busy state: the arc loader with a title and a muted line. */
+    public static LinearLayout busy(Ctx c, String title, String body) {
+        LinearLayout l = new LinearLayout(c.a);
+        l.setOrientation(LinearLayout.VERTICAL); l.setGravity(Gravity.CENTER);
+        l.setPadding(c.dp(28), 0, c.dp(28), c.dp(48));
+        l.addView(new Arc(c.a, c.p.primarySoft, c.p.primary, c.dp(5)), lp(c.dp(56), c.dp(56)));
+        TextView t = text(c, title, 18, c.p.ink, 600); t.setGravity(Gravity.CENTER);
+        l.addView(t, lp(-2, -2, 0, c.dp(22), 0, 0));
+        if (body != null) {
+            TextView b = text(c, body, 14, c.p.muted, 400); b.setGravity(Gravity.CENTER);
+            l.addView(b, lp(-2, -2, 0, c.dp(6), 0, 0));
+        }
+        return l;
+    }
+
+    /** Segmented control (two or more options); the selected one is filled. Tapping another calls {@code onPick}. */
+    public static LinearLayout segmented(Ctx c, String[] labels, Icon.Kind[] icons, int selected, java.util.function.IntConsumer onPick) {
+        LinearLayout bar = new LinearLayout(c.a);
+        bar.setBackground(rounded(c, c.p.surface2, 16));
+        bar.setPadding(c.dp(4), c.dp(4), c.dp(4), c.dp(4));
+        for (int i = 0; i < labels.length; i++) {
+            boolean on = i == selected;
+            int fg = on ? c.p.onPrimary : c.p.muted;
+            TextView t = text(c, labels[i], 14, fg, on ? 700 : 500);
+            t.setGravity(Gravity.CENTER);
+            t.setSingleLine(true);
+            if (icons != null && icons[i] != null) {
+                Drawable d = new Icon(icons[i], fg); d.setBounds(0, 0, c.dp(18), c.dp(18));
+                t.setCompoundDrawablesRelative(d, null, null, null); t.setCompoundDrawablePadding(c.dp(6));
+            }
+            t.setClickable(true);
+            t.setContentDescription(labels[i] + (on ? ", seçili" : ""));
+            if (on) t.setBackground(rounded(c, c.p.primary, 12));
+            else {
+                final int idx = i;
+                t.setOnClickListener(v -> { haptic(v, HapticFeedbackConstants.CLOCK_TICK); onPick.accept(idx); });
+                press(t);
+            }
+            bar.addView(t, new LinearLayout.LayoutParams(0, -1, 1));
+        }
+        return bar;
+    }
+
+    /** Copy confirmation on the button itself: "Kopyalandı" with a check for a moment, then back. */
+    public static void flashCopied(Ctx c, TextView btn, Style st) {
+        haptic(btn, HapticFeedbackConstants.CONFIRM);
+        CharSequence before = btn.getText();
+        if (!"Kopyalandı".contentEquals(before)) btn.setTag(before);
+        btn.setText("Kopyalandı");
+        style(c, btn, st, Icon.Kind.CHECK);
+        btn.animate().scaleX(1.04f).scaleY(1.04f).setDuration(120).withEndAction(() -> btn.animate().scaleX(1f).scaleY(1f).setDuration(260).setInterpolator(POP).start()).start();
+        c.ui.postDelayed(() -> {
+            if (btn.isAttachedToWindow() && "Kopyalandı".contentEquals(btn.getText())) {
+                Object t = btn.getTag();
+                btn.setText(t instanceof CharSequence ? (CharSequence) t : "Kopyala");
+                style(c, btn, st, Icon.Kind.COPY);
+            }
+        }, 1600);
     }
 
     public static LinearLayout.LayoutParams lp(int w, int h) { return new LinearLayout.LayoutParams(w, h); }

@@ -24,7 +24,8 @@ final class PickerScreen extends Screen {
     private TextView read;
     private FrameLayout content;
     private GridView grid;
-    private LinearLayout modeBar;
+    private FrameLayout modeBar;
+    private boolean askedOnce;
 
     PickerScreen(Session s) { this.s = s; }
 
@@ -33,76 +34,71 @@ final class PickerScreen extends Screen {
         page.setOrientation(LinearLayout.VERTICAL);
         header = new Header(c, "OCR", subtitle(), () -> c.nav.pop());
         page.addView(header.view);
-        modeBar = new LinearLayout(c.a);
-        modeBar.setBackground(Ui.rounded(c, c.p.surface2, 16));
-        modeBar.setPadding(c.dp(4), c.dp(4), c.dp(4), c.dp(4));
-        page.addView(modeBar, Ui.lp(-1, c.dp(44), c.dp(16), 0, c.dp(16), c.dp(8)));
+        modeBar = new FrameLayout(c.a);
+        page.addView(modeBar, Ui.lp(-1, c.dp(44), c.dp(Ui.GUTTER), 0, c.dp(Ui.GUTTER), c.dp(10)));
         paintModeBar();
 
         content = new FrameLayout(c.a);
         page.addView(content, new LinearLayout.LayoutParams(-1, 0, 1));
 
-        if (c.a.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) showGrid();
+        if (granted()) showGrid();
         else c.a.requestPermissions(new String[]{Manifest.permission.READ_MEDIA_IMAGES}, 1);
         return page;
     }
 
+    private boolean granted() { return c.a.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED; }
+
+    /** Back from the app settings with the permission granted: show the photos. */
+    @Override public void onResume() { if (askedOnce && grid == null && granted()) showGrid(); }
+
     @Override public void onPermission(int req, String[] perms, int[] r) {
         if (r.length > 0 && r[0] == PackageManager.PERMISSION_GRANTED) showGrid();
-        else message("Fotoğraflara erişim izni gerekli", "Ayarlar → Uygulamalar → Kolay → İzinler");
+        else {
+            askedOnce = true;
+            boolean again = c.a.shouldShowRequestPermissionRationale(Manifest.permission.READ_MEDIA_IMAGES);
+            content.removeAllViews();
+            LinearLayout st = Ui.state(c, Icon.Kind.IMAGE, "Fotoğraflara erişim gerekli", "Okunacak sayfaları seçebilmek için fotoğraf izni ver.",
+                again ? "İzin ver" : "Ayarları aç", () -> {
+                    if (c.a.shouldShowRequestPermissionRationale(Manifest.permission.READ_MEDIA_IMAGES))
+                        c.a.requestPermissions(new String[]{Manifest.permission.READ_MEDIA_IMAGES}, 1);
+                    else c.a.startActivity(new android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", c.a.getPackageName(), null)));
+                });
+            content.addView(st, new FrameLayout.LayoutParams(-1, -1));
+            Ui.appear(st, 0);
+        }
     }
 
     /** Tıbbi (default) | Genel. Switching only changes how the selected pages are processed afterwards. */
     private void paintModeBar() {
         modeBar.removeAllViews();
-        modeBar.addView(modeChip("Tıbbi", !s.general, false), new LinearLayout.LayoutParams(0, -1, 1));
-        modeBar.addView(modeChip("Genel", s.general, true), new LinearLayout.LayoutParams(0, -1, 1));
-    }
-
-    private TextView modeChip(String label, boolean selected, boolean toGeneral) {
-        Palette p = c.p;
-        TextView t = Ui.text(c, label, 14, selected ? p.onPrimary : p.muted, selected ? 700 : 500);
-        t.setGravity(Gravity.CENTER);
-        t.setClickable(true);
-        if (selected) t.setBackground(Ui.rounded(c, p.primary, 12));
-        else {
-            t.setOnClickListener(v -> {
-                Ui.haptic(v, HapticFeedbackConstants.CLOCK_TICK);
-                s.general = toGeneral;
-                paintModeBar();
-                refresh(false);
-            });
-            Ui.press(t);
-        }
-        return t;
+        modeBar.addView(Ui.segmented(c, new String[]{"Tıbbi belge", "Genel metin"}, null, s.general ? 1 : 0, i -> {
+            s.general = i == 1;
+            paintModeBar();
+            refresh(false);
+        }), new FrameLayout.LayoutParams(-1, -1));
     }
 
     private String subtitle() {
         int n = s.selected.size();
-        String mode = s.general ? "genel okuma (yalnızca cihazda)" : "tıbbi belge";
+        String mode = s.general ? "cihazda okunur" : "okunur, maskelenir, cilalanır";
         return n == 0 ? "Sayfaları seç · " + mode : n + " sayfa seçili · " + mode;
-    }
-
-    private void message(String title, String body) {
-        LinearLayout l = new LinearLayout(c.a);
-        l.setOrientation(LinearLayout.VERTICAL); l.setGravity(Gravity.CENTER);
-        l.setPadding(c.dp(32), 0, c.dp(32), c.dp(64));
-        TextView t = Ui.text(c, title, 18, c.p.ink, 600); t.setGravity(Gravity.CENTER);
-        TextView b = Ui.text(c, body, 14, c.p.muted, 400); b.setGravity(Gravity.CENTER);
-        l.addView(t); l.addView(b, Ui.lp(-2, -2, 0, c.dp(8), 0, 0));
-        content.removeAllViews();
-        content.addView(l, new FrameLayout.LayoutParams(-1, -1));
-        Ui.appear(l, 0);
     }
 
     private void showGrid() {
         loadPhotos();
-        if (s.photos.isEmpty()) { message("Fotoğraf bulunamadı", "Kamera ile çekilen belgeler burada görünür"); return; }
+        if (s.photos.isEmpty()) {
+            content.removeAllViews();
+            LinearLayout st = Ui.state(c, Icon.Kind.IMAGE, "Fotoğraf bulunamadı", "Kamerayla çektiğin belgeler burada görünür.", null, null);
+            content.addView(st, new FrameLayout.LayoutParams(-1, -1));
+            Ui.appear(st, 0);
+            return;
+        }
 
         grid = new GridView(c.a);
         grid.setNumColumns(3);
         grid.setHorizontalSpacing(c.dp(6)); grid.setVerticalSpacing(c.dp(6));
-        grid.setPadding(c.dp(12), c.dp(4), c.dp(12), c.dp(112));
+        grid.setPadding(c.dp(Ui.GUTTER), c.dp(2), c.dp(Ui.GUTTER), c.dp(Ui.H_BAR + 2 * Ui.GUTTER + 8));
         grid.setClipToPadding(false); grid.setSelector(android.R.color.transparent);
         grid.setVerticalScrollBarEnabled(false);
         adapter = new BaseAdapter() {
@@ -133,8 +129,8 @@ final class PickerScreen extends Screen {
             Ui.haptic(v, HapticFeedbackConstants.CONFIRM);
             c.nav.replace(new ProgressScreen(s, new ArrayList<>(s.selected)));
         });
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-1, c.dp(56), Gravity.BOTTOM);
-        lp.setMargins(c.dp(16), 0, c.dp(16), c.dp(16));
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-1, c.dp(Ui.H_BAR), Gravity.BOTTOM);
+        lp.setMargins(c.dp(Ui.GUTTER), 0, c.dp(Ui.GUTTER), c.dp(Ui.GUTTER));
         content.addView(read, lp);
         read.setVisibility(View.INVISIBLE);
         refresh(false);

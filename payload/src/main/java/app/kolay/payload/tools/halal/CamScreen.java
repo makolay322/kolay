@@ -46,10 +46,10 @@ abstract class CamScreen extends Screen implements QrCamera.Listener {
         page.setOrientation(LinearLayout.VERTICAL);
         page.addView(new Header(c, title(), subtitle(), this::back).view);
 
-        page.addView(modeBar(), Ui.lp(-1, c.dp(44), c.dp(16), 0, c.dp(16), c.dp(8)));
+        page.addView(modeBar(), Ui.lp(-1, c.dp(44), c.dp(Ui.GUTTER), 0, c.dp(Ui.GUTTER), c.dp(10)));
 
         stage = new FrameLayout(c.a);
-        stage.setPadding(c.dp(16), c.dp(4), c.dp(16), c.dp(12));
+        stage.setPadding(c.dp(Ui.GUTTER), 0, c.dp(Ui.GUTTER), c.dp(12));
 
         cameraCard = new FrameLayout(c.a);
         Ui.surface(c, cameraCard, p.surface2, 22, false);
@@ -79,19 +79,20 @@ abstract class CamScreen extends Screen implements QrCamera.Listener {
         statePanel = new LinearLayout(c.a);
         statePanel.setOrientation(LinearLayout.VERTICAL);
         statePanel.setGravity(Gravity.CENTER);
-        statePanel.setPadding(c.dp(24), 0, c.dp(24), 0);
+        statePanel.setPadding(c.dp(28), 0, c.dp(28), c.dp(48));
         FrameLayout badge = new FrameLayout(c.a);
         badge.setBackground(Ui.rounded(c, p.primarySoft, 22));
-        badge.addView(Ui.icon(c, Icon.Kind.CAMERA, p.onPrimarySoft, 32), new FrameLayout.LayoutParams(c.dp(32), c.dp(32), Gravity.CENTER));
-        statePanel.addView(badge, new LinearLayout.LayoutParams(c.dp(72), c.dp(72)));
+        badge.addView(Ui.icon(c, Icon.Kind.CAMERA, p.onPrimarySoft, 30), new FrameLayout.LayoutParams(c.dp(30), c.dp(30), Gravity.CENTER));
+        statePanel.addView(badge, new LinearLayout.LayoutParams(c.dp(68), c.dp(68)));
         stateTitle = Ui.text(c, "", 18, p.ink, 600);
         stateTitle.setGravity(Gravity.CENTER);
-        statePanel.addView(stateTitle, Ui.lp(-2, -2, 0, c.dp(20), 0, 0));
+        statePanel.addView(stateTitle, Ui.lp(-2, -2, 0, c.dp(18), 0, 0));
         stateText = Ui.text(c, "", 14, p.muted, 400);
         stateText.setGravity(Gravity.CENTER); stateText.setLineSpacing(0, 1.25f);
         statePanel.addView(stateText, Ui.lp(-2, -2, 0, c.dp(8), 0, 0));
         stateBtn = Ui.button(c, "", Ui.Style.PRIMARY, null);
-        statePanel.addView(stateBtn, Ui.lp(-2, c.dp(52), 0, c.dp(24), 0, 0));
+        stateBtn.setMinWidth(c.dp(160));
+        statePanel.addView(stateBtn, Ui.lp(-2, c.dp(Ui.H_BTN), 0, c.dp(22), 0, 0));
         statePanel.setVisibility(View.GONE);
         stage.addView(statePanel, new FrameLayout.LayoutParams(-1, -1));
         page.addView(stage, new LinearLayout.LayoutParams(-1, 0, 1));
@@ -99,7 +100,7 @@ abstract class CamScreen extends Screen implements QrCamera.Listener {
         footer = new LinearLayout(c.a);
         footer.setOrientation(LinearLayout.VERTICAL);
         footer.setGravity(Gravity.CENTER_HORIZONTAL);
-        footer.setPadding(c.dp(16), 0, c.dp(16), c.dp(14));
+        footer.setPadding(c.dp(Ui.GUTTER), 0, c.dp(Ui.GUTTER), c.dp(Ui.GUTTER));
         buildFooter(footer);
         page.addView(footer);
         return page;
@@ -107,27 +108,11 @@ abstract class CamScreen extends Screen implements QrCamera.Listener {
 
     /** Barkod | Etiket (OCR): barcode is the default; the other mode is only entered by choosing it. */
     private View modeBar() {
-        Palette p = c.p;
-        LinearLayout bar = new LinearLayout(c.a);
-        bar.setBackground(Ui.rounded(c, p.surface2, 16));
-        bar.setPadding(c.dp(4), c.dp(4), c.dp(4), c.dp(4));
-        bar.addView(modeChip("Barkod", Icon.Kind.BARCODE, !ocrMode(), () -> { finish(); c.nav.replace(new ScanScreen(null)); }), new LinearLayout.LayoutParams(0, -1, 1));
-        bar.addView(modeChip("Etiket (OCR)", Icon.Kind.CAMERA, ocrMode(), () -> { finish(); c.nav.replace(new LabelScreen(null, "İçindekiler yazısını çerçeveye al")); }), new LinearLayout.LayoutParams(0, -1, 1));
-        return bar;
-    }
-
-    private TextView modeChip(String label, Icon.Kind icon, boolean selected, Runnable onTap) {
-        Palette p = c.p;
-        TextView t = Ui.text(c, label, 14, selected ? p.onPrimary : p.muted, selected ? 700 : 500);
-        t.setGravity(Gravity.CENTER);
-        t.setCompoundDrawablePadding(c.dp(6));
-        android.graphics.drawable.Drawable d = new Icon(icon, selected ? p.onPrimary : p.muted);
-        d.setBounds(0, 0, c.dp(18), c.dp(18));
-        t.setCompoundDrawablesRelative(d, null, null, null);
-        t.setClickable(true);
-        if (selected) t.setBackground(Ui.rounded(c, p.primary, 12));
-        else { t.setOnClickListener(v -> { Ui.haptic(v, HapticFeedbackConstants.CLOCK_TICK); onTap.run(); }); Ui.press(t); }
-        return t;
+        return Ui.segmented(c, new String[]{"Barkod", "Etiket (OCR)"}, new Icon.Kind[]{Icon.Kind.BARCODE, Icon.Kind.CAMERA}, ocrMode() ? 1 : 0, i -> {
+            finish();
+            if (i == 0) c.nav.replace(new ScanScreen(null));
+            else c.nav.replace(new LabelScreen(null, "İçindekiler yazısını çerçeveye al"));
+        });
     }
 
     private void back() { cam.stop(); leave(); }
@@ -192,7 +177,7 @@ abstract class CamScreen extends Screen implements QrCamera.Listener {
 
     private void paintTorch(boolean on) {
         if (torchBtn == null) return;
-        torchBtn.setBackground(Ui.rounded(c, on ? c.p.primary : 0x99000000, 26));
+        torchBtn.setBackground(Ui.rounded(c, on ? c.p.primary : c.p.scrim, 26));
         torchIcon.setImageDrawable(new Icon(Icon.Kind.FLASH, on ? c.p.onPrimary : Color.WHITE));
     }
 

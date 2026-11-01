@@ -9,7 +9,7 @@ import app.kolay.payload.ui.Screen;
 public final class FridayTool implements Tool {
     @Override public String id() { return "cuma"; }
     @Override public String title() { return "Cuma Mesajı"; }
-    @Override public String subtitle() { return "Hadisli görsel · kare"; }
+    @Override public String subtitle() { return "Hadisli kare görsel"; }
     @Override public Icon.Kind icon() { return Icon.Kind.CRESCENT; }
     @Override public Screen open(Ctx c) { return new FridayScreen(); }
 }

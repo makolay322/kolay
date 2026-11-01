@@ -9,7 +9,7 @@ import app.kolay.payload.ui.Screen;
 public final class NamazTool implements Tool {
     @Override public String id() { return "namaz"; }
     @Override public String title() { return "Namaz Vakitleri"; }
-    @Override public String subtitle() { return "Konuma göre · widget · hatırlatıcı"; }
+    @Override public String subtitle() { return "Vakit · widget · hatırlatıcı"; }
     @Override public Icon.Kind icon() { return Icon.Kind.CLOCK; }
     @Override public Screen open(Ctx c) { return new NamazScreen(); }
 }

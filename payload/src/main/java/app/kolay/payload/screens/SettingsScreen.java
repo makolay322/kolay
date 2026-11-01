@@ -9,7 +9,7 @@ import app.kolay.payload.ui.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/** API key, privacy switch, update status and about. */
+/** API key, update status and about. */
 public final class SettingsScreen extends Screen {
     public static final String LLM_SECRET = "llm";
 
@@ -22,29 +22,22 @@ public final class SettingsScreen extends Screen {
         Palette p = c.p;
         LinearLayout page = new LinearLayout(c.a);
         page.setOrientation(LinearLayout.VERTICAL);
-        page.addView(new Header(c, "Ayarlar", "Kolay", () -> c.nav.pop(), null).view);
+        page.addView(new Header(c, "Ayarlar", "Anahtar · güncelleme · sürüm", () -> c.nav.pop(), null).view);
 
         LinearLayout col = new LinearLayout(c.a);
         col.setOrientation(LinearLayout.VERTICAL);
-        col.setPadding(c.dp(16), c.dp(6), c.dp(16), c.dp(32));
+        col.setPadding(c.dp(Ui.GUTTER), 0, c.dp(Ui.GUTTER), c.dp(32));
 
         // ---- API key ----
-        col.addView(section("GEMINI API ANAHTARI"));
+        col.addView(section("CİLALAMA", true));
         LinearLayout k = card();
         keyState = Ui.text(c, keyLabel(), 13, p.muted, 500);
         k.addView(row(Icon.Kind.KEY, "Gemini API anahtarı", null, keyState));
-        key = new EditText(c.a);
-        key.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        key.setSingleLine(true); key.setHint("Anahtarı buraya yapıştır");
-        key.setTextColor(p.ink); key.setHintTextColor(p.muted); key.setTextSize(15);
-        key.setBackground(Ui.rounded(c, p.surface2, 14));
-        key.setPadding(c.dp(14), c.dp(13), c.dp(14), c.dp(13));
-        key.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO);
-        k.addView(key, Ui.lp(-1, -2, 0, c.dp(12), 0, 0));
+        key = Ui.input(c, "Anahtarı buraya yapıştır", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        k.addView(key, Ui.lp(-1, -2, 0, c.dp(14), 0, 0));
         TextView note = Ui.text(c, "Yalnızca bu cihazda, şifreli saklanır. Depoda veya uygulama dosyasında yer almaz.", 12, p.muted, 400);
         note.setLineSpacing(0, 1.15f);
         k.addView(note, Ui.lp(-1, -2, 0, c.dp(10), 0, 0));
-        LinearLayout btns = new LinearLayout(c.a);
         TextView save = Ui.button(c, "Kaydet", Ui.Style.PRIMARY, Icon.Kind.CHECK);
         TextView clear = Ui.button(c, "Sil", Ui.Style.TONAL, null);
         save.setOnClickListener(v -> saveKey());
@@ -53,14 +46,16 @@ public final class SettingsScreen extends Screen {
             key.setText(""); Ui.swapText(keyState, keyLabel());
             Ui.haptic(v, HapticFeedbackConstants.CONFIRM);
         });
-        btns.addView(save, Ui.lp(0, c.dp(48), 0, 0, c.dp(8), 0));
-        ((LinearLayout.LayoutParams) save.getLayoutParams()).weight = 1;
-        btns.addView(clear, Ui.lp(c.dp(96), c.dp(48)));
+        LinearLayout btns = new LinearLayout(c.a);
+        LinearLayout.LayoutParams sl = new LinearLayout.LayoutParams(0, c.dp(Ui.H_GHOST), 1);
+        sl.setMarginEnd(c.dp(Ui.GAP));
+        btns.addView(save, sl);
+        btns.addView(clear, Ui.lp(c.dp(96), c.dp(Ui.H_GHOST)));
         k.addView(btns, Ui.lp(-1, -2, 0, c.dp(14), 0, 0));
         col.addView(k);
 
         // ---- updates ----
-        col.addView(section("GÜNCELLEME"));
+        col.addView(section("GÜNCELLEME", false));
         updateBox = card();
         updateState = Ui.text(c, c.host.updateStatus(), 13, p.muted, 400);
         updateState.setLineSpacing(0, 1.15f);
@@ -69,24 +64,26 @@ public final class SettingsScreen extends Screen {
         updateBox.addView(updateState, Ui.lp(-1, -2, 0, c.dp(10), 0, 0));
         checkBtn = Ui.button(c, "Şimdi denetle", Ui.Style.TONAL, null);
         checkBtn.setOnClickListener(v -> checkNow());
-        updateBox.addView(checkBtn, Ui.lp(-1, c.dp(48), 0, c.dp(14), 0, 0));
+        updateBox.addView(checkBtn, Ui.lp(-1, c.dp(Ui.H_GHOST), 0, c.dp(14), 0, 0));
         shellBtn = Ui.button(c, "Kabuğu indir ve yükle", Ui.Style.PRIMARY, Icon.Kind.REFRESH);
         shellBtn.setOnClickListener(v -> installShell());
-        updateBox.addView(shellBtn, Ui.lp(-1, c.dp(48), 0, c.dp(10), 0, 0));
+        updateBox.addView(shellBtn, Ui.lp(-1, c.dp(Ui.H_GHOST), 0, c.dp(Ui.GAP), 0, 0));
         renderShellButton();
         renderUpdateButtons();
         col.addView(updateBox);
 
         // ---- about ----
-        col.addView(section("HAKKINDA"));
+        col.addView(section("HAKKINDA", false));
         LinearLayout ab = card();
-        ab.addView(row(Icon.Kind.SCAN, "Modül", c.host.payloadName(), null));
+        ab.addView(row(Icon.Kind.LAYERS, "Modül", c.host.payloadName(), null));
         ab.addView(divider());
         ab.addView(row(Icon.Kind.SHIELD, "Kabuk", app.kolay.payload.Versions.shellName(c.a, c.host.shellVersion()), null));
         ab.addView(divider());
         LinearLayout gh = row(Icon.Kind.LINK, "Sürüm sayfası", "GitHub", Ui.icon(c, Icon.Kind.CHEVRON, p.muted, 18));
         gh.setClickable(true);
+        gh.setPadding(0, c.dp(4), 0, c.dp(4));
         Ui.surface(c, gh, p.surface, 12, false);
+        Ui.press(gh);
         gh.setOnClickListener(v -> c.a.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(c.host.releasesUrl()))));
         ab.addView(gh);
         col.addView(ab);
@@ -171,10 +168,9 @@ public final class SettingsScreen extends Screen {
 
     // ---- small building blocks -------------------------------------------------------------
 
-    private TextView section(String s) {
-        TextView t = Ui.text(c, s, 12, c.p.muted, 600);
-        t.setLetterSpacing(0.1f);
-        t.setLayoutParams(Ui.lp(-2, -2, c.dp(6), c.dp(24), 0, c.dp(10)));
+    private TextView section(String s, boolean first) {
+        TextView t = Ui.label(c, s);
+        t.setLayoutParams(Ui.lp(-2, -2, c.dp(4), c.dp(first ? 8 : 24), 0, c.dp(10)));
         return t;
     }
 

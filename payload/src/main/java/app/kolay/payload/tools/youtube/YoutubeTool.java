@@ -9,8 +9,8 @@ import app.kolay.payload.ui.Screen;
 public final class YoutubeTool implements Tool {
     @Override public String id() { return "youtube"; }
     @Override public String title() { return "YouTube Özeti"; }
-    @Override public String subtitle() { return "Video bağlantısından Türkçe özet"; }
-    @Override public Icon.Kind icon() { return Icon.Kind.LINK; }
+    @Override public String subtitle() { return "Bağlantıdan Türkçe özet"; }
+    @Override public Icon.Kind icon() { return Icon.Kind.PLAY; }
     @Override public Screen open(Ctx c) { return new YoutubeScreen(); }
     @Override public boolean compact() { return true; }
 

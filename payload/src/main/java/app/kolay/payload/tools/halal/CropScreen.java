@@ -28,16 +28,16 @@ final class CropScreen extends Screen {
 
         CropView cv = new CropView(c.a, still, c);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, 0, 1);
-        lp.setMargins(c.dp(16), c.dp(4), c.dp(16), c.dp(8));
+        lp.setMargins(c.dp(Ui.GUTTER), 0, c.dp(Ui.GUTTER), c.dp(8));
         col.addView(cv, lp);
 
         LinearLayout f = new LinearLayout(c.a);
         f.setOrientation(LinearLayout.VERTICAL);
-        f.setPadding(c.dp(20), c.dp(4), c.dp(20), c.dp(16));
+        f.setPadding(c.dp(Ui.GUTTER), c.dp(4), c.dp(Ui.GUTTER), c.dp(Ui.GUTTER));
         TextView hint = Ui.text(c, "Köşeleri ve kenarları sürükle; çerçeveyi içinden kaydır.", 13, p.muted, 400);
         hint.setGravity(Gravity.CENTER);
         f.addView(hint, Ui.lp(-1, -2, 0, 0, 0, c.dp(10)));
-        TextView go = Ui.button(c, "Seçimi sorgula", Ui.Style.PRIMARY, Icon.Kind.CHECK);
+        TextView go = Ui.button(c, "Seçimi sorgula", Ui.Style.PRIMARY, Icon.Kind.SCAN);
         go.setOnClickListener(v -> {
             Ui.haptic(v, HapticFeedbackConstants.VIRTUAL_KEY);
             Bitmap part = cv.cropped();
@@ -47,10 +47,10 @@ final class CropScreen extends Screen {
             if (whole != null && whole != part) whole.recycle();
             c.nav.replace(new WorkScreen(barcode, part));
         });
-        f.addView(go, Ui.lp(-1, c.dp(56)));
+        f.addView(go, Ui.lp(-1, c.dp(Ui.H_BAR)));
         TextView again = Ui.button(c, "Yeniden çek", Ui.Style.GHOST, Icon.Kind.CAMERA);
         again.setOnClickListener(v -> retake());
-        f.addView(again, Ui.lp(-1, c.dp(48), 0, c.dp(6), 0, 0));
+        f.addView(again, Ui.lp(-1, c.dp(Ui.H_GHOST), 0, c.dp(6), 0, 0));
         col.addView(f, new LinearLayout.LayoutParams(-1, -2));
         return col;
     }

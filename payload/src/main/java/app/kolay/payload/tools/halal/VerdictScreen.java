@@ -26,13 +26,15 @@ final class VerdictScreen extends Screen {
 
         LinearLayout col = new LinearLayout(c.a);
         col.setOrientation(LinearLayout.VERTICAL);
-        col.setPadding(c.dp(16), c.dp(4), c.dp(16), c.dp(16));
+        col.setPadding(c.dp(Ui.GUTTER), 0, c.dp(Ui.GUTTER), c.dp(Ui.GUTTER));
 
         if (error != null) {
-            TextView t = Ui.text(c, "Değerlendirme yapılamadı\n\n" + error, 15, p.danger, 500);
+            LinearLayout card = card(p.dangerSoft);
+            card.setOrientation(LinearLayout.VERTICAL);
+            card.addView(Ui.text(c, "Değerlendirme yapılamadı", 17, p.danger, 700));
+            TextView t = Ui.text(c, error, 14, p.ink, 400);
             t.setLineSpacing(0, 1.3f);
-            LinearLayout card = card(p.surface);
-            card.addView(t);
+            card.addView(t, Ui.lp(-1, -2, 0, c.dp(8), 0, 0));
             col.addView(card, Ui.lp(-1, -2));
             parts[0] = card;
         } else {
@@ -67,8 +69,7 @@ final class VerdictScreen extends Screen {
         }
 
         if (!ingredients.isEmpty()) {
-            TextView lab = Ui.text(c, "DEĞERLENDİRİLEN İÇİNDEKİLER", 12, p.muted, 600);
-            lab.setLetterSpacing(0.1f);
+            TextView lab = Ui.label(c, "DEĞERLENDİRİLEN İÇİNDEKİLER");
             col.addView(lab, Ui.lp(-2, -2, c.dp(4), c.dp(20), 0, c.dp(8)));
             LinearLayout card = card(p.surface2);
             String shown = ingredients.length() > 1200 ? ingredients.substring(0, 1200) + "…" : ingredients;
@@ -87,17 +88,14 @@ final class VerdictScreen extends Screen {
         sv.addView(col);
         page.addView(sv, new LinearLayout.LayoutParams(-1, 0, 1));
 
-        LinearLayout row = new LinearLayout(c.a);
-        row.setPadding(c.dp(16), c.dp(8), c.dp(16), c.dp(16));
+        LinearLayout row = Ui.bottomBar(c);
         TextView copy = Ui.button(c, "Kopyala", Ui.Style.TONAL, Icon.Kind.COPY);
         TextView again = Ui.button(c, "Yeni sorgu", Ui.Style.PRIMARY, Icon.Kind.BARCODE);
         copy.setOnClickListener(x -> copy(copy));
         again.setOnClickListener(x -> again());
-        LinearLayout.LayoutParams l1 = Ui.lp(0, c.dp(56), 0, 0, c.dp(10), 0); l1.weight = 1;
-        LinearLayout.LayoutParams l2 = Ui.lp(0, c.dp(56)); l2.weight = 1;
-        row.addView(copy, l1); row.addView(again, l2);
+        if (error != null) row.addView(again, Ui.lp(-1, c.dp(Ui.H_BAR)));
+        else row.addView(Ui.pair(c, copy, again, Ui.H_BAR));
         page.addView(row);
-        if (error != null) copy.setVisibility(View.GONE);
         return page;
     }
 
@@ -121,9 +119,7 @@ final class VerdictScreen extends Screen {
         extras.putBoolean("android.content.extra.IS_SENSITIVE", true);
         clip.getDescription().setExtras(extras);
         ((ClipboardManager) c.a.getSystemService(Context.CLIPBOARD_SERVICE)).setPrimaryClip(clip);
-        Ui.haptic(btn, HapticFeedbackConstants.CONFIRM);
-        btn.setText("Kopyalandı");
-        c.ui.postDelayed(() -> { if (btn.isAttachedToWindow()) btn.setText("Kopyala"); }, 1600);
+        Ui.flashCopied(c, btn, Ui.Style.TONAL);
     }
 
     private void again() { c.nav.replace(new ScanScreen(null)); }

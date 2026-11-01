@@ -22,6 +22,7 @@ final class ResultScreen extends Screen {
     private final boolean ok;
     private View body, bar;
     private TextView copy;
+    private static final String CLEAN_LABEL = "Cilala (maskelenip buluta gider)";
 
     ResultScreen(Session s, String text, long secs, int pages, boolean ok) { this.s = s; this.raw = text; this.text = text; this.secs = secs; this.pages = pages; this.ok = ok; }
 
@@ -36,27 +37,23 @@ final class ResultScreen extends Screen {
         TextView t = Ui.text(c, text, 15, ok ? p.ink : p.danger, 400);
         out = t;
         t.setLineSpacing(0, 1.3f);
-        t.setTextIsSelectable(false);
         LinearLayout card = new LinearLayout(c.a);
         card.setPadding(c.dp(18), c.dp(18), c.dp(18), c.dp(18));
         Ui.surface(c, card, p.surface, 22, true);
         card.addView(t);
         FrameLayout wrap = new FrameLayout(c.a);
-        wrap.setPadding(c.dp(16), c.dp(4), c.dp(16), c.dp(16));
+        wrap.setPadding(c.dp(Ui.GUTTER), 0, c.dp(Ui.GUTTER), c.dp(Ui.GUTTER));
         wrap.addView(card);
         sv.addView(wrap);
         body = sv;
         page.addView(sv, new LinearLayout.LayoutParams(-1, 0, 1));
 
-        LinearLayout bottom = new LinearLayout(c.a);
-        bottom.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout bottom = Ui.bottomBar(c);
         if (s.general && ok) {   // general mode: the text stays on the device unless this button is pressed
-            clean = Ui.button(c, "Cilala (maskelenip buluta gider)", Ui.Style.TONAL, Icon.Kind.REFRESH);
+            clean = Ui.button(c, CLEAN_LABEL, Ui.Style.TONAL, Icon.Kind.SPARKLE);
             clean.setOnClickListener(v -> cleanUp());
-            bottom.addView(clean, Ui.lp(-1, c.dp(52), c.dp(16), c.dp(8), c.dp(16), 0));
+            bottom.addView(clean, Ui.lp(-1, c.dp(Ui.H_GHOST), 0, 0, 0, c.dp(Ui.GAP)));
         }
-        LinearLayout row = new LinearLayout(c.a);
-        row.setPadding(c.dp(16), c.dp(8), c.dp(16), c.dp(16));
         copy = Ui.button(c, "Kopyala", Ui.Style.PRIMARY, Icon.Kind.COPY);
         TextView share = Ui.button(c, "Paylaş", Ui.Style.TONAL, Icon.Kind.SHARE);
         copy.setOnClickListener(v -> copy());
@@ -64,11 +61,12 @@ final class ResultScreen extends Screen {
             Ui.haptic(v, HapticFeedbackConstants.VIRTUAL_KEY);
             c.a.startActivity(Intent.createChooser(new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text), null));
         });
-        row.addView(copy, Ui.lp(0, c.dp(56), 0, 0, c.dp(10), 0));
-        ((LinearLayout.LayoutParams) copy.getLayoutParams()).weight = 1;
-        row.addView(share, Ui.lp(0, c.dp(56)));
-        ((LinearLayout.LayoutParams) share.getLayoutParams()).weight = 1;
-        bottom.addView(row);
+        if (ok) bottom.addView(Ui.pair(c, copy, share, Ui.H_BAR));
+        else {   // nothing worth copying: offer to try again instead
+            TextView retry = Ui.button(c, "Başka sayfa seç", Ui.Style.PRIMARY, Icon.Kind.IMAGE);
+            retry.setOnClickListener(v -> back());
+            bottom.addView(retry, Ui.lp(-1, c.dp(Ui.H_BAR)));
+        }
         bar = bottom;
         page.addView(bottom);
         body.setAlpha(0f); bar.setAlpha(0f);
@@ -87,11 +85,11 @@ final class ResultScreen extends Screen {
         if (cleaning) return;
         if (cleaned) {   // toggle back to the raw text
             cleaned = false; text = raw; out.setText(raw);
-            Ui.style(c, clean, Ui.Style.TONAL, Icon.Kind.REFRESH); clean.setText("Cilala (maskelenip buluta gider)");
+            Ui.style(c, clean, Ui.Style.TONAL, Icon.Kind.SPARKLE); clean.setText(CLEAN_LABEL);
             return;
         }
         cleaning = true;
-        clean.setText("Temizleniyor…"); clean.setEnabled(false);
+        clean.setText("Cilalanıyor…"); clean.setEnabled(false);
         c.io.execute(() -> {
             String res = null, err = null;
             try { res = Ocr.cleanGeneral(c.host, raw); if (res.isEmpty()) err = "Boş yanıt"; }
@@ -101,9 +99,10 @@ final class ResultScreen extends Screen {
                 cleaning = false;
                 if (!clean.isAttachedToWindow()) return;
                 clean.setEnabled(true);
-                if (e != null) { clean.setText("Cilala (maskelenip buluta gider)"); android.widget.Toast.makeText(c.a, e, android.widget.Toast.LENGTH_LONG).show(); return; }
+                if (e != null) { clean.setText(CLEAN_LABEL); android.widget.Toast.makeText(c.a, e, android.widget.Toast.LENGTH_LONG).show(); return; }
                 cleaned = true; text = r; out.setText(r);
                 clean.setText("Ham metni göster");
+                Ui.style(c, clean, Ui.Style.TONAL, Icon.Kind.DOC);
             });
         });
     }
@@ -114,13 +113,7 @@ final class ResultScreen extends Screen {
         extras.putBoolean("android.content.extra.IS_SENSITIVE", true);  // keeps the text out of the keyboard/clipboard preview
         clip.getDescription().setExtras(extras);
         ((ClipboardManager) c.a.getSystemService(Context.CLIPBOARD_SERVICE)).setPrimaryClip(clip);
-        Ui.haptic(copy, HapticFeedbackConstants.CONFIRM);
-        copy.setText("Kopyalandı");
-        Ui.style(c, copy, Ui.Style.PRIMARY, Icon.Kind.CHECK);
-        copy.animate().scaleX(1.04f).scaleY(1.04f).setDuration(120).withEndAction(() -> copy.animate().scaleX(1f).scaleY(1f).setDuration(260).setInterpolator(Ui.POP).start()).start();
-        c.ui.postDelayed(() -> {
-            if (copy.isAttachedToWindow()) { copy.setText("Kopyala"); Ui.style(c, copy, Ui.Style.PRIMARY, Icon.Kind.COPY); }
-        }, 1600);
+        Ui.flashCopied(c, copy, Ui.Style.PRIMARY);
     }
 
     private void back() { s.selected.clear(); c.nav.replace(new PickerScreen(s)); }

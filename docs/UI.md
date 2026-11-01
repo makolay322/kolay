@@ -13,14 +13,19 @@ Hedef: "yerleşik, cilalı" his — az ama anlamlı hareket, tutarlı boşluk, a
 | `Header` | Geri düğmesi + başlık + değişen alt başlık |
 | `Arc`, `Bar`, `Toggle` | Dönen yay yükleyici, kayan ilerleme çubuğu, yaylı anahtar |
 
+Hazır kalıplar (`Ui`): `label` bölüm etiketi · `card` kart · `input` metin alanı · `pair` iki eşit düğme · `bottomBar` alt eylem alanı ·
+`state` boş/izin/hata ekranı (ikon rozeti + başlık + açıklama + isteğe bağlı düğme) · `busy` yükleniyor ekranı · `segmented` segmentli seçici ·
+`flashCopied` düğme üstünde “Kopyalandı” onayı. Yeni ekran bunları kullanır; aynı şeyi elle yeniden kurma.
+
 ## Renk belirteçleri
 `bg` sayfa · `surface` kart · `surface2` girdi/ikincil düğme · `ink` ana metin · `muted` ikincil metin · `line` ayraç ·
-`primary`/`onPrimary` vurgu · `primarySoft`/`onPrimarySoft` yumuşak vurgu (ikon kutuları, tonlu düğme) · `danger`.
+`primary`/`onPrimary` vurgu · `primarySoft`/`onPrimarySoft` yumuşak vurgu (ikon kutuları, tonlu düğme) · `danger`/`dangerSoft`, `ok`/`okSoft`, `warn`/`warnSoft` ·
+`track`/`thumb` anahtar (kapalı ray, düğme) · `scrim` kamera üstü koyu katman.
 Açık temada kartlar gölgeli, koyu temada ince çerçeveli (gölge koyuda okunmaz).
 
 ## Ölçü ve tipografi
-- Köşe: kart 22 dp, düğme 16, girdi 14, küçük kutu 12. Sayfa kenar boşluğu 16–20 dp; kartlar arası 12 dp.
-- Dokunma hedefi ≥ 44 dp (ikon düğmesi 44, ana düğmeler 48–56).
+- Köşe: kart 22 dp, düğme 16, girdi 14, küçük kutu 12. Sayfa kenar boşluğu `Ui.GUTTER` (16 dp); yan yana düğmeler arası `Ui.GAP` (10 dp); kartlar arası 12 dp.
+- Düğme yüksekliği: alt eylem çubuğu `Ui.H_BAR` (56), içerik içi `Ui.H_BTN` (52), ikincil/hayalet ve kart içi `Ui.H_GHOST` (48). Dokunma hedefi ≥ 44 dp.
 - Yazı: başlık 22–36 sp / 700, gövde 15–17 / 400–600, etiket 12 / 600 + harf aralığı. `Ui.text(c, metin, sp, renk, ağırlık)`.
 
 ## Hareket ilkeleri

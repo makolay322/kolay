@@ -4,6 +4,16 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 (görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
 
 ## 1.000
+### Değişti (arayüz cilası)
+- Tüm ekranlar ortak ölçülere bağlandı: 16 dp kenar boşluğu, düğme yükseklikleri (alt çubuk 56, içerik 52, ikincil 48), tek tip bölüm etiketi, kart ve giriş alanı.
+- Boş, izin ve hata ekranları tek tasarımda (ikon rozeti, başlık, açıklama, eylem düğmesi). Fotoğraf izni reddedildiğinde “İzin ver / Ayarları aç”, ayarlardan dönünce liste kendiliğinden açılır.
+- Yeni ikonlar: fotoğraf, konum, cilalama, yapıştır, indir, katmanlar, video, belge. Aynı ikonu paylaşan karolar ayrıştı (OCR belge, Sıkıştır fotoğraf, YouTube video).
+- Segmentli seçiciler (OCR tıbbi/genel, Helal barkod/etiket) aynı bileşen. “Kopyala” her yerde düğme üstünde “Kopyalandı” onayı verir.
+- Namaz: vakitler kartta; geçmiş vakitler soluk, sıradaki vurgulu; tarih başlıkta; konum aranırken yükleniyor göstergesi; izin/konum hatalarında eylem düğmesi; ayarlardan dönünce ekran tazelenir (tam zamanlı alarm düğmesi bayat kalmaz). Kayıtlı konum varken yenileme başarısızsa vakitler silinmez, kısa bilgi verilir.
+- Cuma: önizleme yuvarlatılmış kare kartta, ilk çizimde yükleniyor göstergesi; “Paylaş” birincil düğme.
+- YouTube: klavyeden “Git” ile başlar, klavye kapanır, durum satırında küçük yükleniyor göstergesi.
+- Sıkıştır: işlem sırasında yükleniyor göstergesi; sonuç ve hata ekranları yeni tasarımda.
+- Helal: hata kartı ve alt çubuk düzenlendi. OCR: hata sonucunda “Başka sayfa seç”.
 ### Kaldırıldı
 - Sesli Not aracı (ve kabuktaki mikrofon izni), Cuma Mesajı'nda dikey/yatay seçeneği, Ayarlar'daki "Ekran görüntüsünü engelle" (kayıtlı "açık" değer kabuk açılışında temizlenir).
 ### Düzeltildi

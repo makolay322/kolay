@@ -43,7 +43,7 @@ final class QrScreen extends Screen {
         page.addView(new Header(c, "QR Okuyucu", "Kodu çerçeveye hizala", () -> { cam.stop(); c.nav.pop(); }).view);
 
         stage = new FrameLayout(c.a);
-        stage.setPadding(c.dp(16), c.dp(4), c.dp(16), c.dp(12));
+        stage.setPadding(c.dp(Ui.GUTTER), 0, c.dp(Ui.GUTTER), c.dp(12));
 
         // camera card
         cameraCard = new FrameLayout(c.a);
@@ -78,19 +78,20 @@ final class QrScreen extends Screen {
         statePanel = new LinearLayout(c.a);
         statePanel.setOrientation(LinearLayout.VERTICAL);
         statePanel.setGravity(Gravity.CENTER);
-        statePanel.setPadding(c.dp(24), 0, c.dp(24), 0);
+        statePanel.setPadding(c.dp(28), 0, c.dp(28), c.dp(48));
         FrameLayout badge = new FrameLayout(c.a);
         badge.setBackground(Ui.rounded(c, p.primarySoft, 22));
-        badge.addView(Ui.icon(c, Icon.Kind.QR, p.onPrimarySoft, 32), new FrameLayout.LayoutParams(c.dp(32), c.dp(32), Gravity.CENTER));
-        statePanel.addView(badge, new LinearLayout.LayoutParams(c.dp(72), c.dp(72)));
+        badge.addView(Ui.icon(c, Icon.Kind.QR, p.onPrimarySoft, 30), new FrameLayout.LayoutParams(c.dp(30), c.dp(30), Gravity.CENTER));
+        statePanel.addView(badge, new LinearLayout.LayoutParams(c.dp(68), c.dp(68)));
         stateTitle = Ui.text(c, "", 18, p.ink, 600);
         stateTitle.setGravity(Gravity.CENTER);
-        statePanel.addView(stateTitle, Ui.lp(-2, -2, 0, c.dp(20), 0, 0));
+        statePanel.addView(stateTitle, Ui.lp(-2, -2, 0, c.dp(18), 0, 0));
         stateText = Ui.text(c, "", 14, p.muted, 400);
         stateText.setGravity(Gravity.CENTER); stateText.setLineSpacing(0, 1.25f);
         statePanel.addView(stateText, Ui.lp(-2, -2, 0, c.dp(8), 0, 0));
         stateBtn = Ui.button(c, "", Ui.Style.PRIMARY, null);
-        statePanel.addView(stateBtn, Ui.lp(-2, c.dp(52), 0, c.dp(24), 0, 0));
+        stateBtn.setMinWidth(c.dp(160));
+        statePanel.addView(stateBtn, Ui.lp(-2, c.dp(Ui.H_BTN), 0, c.dp(22), 0, 0));
         statePanel.setVisibility(View.GONE);
         stage.addView(statePanel, new FrameLayout.LayoutParams(-1, -1));
 
@@ -105,11 +106,11 @@ final class QrScreen extends Screen {
         // footer: add the quick-settings tile (Android 13+ can ask the system to add it with one tap)
         footer = new LinearLayout(c.a);
         footer.setGravity(Gravity.CENTER);
-        footer.setPadding(c.dp(16), 0, c.dp(16), c.dp(14));
+        footer.setPadding(c.dp(Ui.GUTTER), 0, c.dp(Ui.GUTTER), c.dp(Ui.GUTTER));
         if (Build.VERSION.SDK_INT >= 33) {
             tileBtn = Ui.button(c, "Hızlı ayarlara ekle", Ui.Style.GHOST, Icon.Kind.QR);
             tileBtn.setOnClickListener(v -> addTile());
-            footer.addView(tileBtn, new LinearLayout.LayoutParams(-2, c.dp(44)));
+            footer.addView(tileBtn, new LinearLayout.LayoutParams(-2, c.dp(Ui.H_GHOST)));
         } else {
             TextView t = Ui.text(c, "Bildirim panelinin düzenleme ekranından “QR Okuyucu” kutucuğunu ekleyebilirsin.", 12, p.muted, 400);
             t.setGravity(Gravity.CENTER);
@@ -185,8 +186,7 @@ final class QrScreen extends Screen {
         LinearLayout col = new LinearLayout(c.a);
         col.setOrientation(LinearLayout.VERTICAL);
 
-        TextView label = Ui.text(c, link ? "BAĞLANTI" : "METİN", 12, p.muted, 600);
-        label.setLetterSpacing(0.1f);
+        TextView label = Ui.label(c, link ? "BAĞLANTI" : "METİN");
         col.addView(label, Ui.lp(-2, -2, c.dp(4), 0, 0, c.dp(10)));
 
         LinearLayout card = new LinearLayout(c.a);
@@ -200,9 +200,8 @@ final class QrScreen extends Screen {
         if (link) {
             TextView open = Ui.button(c, "Bağlantıyı aç", Ui.Style.PRIMARY, Icon.Kind.LINK);
             open.setOnClickListener(v -> openLink(text));
-            col.addView(open, Ui.lp(-1, c.dp(56), 0, c.dp(16), 0, 0));
+            col.addView(open, Ui.lp(-1, c.dp(Ui.H_BAR), 0, c.dp(16), 0, 0));
         }
-        LinearLayout row = new LinearLayout(c.a);
         TextView copy = Ui.button(c, "Kopyala", link ? Ui.Style.TONAL : Ui.Style.PRIMARY, Icon.Kind.COPY);
         TextView share = Ui.button(c, "Paylaş", Ui.Style.TONAL, Icon.Kind.SHARE);
         copy.setOnClickListener(v -> copy(copy, text, link));
@@ -210,14 +209,11 @@ final class QrScreen extends Screen {
             Ui.haptic(v, HapticFeedbackConstants.VIRTUAL_KEY);
             c.a.startActivity(Intent.createChooser(new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text), null));
         });
-        LinearLayout.LayoutParams l1 = Ui.lp(0, c.dp(56), 0, 0, c.dp(10), 0); l1.weight = 1;
-        LinearLayout.LayoutParams l2 = Ui.lp(0, c.dp(56)); l2.weight = 1;
-        row.addView(copy, l1); row.addView(share, l2);
-        col.addView(row, Ui.lp(-1, -2, 0, c.dp(12), 0, 0));
+        col.addView(Ui.pair(c, copy, share, link ? Ui.H_BTN : Ui.H_BAR), Ui.lp(-1, -2, 0, c.dp(link ? Ui.GAP : 16), 0, 0));
 
         TextView again = Ui.button(c, "Yeniden tara", Ui.Style.GHOST, Icon.Kind.QR);
         again.setOnClickListener(v -> rescan());
-        col.addView(again, Ui.lp(-1, c.dp(52), 0, c.dp(12), 0, 0));
+        col.addView(again, Ui.lp(-1, c.dp(Ui.H_GHOST), 0, c.dp(Ui.GAP), 0, 0));
 
         resultPanel.removeAllViews();
         resultPanel.addView(col);
@@ -249,13 +245,7 @@ final class QrScreen extends Screen {
         extras.putBoolean("android.content.extra.IS_SENSITIVE", true);  // a code may hold a Wi-Fi password or token: keep it out of the clipboard preview
         clip.getDescription().setExtras(extras);
         ((ClipboardManager) c.a.getSystemService(Context.CLIPBOARD_SERVICE)).setPrimaryClip(clip);
-        Ui.haptic(btn, HapticFeedbackConstants.CONFIRM);
-        Ui.Style st = link ? Ui.Style.TONAL : Ui.Style.PRIMARY;
-        btn.setText("Kopyalandı");
-        Ui.style(c, btn, st, Icon.Kind.CHECK);
-        c.ui.postDelayed(() -> {
-            if (btn.isAttachedToWindow()) { btn.setText("Kopyala"); Ui.style(c, btn, st, Icon.Kind.COPY); }
-        }, 1600);
+        Ui.flashCopied(c, btn, link ? Ui.Style.TONAL : Ui.Style.PRIMARY);
     }
 
     // ---- torch + quick-settings tile ------------------------------------------------------------
@@ -263,7 +253,7 @@ final class QrScreen extends Screen {
     private void paintTorch(boolean on) {
         if (torchBtn == null) return;
         Palette p = c.p;
-        torchBtn.setBackground(Ui.rounded(c, on ? p.primary : 0x99000000, 26));
+        torchBtn.setBackground(Ui.rounded(c, on ? p.primary : p.scrim, 26));
         torchIcon.setImageDrawable(new Icon(Icon.Kind.FLASH, on ? p.onPrimary : Color.WHITE));
     }
 

@@ -9,8 +9,8 @@ import app.kolay.payload.ui.Screen;
 public final class CompressTool implements Tool {
     @Override public String id() { return "compress"; }
     @Override public String title() { return "Fotoğraf Sıkıştır"; }
-    @Override public String subtitle() { return "JPEG, %90 kalite"; }
-    @Override public Icon.Kind icon() { return Icon.Kind.SCAN; }
+    @Override public String subtitle() { return "%90 kaliteli JPEG kopya"; }
+    @Override public Icon.Kind icon() { return Icon.Kind.IMAGE; }
     @Override public Screen open(Ctx c) { return new CompressScreen(); }
     @Override public boolean compact() { return true; }
 }
