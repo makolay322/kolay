@@ -1,6 +1,5 @@
 package app.kolay.payload.tools;
 
-import android.util.Base64;
 import app.kolay.payload.screens.SettingsScreen;
 import app.kolay.sdk.Host;
 import org.json.JSONArray;
@@ -12,7 +11,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-/** Minimal Gemini calls (text, or text + audio) using the key from Settings. Nothing is logged or stored. */
+/** Minimal Gemini calls (text) using the key from Settings. Nothing is logged or stored. */
 public final class Gemini {
     private static final String MODEL = "gemini-flash-lite-latest";
     private Gemini() {}
@@ -25,14 +24,6 @@ public final class Gemini {
     public static String generate(Host host, String prompt, double temperature) throws Exception {
         JSONArray parts = new JSONArray().put(new JSONObject().put("text", prompt));
         return call(host, parts, temperature, 8192, 120000);
-    }
-
-    /** Prompt + one audio clip (e.g. {@code audio/wav}) in a single request. */
-    public static String generateFromAudio(Host host, String prompt, byte[] audio, String mime) throws Exception {
-        JSONArray parts = new JSONArray()
-            .put(new JSONObject().put("text", prompt))
-            .put(new JSONObject().put("inline_data", new JSONObject().put("mime_type", mime).put("data", Base64.encodeToString(audio, Base64.NO_WRAP))));
-        return call(host, parts, 0, 16384, 180000);
     }
 
     private static String call(Host host, JSONArray parts, double temperature, int maxTokens, int readTimeoutMs) throws Exception {

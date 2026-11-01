@@ -5,7 +5,7 @@ zamanla çoğalır, yeni bir araç eklemek APK'yı yeniden yüklemeyi gerektirme
 
 | Araç | Ne yapar |
 |---|---|
-| **Tıbbi OCR** | Almanca belge fotoğraflarını okur, kişisel verileri *cihazda* maskeler, sayfaları doğru sıraya dizip temizlenmiş düz metin verir (kopyala / paylaş). |
+| **OCR** | Almanca belge fotoğraflarını okur, kişisel verileri *cihazda* maskeler, sayfaları doğru sıraya dizip temizlenmiş düz metin verir (kopyala / paylaş). |
 
 > Yeni araçlar `payload/` içine eklenir — bkz. [Araç ekleme](docs/ADDING_A_TOOL.md).
 
@@ -41,7 +41,7 @@ API anahtarı yalnızca telefonda, Android Keystore ile şifreli tutulur. Bu dep
 - Güncelleme dosyaları GitHub'da durur ama **yalnızca sende duran özel anahtarla imzalıdır**; kabuk imzayı doğrulamadan kod çalıştırmaz.
 - Kötü/çöken bir modül otomatik kara listeye alınır, önceki sağlam sürüme dönülür.
 - Kişisel veriler buluta gitmeden önce cihazda maskelenir; OCR çıktısı diske yazılmaz.
-- Yedekleme kapalı, yalnızca HTTPS, isteğe bağlı ekran görüntüsü engeli.
+- Yedekleme kapalı, yalnızca HTTPS.
 
 Tam model: [SECURITY.md](SECURITY.md).
 

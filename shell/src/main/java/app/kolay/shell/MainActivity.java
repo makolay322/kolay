@@ -30,7 +30,8 @@ public class MainActivity extends Activity {
         super.onCreate(saved);
         reg = new Registry(this);
         secrets = new SecretStore(this);
-        applySecure(reg.secure());
+        if (reg.secure()) reg.setSecure(false);   // the screenshot-block setting was removed; clear a stored "on"
+        applySecure(false);
         installCrashHandler();
         boot(saved);
         UpdateJob.schedule(this);

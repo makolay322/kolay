@@ -51,7 +51,7 @@ final class NamazScreen extends Screen {
         sv.setFillViewport(true);
         body = new LinearLayout(c.a);
         body.setOrientation(LinearLayout.VERTICAL);
-        body.setPadding(c.dp(20), c.dp(4), c.dp(20), c.dp(24));
+        body.setPadding(c.dp(20), c.dp(0), c.dp(20), c.dp(12));
         sv.addView(body, new FrameLayout.LayoutParams(-1, -2));
         page.addView(sv, new LinearLayout.LayoutParams(-1, 0, 1));
         return page;
@@ -172,19 +172,19 @@ final class NamazScreen extends Screen {
 
         LinearLayout hero = new LinearLayout(c.a);
         hero.setOrientation(LinearLayout.VERTICAL);
-        hero.setPadding(c.dp(20), c.dp(18), c.dp(20), c.dp(18));
+        hero.setPadding(c.dp(18), c.dp(12), c.dp(18), c.dp(12));
         hero.setBackground(Ui.rounded(c, c.p.primarySoft, 20));
         hero.addView(Ui.text(c, "Sıradaki vakit", 13, c.p.onPrimarySoft, 500));
         LinearLayout row = new LinearLayout(c.a);
         row.setGravity(Gravity.BOTTOM);
-        heroName = Ui.text(c, "", 26, c.p.onPrimarySoft, 700);
-        heroTime = Ui.text(c, "", 44, c.p.onPrimarySoft, 700);
+        heroName = Ui.text(c, "", 22, c.p.onPrimarySoft, 700);
+        heroTime = Ui.text(c, "", 36, c.p.onPrimarySoft, 700);
         row.addView(heroName, new LinearLayout.LayoutParams(0, -2, 1));
         row.addView(heroTime);
-        hero.addView(row, Ui.lp(-1, -2, 0, c.dp(6), 0, 0));
-        heroLeft = Ui.text(c, "", 15, c.p.onPrimarySoft, 500);
-        hero.addView(heroLeft, Ui.lp(-1, -2, 0, c.dp(6), 0, 0));
-        body.addView(hero, Ui.lp(-1, -2, 0, c.dp(8), 0, c.dp(16)));
+        hero.addView(row, Ui.lp(-1, -2, 0, c.dp(2), 0, 0));
+        heroLeft = Ui.text(c, "", 14, c.p.onPrimarySoft, 500);
+        hero.addView(heroLeft, Ui.lp(-1, -2, 0, c.dp(2), 0, 0));
+        body.addView(hero, Ui.lp(-1, -2, 0, c.dp(4), 0, c.dp(8)));
         if (n != null) {
             heroName.setText(NAMES[(int) n[0]]);
             heroTime.setText(clock(n[1]));
@@ -192,7 +192,7 @@ final class NamazScreen extends Screen {
         }
 
         TextView remLabel = Ui.text(c, "Vakit çıkmadan 15 dakika önce hatırlat", 12, c.p.muted, 600);
-        body.addView(remLabel, Ui.lp(-2, -2, c.dp(4), c.dp(2), 0, c.dp(6)));
+        body.addView(remLabel, Ui.lp(-2, -2, c.dp(4), 0, 0, c.dp(2)));
         int mask = c.host.prayerReminderMask();
         for (int i = 0; i < 6; i++) {
             boolean isNext = n != null && n[2] == 0 && n[0] == i;
@@ -215,25 +215,28 @@ final class NamazScreen extends Screen {
                 tl.setMarginStart(c.dp(14));
                 r.addView(tg, tl);
             }
-            body.addView(r, Ui.lp(-1, c.dp(52)));
+            body.addView(r, Ui.lp(-1, c.dp(44)));
         }
 
         if (Build.VERSION.SDK_INT >= 31 && !canExact()) {
             TextView exact = Ui.button(c, "Tam zamanlı alarm izni ver", Ui.Style.GHOST, Icon.Kind.CLOCK);
             exact.setOnClickListener(v -> c.a.startActivity(new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + c.a.getPackageName()))));
-            body.addView(exact, Ui.lp(-1, c.dp(44), 0, c.dp(4), 0, 0));
+            body.addView(exact, Ui.lp(-1, c.dp(40), 0, c.dp(2), 0, 0));
         }
 
-        TextView pin = Ui.button(c, "Ana ekrana widget ekle", Ui.Style.TONAL, Icon.Kind.CLOCK);
+        LinearLayout btns = new LinearLayout(c.a);
+        TextView pin = Ui.button(c, "Widget ekle", Ui.Style.TONAL, Icon.Kind.CLOCK);
         pin.setOnClickListener(v -> { if (!c.host.prayerPinWidget()) say("Ana ekrana uzun bas → Widget'lar → Kolay → Namaz vakti"); });
-        body.addView(pin, Ui.lp(-1, c.dp(52), 0, c.dp(12), 0, 0));
-        TextView loc2 = Ui.button(c, "Konumu güncelle", Ui.Style.GHOST, Icon.Kind.REFRESH);
+        TextView loc2 = Ui.button(c, "Konumu güncelle", Ui.Style.TONAL, Icon.Kind.REFRESH);
         loc2.setOnClickListener(v -> { if (hasLocationPermission()) { locate(false); } else c.a.requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQ_LOC); });
-        body.addView(loc2, Ui.lp(-1, c.dp(48), 0, c.dp(4), 0, 0));
+        LinearLayout.LayoutParams b1 = new LinearLayout.LayoutParams(0, c.dp(46), 1), b2 = new LinearLayout.LayoutParams(0, c.dp(46), 1);
+        b2.setMarginStart(c.dp(10));
+        btns.addView(pin, b1); btns.addView(loc2, b2);
+        body.addView(btns, Ui.lp(-1, -2, 0, c.dp(10), 0, 0));
 
-        TextView note = Ui.text(c, "Astronomik hesap: Diyanet açıları (imsak 18°, yatsı 17°), Hanefi ikindi ve küçük ihtiyat payları. Resmî takvimle birkaç dakika fark olabilir; yüksek enlemlerde yatsı/imsak yaklaşık hesaplanır.", 12, c.p.muted, 400);
-        note.setLineSpacing(0, 1.2f);
-        body.addView(note, Ui.lp(-1, -2, 0, c.dp(12), 0, 0));
+        TextView note = Ui.text(c, "Diyanet açıları ve Hanefi ikindi ile astronomik hesap; resmî takvimle birkaç dakika fark olabilir.", 11, c.p.muted, 400);
+        note.setLineSpacing(0, 1.15f);
+        body.addView(note, Ui.lp(-1, -2, 0, c.dp(8), 0, 0));
 
         ticking = true;
         c.ui.removeCallbacks(tick);

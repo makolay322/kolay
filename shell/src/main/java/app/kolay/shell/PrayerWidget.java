@@ -7,12 +7,12 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.TypedValue;
+import android.graphics.*;
 import android.widget.RemoteViews;
 
 /**
- * Home-screen widget: only the next prayer's time, 24-hour. It adapts to its size: a single line when wide or square,
- * hours above minutes when tall, and the text size follows the widget size. Tapping it opens the app.
+ * Home-screen widget: only the next prayer's time, 24-hour, as pastel-gradient light text with no background. It adapts to its
+ * size: one line when wide, hours above minutes otherwise, always scaled to fill the widget. Tapping it opens the app.
  */
 public class PrayerWidget extends AppWidgetProvider {
     @Override public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
@@ -33,34 +33,61 @@ public class PrayerWidget extends AppWidgetProvider {
 
     private static void paint(Context c, AppWidgetManager m, int id) {
         Bundle o = m.getAppWidgetOptions(id);
-        // width/height in dp as the launcher currently shows it (portrait min width, landscape min height are the safe values)
+        // size in dp as the launcher currently shows it (min width / max height of the portrait case)
         float w = o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 110), h = o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 110);
         if (w <= 0) w = 110;
         if (h <= 0) h = 110;
-        boolean tall = h > w * 1.25f;
+        // Stack hours over minutes unless the widget is clearly wide: a narrow widget then gets big digits instead of tiny ones.
+        boolean stacked = h >= w * 0.8f;
 
-        long now = System.currentTimeMillis();
-        long[] n = Prayer.next(c, now);
+        long[] n = Prayer.next(c, System.currentTimeMillis());
         String t = n == null ? "--:--" : Prayer.clock(n[1]);
 
-        RemoteViews v = new RemoteViews(c.getPackageName(), tall ? R.layout.widget_prayer_tall : R.layout.widget_prayer);
+        RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_prayer);
         v.setOnClickPendingIntent(R.id.root, PendingIntent.getActivity(c, 0,
             new Intent(c, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP),
             PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
-        if (tall) {
-            float size = clamp(Math.min(w * 0.62f, h * 0.36f), 16, 96);
-            v.setTextViewText(R.id.hh, t.length() == 5 ? t.substring(0, 2) : "--");
-            v.setTextViewText(R.id.mm, t.length() == 5 ? t.substring(3) : "--");
-            v.setTextViewTextSize(R.id.hh, TypedValue.COMPLEX_UNIT_DIP, size);
-            v.setTextViewTextSize(R.id.mm, TypedValue.COMPLEX_UNIT_DIP, size);
-        } else {
-            float size = clamp(Math.min(h * 0.58f, w * 0.30f), 14, 96);
-            v.setTextViewText(R.id.time, t);
-            v.setTextViewTextSize(R.id.time, TypedValue.COMPLEX_UNIT_DIP, size);
-        }
+        v.setImageViewBitmap(R.id.img, draw(c, t, w, h, stacked));
         v.setContentDescription(R.id.root, n == null ? "Namaz vakitleri" : "Sıradaki namaz vakti " + t);
         m.updateAppWidget(id, v);
     }
 
-    private static float clamp(float v, float lo, float hi) { return Math.max(lo, Math.min(hi, v)); }
+    /** Pastel-gradient time on a transparent bitmap, text scaled to fill the widget (bitmap kept small: RemoteViews has a size limit). */
+    private static Bitmap draw(Context c, String t, float wDp, float hDp, boolean stacked) {
+        float d = c.getResources().getDisplayMetrics().density;
+        float scale = Math.min(1f, 640f / Math.max(wDp * d, hDp * d));
+        int bw = Math.max(32, Math.round(wDp * d * scale)), bh = Math.max(32, Math.round(hDp * d * scale));
+        Bitmap bmp = Bitmap.createBitmap(bw, bh, Bitmap.Config.ARGB_8888);
+        Canvas cv = new Canvas(bmp);
+
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
+        Typeface base = Typeface.create("sans-serif", Typeface.NORMAL);
+        p.setTypeface(Typeface.create(base, 300, false));     // light weight (API 28+, minSdk is 29)
+        p.setTextAlign(Paint.Align.CENTER);
+        p.setLetterSpacing(stacked ? 0f : 0.02f);
+
+        String[] lines = stacked && t.length() == 5 ? new String[]{t.substring(0, 2), t.substring(3)} : new String[]{t};
+        float pad = Math.min(bw, bh) * 0.04f;
+        float availW = bw - 2 * pad, availH = bh - 2 * pad;
+        // fit: measure at a reference size, then scale to the tighter of width and height
+        p.setTextSize(100f);
+        float maxW = 0;
+        for (String l : lines) maxW = Math.max(maxW, p.measureText(l));
+        Paint.FontMetrics fm = p.getFontMetrics();
+        float digitH = -fm.ascent * 0.74f;                    // cap/digit height is about 74% of the ascent
+        float gap = 28f;                                       // reference px between stacked lines
+        float totalH = lines.length * digitH + (lines.length - 1) * gap;
+        float k = Math.min(availW / Math.max(1f, maxW), availH / Math.max(1f, totalH));
+        p.setTextSize(100f * k);
+        digitH *= k; gap *= k;
+        float blockH = lines.length * digitH + (lines.length - 1) * gap;
+
+        // pastel diagonal gradient across the block (lavender -> pink -> peach), soft shadow keeps it readable on light wallpapers
+        p.setShader(new LinearGradient(pad, pad, bw - pad, bh - pad,
+            new int[]{0xFFB4C0FF, 0xFFF5B8E4, 0xFFFFD0A8}, new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP));
+        p.setShadowLayer(Math.max(2f, k * 6f), 0, k * 2f, 0x66000000);
+        float y = (bh - blockH) / 2f + digitH;
+        for (String l : lines) { cv.drawText(l, bw / 2f, y, p); y += digitH + gap; }
+        return bmp;
+    }
 }

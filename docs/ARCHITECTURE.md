@@ -55,7 +55,7 @@ Bir sonraki açılışta `evaluatePreviousSession`: ready değilse **veya** cras
 - Yeni modül indirilince **çalışan modüle dokunulmaz**. `Host.restart()` (= `activity.recreate()`) çağrılınca açılış akışı baştan işler ve yeni sürümü yükler. Ana sayfada "Yeni sürüm hazır" bandı bunu tetikler.
 
 ## Sözleşme (`sdk`)
-- `Host` (kabuk → modül): etkinlik, sırlar, tessdata konumu, `ready()`, sürüm bilgisi, ekran görüntüsü engeli, güncelleme durumu/denetimi/`restart()`.
+- `Host` (kabuk → modül): etkinlik, sırlar, tessdata konumu, `ready()`, sürüm bilgisi, güncelleme durumu/denetimi/`restart()`.
 - `Module` (modül → kabuk): `onCreate`, `onResume`, `onPause` (API 2), `onPermissionResult`, `onBackPressed`, `onDestroy`.
 - **Uyumluluk kuralı:** yalnızca eklenir. Modül `app.kolay.api` meta verisiyle ihtiyacı olan sözleşme düzeyini bildirir;
   kabuk `MIN_PAYLOAD_API ≤ api ≤ SHELL_API` dışındakini yüklemez, güncelleyici de indirmez ("kabuk güncellemesi gerekli" uyarısı çıkar).
@@ -66,16 +66,15 @@ Entry                    Module uygulaması: tema, Nav kökü, ana sayfa, geri t
 ui/                      Palette, Ctx, Ui, Icon, Nav, Screen, Header, Arc, Bar, Toggle  → docs/UI.md
 screens/                 HomeScreen, SettingsScreen
 tools/Tool, Tools        araç arayüzü + kayıt listesi                                   → docs/ADDING_A_TOOL.md
-tools/ocr/               Tıbbi OCR: OcrTool, Picker/Progress/ResultScreen, Ocr, Mask, Session
+tools/ocr/               OCR (tıbbi/genel mod): OcrTool, Picker/Progress/ResultScreen, Ocr, Mask, Session
 tools/qr/                QR Okuyucu: QrTool, QrScreen (arayüz), QrCamera (camera2; kipler QR / PRODUCT barkod / TEXT fotoğraf), QrDecoder (ZXing)
 tools/halal/             Helal Sorgu: HelalTool, ScanScreen/LabelScreen (CamScreen tabanı), Off (Open Food Facts), LabelOcr, Halal (istem + karar), WorkScreen, VerdictScreen
-tools/voice/             Sesli Not: VoiceTool, VoiceScreen (kayıt + yazı + çeviri), Recorder (bellekte PCM → WAV)
 tools/friday/            Cuma Mesajı: FridayTool, FridayScreen (önizleme/kaydet/paylaş), FridayArt (Canvas ile arka plan + yazı), Hadiths (hadis listesi)
 tools/namaz/             Namaz Vakitleri: NamazTool, NamazScreen (saatler, geri sayım, hatırlatıcı anahtarı, widget düğmesi, konum alma)
 ```
 UI tamamen programatiktir (XML kaynak yok): payload sınıf yükleyiciyle gelir, kabuğun `Resources` nesnesinde kendi kaynakları bulunmaz.
 
-## Tıbbi OCR akışı
+## OCR akışı
 1. `PickerScreen`: MediaStore'dan son 90 fotoğraf; seçim `Session.selected` içinde.
 2. `ProgressScreen` → `Ocr.run(pages)`: her sayfa gri tonlama + hafif kontrast, ≤2400 px, Tesseract (`deu`, PSM single column).
 3. `Mask.collect` tüm sayfalardan isim adaylarını toplar; `Mask.apply` her sayfada maskeler (`[NAME]`, `[GEBURTSDATUM]`, `[ADRESSE]`, `[ORT]`, `[IBAN]`).
@@ -98,24 +97,17 @@ Bulut isteği başarısız olursa maskeli ham OCR gösterilir (uyarı notuyla).
 5. `VerdictScreen`: renkli karar + gerekçe + kullanılan içindekiler. "Fetva değildir" notu sabittir.
 Not: gömülü OCR verisi yalnızca `deu`; Türkçe özel harfler (ş ğ ı) yanlış okunabilir, istem bunu bağlamdan düzeltmesini ister.
 
-## Sesli Not akışı
-- Mikrofon izni (`RECORD_AUDIO`) **kabuk manifestindedir** (kabuk ≥ 1.001). Eski kabukta ekran "kabuk güncellemesi gerekli" der.
-- `Recorder`: 16 kHz mono PCM, yalnızca bellekte, en fazla 5 dk; sessiz kayıt (tepe < 400) hiç gönderilmez; uygulama arka plana giderse kayıt kapanır ve kalan kısım yazıya çevrilir.
-- **Canlı yazı:** konuşma duraklamalarında (≥0,7 sn sessizlik, ≥1,2 sn konuşmadan sonra; en geç 15 sn'de) parçalara bölünür; her parça WAV olarak sırayla (tek iş parçacıklı kuyruk) Gemini'ye gider ve metin geldikçe alana eklenir. Konuşmasız parçalar gönderilmez. Kayıt bitince kalan son parça gönderilir. Yarı canlıdır (parça başına birkaç sn gecikme).
-- Her parça WAV olarak Gemini'ye **ses girdisi** (`inline_data`) ile gider; Almanca/Türkçe karışık konuşma, her bölüm konuşulduğu dilde yazılır (çeviri yok). Ses işlendikten sonra atılır.
-- Aynı sayfada metin düzenlenebilir; dil çipine dokununca (Türkçe, Almanca, İngilizce, Arapça, Rusça, …) metnin tamamı hedef dile çevrilir; karışık dilli metin de desteklenir.
-
 ## Cuma Mesajı akışı
-- `FridayArt.render(seed, portrait, hadis, kaynak)`: görsel tamamen Canvas ile çizilir (görsel dosyası yok): gradyan, geometrik desen (yıldız/daire), hilâl, yıldızlar, cami silueti, yarı saydam panelde hadis. Aynı seed aynı arka planı verir; seed'in yarısı siyah (koyu) temadır. Boyut 1800×1200 (3:2), "Dikey" ile 1200×1800 (2:3).
+- `FridayArt.render(seed, hadis, kaynak)`: görsel tamamen Canvas ile çizilir (görsel dosyası yok): gradyan, geometrik desen (yıldız/daire), hilâl, yıldızlar, cami silueti, yarı saydam panelde hadis. Aynı seed aynı arka planı verir; seed'in yarısı siyah (koyu) temadır. Boyut yalnızca kare 1200×1200.
 - `Hadiths.ALL`: `{metin, kaynak}`; kaynak tek bir derlemedir ("Buhârî N", "Müslim N" veya "Tirmizî N"), hadis hangisinde rivayet ediliyorsa o. Metin kendi Türkçe meâlimizdir; numara↔hadis eşleşmesi fawazahmed0/hadith-api (jsDelivr) İngilizce metinleriyle doğrulandı, Tirmizî'de yalnızca Elbânî'nin sahih/hasan dediği hadisler alındı. Yeni hadis eklerken aynı doğrulamayı yap; numarasından emin değilsen ekleme. ~230 karakteri geçmesin.
-- Yalnızca koyu ve olgun tonlar (pencere ışıksız cami siluetleri); selam "Cumamız/Cumanız Mübarek Olsun".
+- Yalnızca koyu ve olgun tonlar (pencere ışıksız cami siluetleri); başlık yalnızca "Cumamız Mübarek Olsun".
 - Görsel yalnızca Kaydet/Paylaş'a basılınca `Pictures/Kolay`'a yazılır (aynı görsel iki kez yazılmaz). Ağ ve Gemini kullanılmaz.
 
-## Namaz Vakitleri akışı (Host API 4, kabuk ≥ 1.006)
+## Namaz Vakitleri akışı (Host API 4, kabuk ≥ 1.007)
 - Hesap, widget ve alarmlar **kabukta** çalışır (uygulama kapalıyken de gerekir): `PrayerCalc` (saf Java, JVM'de denenir), `Prayer` (ayarlar + alarm + bildirim), `PrayerWidget`, `PrayerReceiver`. Payload yalnızca ön yüzdür; `Host.prayer*` metotlarıyla konuşur.
 - Konum: payload `ACCESS_COARSE_LOCATION` ister, son bilinen/anlık konumu alır, yalnızca koordinat `Host.prayerSetLocation` ile kabukta saklanır (~5 km'den az oynama yok sayılır). İnternete gönderilmez.
 - Yöntem: Diyanet açıları (imsak 18°, yatsı 17°), Hanefi ikindi (gölge 2), ihtiyat payları `PrayerCalc.TUNE_MIN` (güneş −7, öğle +5, ikindi +4, akşam +7 dk). Hafızaya dayalı; Diyanet takvimiyle karşılaştırılıp ayarlanmalı. Yüksek enlemde yatsı/imsak "gecenin açıya oranlı payı" ile hesaplanır.
-- Widget (yeniden boyutlandırılabilir: kare/dikey/yatay; iki `RemoteViews` düzeni, `onAppWidgetOptionsChanged` ile seçilir): modern degrade tema, yalnızca sıradaki vaktin adı ve 24 saat biçiminde saati. Güncelleme: vakit değişince alarm + 30 dk'da bir sistem güncellemesi. Sıradaki vakit "Güneş" hariçtir.
+- Widget: arka plansız; sıradaki vaktin 24 saatlik saati pastel gradyan, ince (light) yazı tipiyle `Canvas` bitmap'i olarak çizilir ve widget boyutunu doldurur (dar/dikeyde saat ve dakika alt alta, geniş olunca tek satır; `onAppWidgetOptionsChanged` ile yeniden çizilir). Güncelleme: vakit değişince alarm + 30 dk'da bir sistem güncellemesi. Sıradaki vakit "Güneş" hariçtir.
 - Hatırlatıcı her vakit için ayrı ayrı açılıp kapatılır (`Host.prayerReminderMask/prayerSetReminderMask`, bit maskesi); kapalı vakitlerin alarmı kurulmaz. Her vaktin **bitmesine 15 dk kala** (Sabah→güneş, Öğle→ikindi, İkindi→akşam, Akşam→yatsı, Yatsı→ertesi imsak) bildirim. Tek seferde yalnızca sıradaki alarm kurulur; tetiklenince bir sonraki kurulur. Önyükleme, saat/saat dilimi değişimi ve kabuk güncellemesinde yeniden kurulur. Android 12+ tam zamanlı alarm izni yoksa `setAndAllowWhileIdle` (birkaç dakika kayabilir); ekrandaki düğme izin sayfasını açar.
 
 ## Araç düzeni ve genel OCR (Host API 4)

@@ -36,16 +36,15 @@ final class FridayArt {
         new Theme(0xFF3B3A1F, 0xFF1A190B, 0xFFD6B25E, 0xFFF6F1DD, 0x66000000, 0xFF0F0F05),
     };
 
-    /** @return a new 3:2 (landscape) or 2:3 (portrait) bitmap; the caller owns it */
-    static Bitmap render(long seed, boolean portrait, String hadith, String source) {
-        int w = portrait ? 1200 : 1800, h = portrait ? 1800 : 1200;
-        float u = Math.min(w, h) / 1200f;   // font scale: 1 at the short side of 1200
+    /** @return a new square (1:1) bitmap; the caller owns it */
+    static Bitmap render(long seed, String hadith, String source) {
+        final int w = 1200, h = 1200;
+        final float u = 1f;
         Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas cv = new Canvas(bmp);
         Random r = new Random(seed);
         boolean dark = r.nextBoolean();
         Theme t = dark ? DARK[r.nextInt(DARK.length)] : MATURE[r.nextInt(MATURE.length)];
-        boolean ours = r.nextBoolean();   // "Cumamız" or "Cumanız"
 
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setShader(new LinearGradient(0, 0, 0, h, t.top, t.bottom, Shader.TileMode.CLAMP));
@@ -55,8 +54,8 @@ final class FridayArt {
         pattern(cv, w, h, t, r);
         moon(cv, w, h, t, r);
         sparkles(cv, w, h, t, r);
-        mosque(cv, w, h, t, r, portrait);
-        panelAndText(cv, w, h, u, t, ours, hadith, source);
+        mosque(cv, w, h, t, r);
+        panelAndText(cv, w, h, u, t, hadith, source);
         return bmp;
     }
 
@@ -115,11 +114,11 @@ final class FridayArt {
     }
 
     /** Domes and minarets along the bottom edge. */
-    private static void mosque(Canvas cv, int w, int h, Theme t, Random r, boolean portrait) {
+    private static void mosque(Canvas cv, int w, int h, Theme t, Random r) {
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setColor(t.mosque);
         float cx = w * (0.38f + r.nextFloat() * 0.24f);
-        float mw = w * (portrait ? 0.50f : 0.30f);
+        float mw = w * 0.40f;
         float bodyTop = h * 0.905f;
         float dr = mw * 0.21f;
 
@@ -157,20 +156,16 @@ final class FridayArt {
 
     // ---- text ---------------------------------------------------------------------------------
 
-    private static void panelAndText(Canvas cv, int w, int h, float u, Theme t, boolean ours, String hadith, String source) {
+    private static void panelAndText(Canvas cv, int w, int h, float u, Theme t, String hadith, String source) {
         TextPaint tp = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         tp.setTextAlign(Paint.Align.CENTER);
 
-        tp.setColor(t.accent);
-        tp.setTypeface(Typeface.DEFAULT_BOLD);
-        tp.setTextSize(108 * u);
-        cv.drawText("جمعة مباركة", w / 2f, h * 0.178f, tp);
         tp.setColor(t.text);
-        tp.setTextSize(54 * u);
+        tp.setTextSize(76 * u);
         tp.setTypeface(Typeface.create(Typeface.SERIF, Typeface.BOLD));
-        cv.drawText(ours ? "Cumamız Mübarek Olsun" : "Cumanız Mübarek Olsun", w / 2f, h * 0.178f + 78 * u, tp);
+        cv.drawText("Cumamız Mübarek Olsun", w / 2f, h * 0.175f, tp);
 
-        float pl = w * 0.07f, pr = w * 0.93f, pt = h * 0.315f, pb = h * 0.725f;
+        float pl = w * 0.07f, pr = w * 0.93f, pt = h * 0.26f, pb = h * 0.76f;
         Paint pp = new Paint(Paint.ANTI_ALIAS_FLAG);
         pp.setColor(t.panel);
         float rad = 28 * u;

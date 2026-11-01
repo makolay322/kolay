@@ -4,8 +4,14 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 (görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
 
 ## 1.000
+### Kaldırıldı
+- Sesli Not aracı (ve kabuktaki mikrofon izni), Cuma Mesajı'nda dikey/yatay seçeneği, Ayarlar'daki "Ekran görüntüsünü engelle" (kayıtlı "açık" değer kabuk açılışında temizlenir).
+### Değişti
+- Cuma Mesajı yalnızca kare (1:1) görsel üretir; başlık yalnızca "Cumamız Mübarek Olsun" (Arapça satır ve "Cumanız" kalktı).
+- Namaz widget'ı: arka plan yok; pastel gradyanlı, ince yazılı saat; dar widget'ta saat/dakika alt alta büyük çizilir. **Kabuk 1.007 gerekir.**
+- "Tıbbi OCR" karosu "OCR" oldu (tıbbi/genel mod seçimi içeride kalır).
+- Namaz Vakitleri ekranı sıkıştırıldı: tüm vakitler kaydırmadan sığar.
 ### Eklendi
-- Sesli Not: konuşurken canlı (parça parça) yazıya çevirme; kayıt bitmesi beklenmez.
 - YouTube Özet paylaşım menüsü hedefi: başka uygulamalardan paylaşılan YouTube bağlantısı doğrudan özetlenir.
 - Tıbbi OCR'a Genel OCR modu (Gemini ile isteğe bağlı temizleme); mod anahtarı.
 - Helal Sorgu: barkod/etiket mod anahtarı; açılış modu barkod, otomatik OCR geçişi kaldırıldı.

@@ -59,14 +59,6 @@ public final class SettingsScreen extends Screen {
         k.addView(btns, Ui.lp(-1, -2, 0, c.dp(14), 0, 0));
         col.addView(k);
 
-        // ---- privacy ----
-        col.addView(section("GİZLİLİK"));
-        LinearLayout g = card();
-        Toggle t = new Toggle(c.a, p.dark ? p.line : 0xFFC9D2D6, p.primary, p.dark ? p.ink : 0xFFFFFFFF, c.host.secureWindow());
-        t.onChange(on -> c.host.setSecureWindow(on));
-        g.addView(row(Icon.Kind.SHIELD, "Ekran görüntüsünü engelle", "Son uygulamalar önizlemesini de gizler", t));
-        col.addView(g);
-
         // ---- updates ----
         col.addView(section("GÜNCELLEME"));
         updateBox = card();

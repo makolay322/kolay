@@ -16,18 +16,16 @@ final class FridayScreen extends Screen {
     private final Random rnd = new Random();
     private long seed = rnd.nextLong();
     private int hadith = rnd.nextInt(Hadiths.ALL.length);
-    private boolean portrait;
     private Bitmap bmp;
     private Uri saved;          // set once the current image was written to Pictures/Kolay
     private int gen;            // guards against stale renders finishing out of order
     private boolean destroyed;
     private ImageView preview;
-    private TextView orient;
 
     @Override public View create() {
         LinearLayout page = new LinearLayout(c.a);
         page.setOrientation(LinearLayout.VERTICAL);
-        page.addView(new Header(c, "Cuma Mesajı", "Rastgele görsel · hadis · 3:2", () -> c.nav.pop()).view);
+        page.addView(new Header(c, "Cuma Mesajı", "Rastgele görsel · hadis · kare", () -> c.nav.pop()).view);
 
         FrameLayout box = new FrameLayout(c.a);
         box.setPadding(c.dp(16), c.dp(4), c.dp(16), c.dp(8));
@@ -47,16 +45,7 @@ final class FridayScreen extends Screen {
         LinearLayout row1 = new LinearLayout(c.a);
         TextView other = Ui.button(c, "Başka hadis", Ui.Style.TONAL, null);
         other.setOnClickListener(v -> { nextHadith(); render(); });
-        orient = Ui.button(c, "Dikey 2:3", Ui.Style.TONAL, null);
-        orient.setOnClickListener(v -> {
-            portrait = !portrait;
-            Ui.swapText(orient, portrait ? "Yatay 3:2" : "Dikey 2:3");
-            render();
-        });
-        row1.addView(other, new LinearLayout.LayoutParams(0, c.dp(48), 1));
-        LinearLayout.LayoutParams gap = new LinearLayout.LayoutParams(0, c.dp(48), 1);
-        gap.setMarginStart(c.dp(10));
-        row1.addView(orient, gap);
+        row1.addView(other, new LinearLayout.LayoutParams(-1, c.dp(48)));
         f.addView(row1, Ui.lp(-1, -2, 0, c.dp(8), 0, 0));
 
         LinearLayout row2 = new LinearLayout(c.a);
@@ -86,10 +75,10 @@ final class FridayScreen extends Screen {
 
     private void render() {
         final int my = ++gen;
-        final long s = seed; final boolean pt = portrait; final String[] h = Hadiths.ALL[hadith];
+        final long s = seed; final String[] h = Hadiths.ALL[hadith];
         c.io.execute(() -> {
             Bitmap b;
-            try { b = FridayArt.render(s, pt, h[0], h[1]); }
+            try { b = FridayArt.render(s, h[0], h[1]); }
             catch (Throwable t) { return; }
             c.ui.post(() -> {
                 if (destroyed || my != gen) { b.recycle(); return; }

@@ -16,7 +16,6 @@ Bu bir kişisel projedir; bir açık bulursan depo sahibine (`@makolay322`) GitH
 | API anahtarı | Depoya/APK'ya sızması | Depoda ve APK'larda yok; cihazda Android Keystore (AES-GCM, dışa aktarılamaz anahtar) ile şifreli. İstek başlığında gider, URL'de değil. |
 | Hasta verisi | Buluta kimlik bilgisi gitmesi | İsim/doğum tarihi/adres/IBAN **cihazda** maskelenir, yalnızca maskeli metin gider (yerel regex sınırı: aşağıya bak). |
 | Hasta verisi | Diskte/yedekte kalması | Sonuç diske yazılmaz; bulut yedek ve cihaz aktarımı kapalı (`allowBackup=false`, `dataExtractionRules`). Pano kopyası "hassas" işaretlenir. |
-| Hasta verisi | Ekran kaydı / son uygulamalar önizlemesi | Ayarlar'dan açılabilen `FLAG_SECURE`. |
 | Uygulama yüzeyi | Başka uygulamaların erişimi | Tek dışa açık bileşen başlatıcı etkinlik; servis `BIND_JOB_SERVICE` izniyle korunur; yalnızca `INTERNET` ve `READ_MEDIA_IMAGES`. |
 | Tedarik zinciri | Zararlı bağımlılık | Gradle bağımlılık doğrulaması (`gradle/verification-metadata.xml`, SHA-256) ve Gradle dağıtım özeti sabitlenmiş. |
 

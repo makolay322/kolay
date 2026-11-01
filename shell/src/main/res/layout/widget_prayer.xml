@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One centered time on a rounded gradient card; the provider sets the text size from the widget size. -->
+<!-- No background: the time is drawn as a bitmap (pastel gradient text) sized to fill the widget. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/root" android:layout_width="match_parent" android:layout_height="match_parent"
-    android:background="@drawable/widget_bg" android:padding="6dp">
-    <TextView android:id="@+id/time" android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:layout_gravity="center" android:textColor="@color/widget_ink" android:textSize="32sp"
-        android:fontFamily="sans-serif-medium" android:includeFontPadding="false" android:maxLines="1"/>
+    android:id="@+id/root" android:layout_width="match_parent" android:layout_height="match_parent">
+    <ImageView android:id="@+id/img" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:scaleType="fitCenter" android:importantForAccessibility="no"/>
 </FrameLayout>
