@@ -1,5 +1,6 @@
 package app.kolay.payload.tools;
 
+import app.kolay.payload.tools.apps.AppsTool;
 import app.kolay.payload.tools.compress.CompressTool;
 import app.kolay.payload.tools.friday.FridayTool;
 import app.kolay.payload.tools.halal.HelalTool;
@@ -19,6 +20,7 @@ public final class Tools {
         new QrTool(),
         new HelalTool(),
         new FridayTool(),
+        new AppsTool(),
         new NamazTool(),
     };
 }

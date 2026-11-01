@@ -156,6 +156,17 @@ public final class HomeScreen extends Screen {
         if (c.host.updateReady()) showBanner();
     }
 
+    private boolean wentAway;
+
+    @Override public void onPause() { wentAway = true; }
+
+    /** Back from the background (or from another app): replay the logo entrance. */
+    @Override public void onResume() {
+        if (!wentAway) return;
+        wentAway = false;
+        logo.intro();
+    }
+
     private void showBanner() {
         if (banner == null || banner.getVisibility() == View.VISIBLE) return;
         banner.setVisibility(View.VISIBLE);

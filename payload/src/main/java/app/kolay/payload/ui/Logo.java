@@ -10,7 +10,7 @@ import java.util.Calendar;
 /**
  * The animated "Ko" mark. Like a clock face it follows the time of day: the gradient walks through dawn pink and blue,
  * daytime teal, sunset coral and violet, night indigo. While visible a soft sheen turns slowly and the dot breathes;
- * {@link #intro()} plays the same entrance as the system splash (K slides in, O springs open, dot pops).
+ * {@link #intro()} plays a ~2 s entrance (K slides in, O springs open, dot pops) on app start and on every return to the app.
  */
 public final class Logo extends View {
     // Geometry in the 768-unit artboard of the source logo.
@@ -45,7 +45,7 @@ public final class Logo extends View {
     public void intro() {
         if (enter != null) enter.cancel();
         enter = ValueAnimator.ofFloat(0f, 1f);
-        enter.setDuration(850);
+        enter.setDuration(2000);
         enter.setInterpolator(new LinearInterpolator());
         enter.addUpdateListener(a -> { in = (float) a.getAnimatedValue(); invalidate(); });
         in = 0f;

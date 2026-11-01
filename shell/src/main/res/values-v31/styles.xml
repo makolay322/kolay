@@ -7,9 +7,8 @@
         <item name="android:statusBarColor">@color/window_bg</item>
         <item name="android:navigationBarColor">@color/window_bg</item>
         <item name="android:windowAnimationStyle">@null</item>
-        <!-- animated "Ko" mark on the system splash screen -->
+        <!-- no splash mark: the window opens directly in the app's background color -->
         <item name="android:windowSplashScreenBackground">@color/window_bg</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_anim</item>
-        <item name="android:windowSplashScreenAnimationDuration">2200</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_blank</item>
     </style>
 </resources>

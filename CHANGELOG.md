@@ -4,6 +4,11 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 (görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
 
 ## 1.000
+### Eklendi
+- **Uygulama Güncelle** karosu: Google Play dışından yüklenen uygulamalar için APKPure, APKMirror veya LiteAPKs'te (uygulama başına seçilir, takip anahtarı var) yeni sürüm arar; varsa indirir, Android yükleyicisine verir ve dosyayı siler. XAPK/APKM paketleri desteklenir; paket adı, sürüm ve imza kurulumdan önce denetlenir. Siteler bot doğrulaması isterse veya indirme kendiliğinden başlamazsa sayfa ekranda açılır, kullanıcı dokunur. **Kabuk 1.013 gerekir** (uygulama listesi için paket görünürlüğü).
+### Değişti (açılış, Cuma 3:2)
+- Sistem açılış animasyonu kaldırıldı, uygulama hemen açılır. ~2 sn'lik “Ko” giriş animasyonu ana sayfanın sol üstündeki logoda oynar: açılışta ve uygulama arka plandan her öne geldiğinde. **Kabuk 1.013.**
+- Cuma Mesajı görseli yatay 3:2 (1500×1000): başlık üstte, hilal üst köşede başlığın yanında, hadis paneli genişledi, cami silueti alçaldı.
 ### Değişti
 - Uygulama ikonunun arka planı açık/koyu temaya göre seçilir (açıkta yumuşak renkli zemin, koyuda koyu zemin + açık logo; Android 12+ duvar kağıdı renkleriyle). Açılış animasyonu ~2,2 sn'ye yavaşladı ve başlatıcıdan açılışta sonuna kadar ekranda kalır (QR kutucuğu ve paylaşım hedefi beklemeden açılır). **Kabuk 1.012 gerekir.**
 - Cuma Mesajı: hilal küçültülüp başlığın üstüne alındı, başlığa gölge eklendi ve başlık bandına yıldız düşmez; hilal artık yazıyla çakışmaz.

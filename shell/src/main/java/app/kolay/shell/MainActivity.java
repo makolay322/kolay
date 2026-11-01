@@ -5,15 +5,9 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.graphics.Typeface;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.View;
-import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.*;
 import app.kolay.sdk.Host;
@@ -31,9 +25,6 @@ public class MainActivity extends Activity {
     private Registry reg;
     private SecretStore secrets;
     private Module module;
-    private boolean resumed;
-    /** How long a launcher start keeps the animated splash on screen (the icon animation runs ~2.2 s). */
-    private static final long SPLASH_MS = 2400;
 
     @Override protected void onCreate(Bundle saved) {
         super.onCreate(saved);
@@ -42,38 +33,9 @@ public class MainActivity extends Activity {
         if (reg.secure()) reg.setSecure(false);   // the screenshot-block setting was removed; clear a stored "on"
         applySecure(false);
         installCrashHandler();
-        if (saved == null && Build.VERSION.SDK_INT >= 31 && getIntent() != null && Intent.ACTION_MAIN.equals(getIntent().getAction())
-                && getIntent().hasCategory(Intent.CATEGORY_LAUNCHER)) holdSplash(() -> boot(saved));
-        else boot(saved);
+        boot(saved);
         UpdateJob.schedule(this);
         Updater.checkAsync(this, false);
-    }
-
-    /**
-     * Keeps the system splash (and its animated icon) up for {@link #SPLASH_MS}: the first frame is withheld until then, and the
-     * payload is started just before the end so its own entrance animations play visibly. Only for launcher starts, so the
-     * QR tile and the share target open without delay.
-     */
-    private void holdSplash(Runnable start) {
-        final long until = SystemClock.uptimeMillis() + SPLASH_MS;
-        final View d = getWindow().getDecorView();
-        final boolean[] started = {false};
-        d.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @Override public boolean onPreDraw() {
-                if (!started[0] || SystemClock.uptimeMillis() < until) return false;
-                if (d.getViewTreeObserver().isAlive()) d.getViewTreeObserver().removeOnPreDrawListener(this);
-                return true;
-            }
-        });
-        Handler h = new Handler(Looper.getMainLooper());
-        h.postDelayed(() -> {
-            if (isFinishing() || isDestroyed()) return;
-            start.run();
-            started[0] = true;
-            if (resumed && module != null) guard(module::onResume);   // the activity resumed before the payload existed
-            d.invalidate();
-        }, SPLASH_MS - 250);
-        h.postDelayed(d::invalidate, SPLASH_MS + 20);
     }
 
     private void applySecure(boolean on) {
@@ -191,9 +153,9 @@ public class MainActivity extends Activity {
 
     // ---- lifecycle forwarding: a payload fault must never take the shell down ------------------
 
-    @Override protected void onResume() { super.onResume(); resumed = true; guard(() -> { if (module != null) module.onResume(); }); }
+    @Override protected void onResume() { super.onResume(); guard(() -> { if (module != null) module.onResume(); }); }
 
-    @Override protected void onPause() { resumed = false; guard(() -> { if (module != null) module.onPause(); }); super.onPause(); }
+    @Override protected void onPause() { guard(() -> { if (module != null) module.onPause(); }); super.onPause(); }
 
     @Override public void onRequestPermissionsResult(int req, String[] p, int[] r) {
         super.onRequestPermissionsResult(req, p, r);

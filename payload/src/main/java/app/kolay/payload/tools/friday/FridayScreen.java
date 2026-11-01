@@ -26,27 +26,27 @@ final class FridayScreen extends Screen {
     @Override public View create() {
         LinearLayout page = new LinearLayout(c.a);
         page.setOrientation(LinearLayout.VERTICAL);
-        page.addView(new Header(c, "Cuma Mesajı", "Rastgele görsel · hadis · kare", () -> c.nav.pop()).view);
+        page.addView(new Header(c, "Cuma Mesajı", "Rastgele görsel · hadis · 3:2", () -> c.nav.pop()).view);
 
-        // Square preview, as large as the space allows, with rounded corners and a loader until the first render.
+        // 3:2 preview, as large as the space allows, with rounded corners and a loader until the first render.
         FrameLayout box = new FrameLayout(c.a);
         box.setPadding(c.dp(Ui.GUTTER), c.dp(4), c.dp(Ui.GUTTER), c.dp(8));
-        FrameLayout square = new FrameLayout(c.a) {
+        FrameLayout frame = new FrameLayout(c.a) {
             @Override protected void onMeasure(int w, int h) {
-                int side = Math.min(MeasureSpec.getSize(w), MeasureSpec.getSize(h));
-                int spec = MeasureSpec.makeMeasureSpec(side, MeasureSpec.EXACTLY);
-                super.onMeasure(spec, spec);
+                int width = Math.min(MeasureSpec.getSize(w), MeasureSpec.getSize(h) * FridayArt.W / FridayArt.H);
+                super.onMeasure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(width * FridayArt.H / FridayArt.W, MeasureSpec.EXACTLY));
             }
         };
-        Ui.surface(c, square, c.p.surface2, 22, true);
-        square.setClipToOutline(true);
+        Ui.surface(c, frame, c.p.surface2, 22, true);
+        frame.setClipToOutline(true);
         loader = new Arc(c.a, c.p.primarySoft, c.p.primary, c.dp(4));
-        square.addView(loader, new FrameLayout.LayoutParams(c.dp(40), c.dp(40), Gravity.CENTER));
+        frame.addView(loader, new FrameLayout.LayoutParams(c.dp(40), c.dp(40), Gravity.CENTER));
         preview = new ImageView(c.a);
         preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
         preview.setContentDescription("Cuma görseli önizlemesi");
-        square.addView(preview, new FrameLayout.LayoutParams(-1, -1));
-        box.addView(square, new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER));
+        frame.addView(preview, new FrameLayout.LayoutParams(-1, -1));
+        box.addView(frame, new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER));
         page.addView(box, new LinearLayout.LayoutParams(-1, 0, 1));
 
         LinearLayout f = new LinearLayout(c.a);

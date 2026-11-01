@@ -42,9 +42,12 @@ final class FridayArt {
         new Theme(0xFF3B3A1F, 0xFF1A190B, 0xFFD6B25E, 0xFFF6F1DD, 0x66000000, 0xFF0F0F05),
     };
 
-    /** @return a new square (1:1) bitmap; the caller owns it */
+    /** Output size: landscape 3:2. */
+    static final int W = 1500, H = 1000;
+
+    /** @return a new 3:2 landscape bitmap; the caller owns it */
     static Bitmap render(long seed, String hadith, String source) {
-        final int w = 1200, h = 1200;
+        final int w = W, h = H;
         final float u = 1f;
         Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas cv = new Canvas(bmp);
@@ -73,7 +76,7 @@ final class FridayArt {
         p.setStrokeWidth(Math.max(2f, w / 520f));
         p.setColor(t.accent);
         p.setAlpha(34);
-        float s = w / (7f + r.nextInt(5));
+        float s = w / (9f + r.nextInt(6));
         boolean stars = r.nextBoolean();
         for (float y = -s / 2; y < h + s; y += s) {
             for (float x = -s / 2; x < w + s; x += s) {
@@ -91,9 +94,9 @@ final class FridayArt {
 
     private static void moon(Canvas cv, int w, int h, Theme t, Random r) {
         boolean left = r.nextBoolean();
-        // Kept in the top band, clear of the title line below it (title cap height starts around 0.17·h).
-        float rad = Math.min(w, h) * 0.062f;
-        float cx = left ? w * 0.11f : w * 0.89f, cy = h * (0.078f + r.nextFloat() * 0.012f);
+        // In a top corner, left or right of the centered title (which spans roughly 0.22·w … 0.78·w).
+        float rad = h * 0.068f;
+        float cx = left ? w * 0.085f : w * 0.915f, cy = h * (0.115f + r.nextFloat() * 0.015f);
         float dir = left ? 1 : -1;
         Paint g = new Paint(Paint.ANTI_ALIAS_FLAG);
         g.setShader(new RadialGradient(cx, cy, rad * 2.4f, (t.accent & 0x00FFFFFF) | 0x30000000, t.accent & 0x00FFFFFF, Shader.TileMode.CLAMP));
@@ -112,8 +115,8 @@ final class FridayArt {
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         int n = 22 + r.nextInt(18);
         for (int i = 0; i < n; i++) {
-            float x = r.nextFloat() * w, y = r.nextFloat() * h * 0.62f, s = 2f + r.nextFloat() * 5f * Math.min(w, h) / 1200f;
-            if (y > h * 0.14f && y < h * 0.24f && x > w * 0.12f && x < w * 0.88f) continue;   // title band
+            float x = r.nextFloat() * w, y = r.nextFloat() * h * 0.70f, s = 2f + r.nextFloat() * 5f * h / 1000f;
+            if (y > h * 0.06f && y < h * 0.23f && x > w * 0.18f && x < w * 0.82f) continue;   // title band
             p.setColor(t.accent);
             p.setAlpha(90 + r.nextInt(150));
             if (r.nextInt(3) == 0) cv.drawPath(star(x, y, s * 2.4f, s * 0.7f, 4), p);
@@ -126,8 +129,8 @@ final class FridayArt {
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setColor(t.mosque);
         float cx = w * (0.38f + r.nextFloat() * 0.24f);
-        float mw = w * 0.40f;
-        float bodyTop = h * 0.905f;
+        float mw = w * 0.30f;
+        float bodyTop = h * 0.928f;
         float dr = mw * 0.21f;
 
         cv.drawRect(0, h * 0.965f, w, h, p);                       // ground
@@ -140,8 +143,8 @@ final class FridayArt {
 
         int pairs = r.nextBoolean() ? 1 : 2;
         for (int i = 0; i < pairs; i++) {
-            float off = mw / 2 + w * (0.04f + 0.13f * i);
-            float tip = h * (0.745f + 0.03f * r.nextFloat());
+            float off = mw / 2 + w * (0.035f + 0.10f * i);
+            float tip = h * (0.775f + 0.03f * r.nextFloat());
             minaret(cv, p, cx - off, tip, h, w);
             minaret(cv, p, cx + off, tip + h * 0.01f * (i + 1), h, w);
         }
@@ -169,13 +172,13 @@ final class FridayArt {
         tp.setTextAlign(Paint.Align.CENTER);
 
         tp.setColor(t.text);
-        tp.setTextSize(76 * u);
+        tp.setTextSize(72 * u);
         tp.setTypeface(Typeface.create(Typeface.SERIF, Typeface.BOLD));
         tp.setShadowLayer(14 * u, 0, 3 * u, 0xB3000000);   // keeps the title legible over sparkles and the moon's glow
-        cv.drawText("Cumamız Mübarek Olsun", w / 2f, h * 0.215f, tp);
+        cv.drawText("Cumamız Mübarek Olsun", w / 2f, h * 0.165f, tp);
         tp.clearShadowLayer();
 
-        float pl = w * 0.07f, pr = w * 0.93f, pt = h * 0.26f, pb = h * 0.76f;
+        float pl = w * 0.08f, pr = w * 0.92f, pt = h * 0.225f, pb = h * 0.775f;
         Paint pp = new Paint(Paint.ANTI_ALIAS_FLAG);
         pp.setColor(t.panel);
         float rad = 28 * u;
@@ -183,7 +186,7 @@ final class FridayArt {
         pp.setStyle(Paint.Style.STROKE); pp.setStrokeWidth(3 * u); pp.setColor(t.accent); pp.setAlpha(150);
         cv.drawRoundRect(new RectF(pl, pt, pr, pb), rad, rad, pp);
 
-        float pad = 44 * u;
+        float pad = 40 * u;
         float inner = (pr - pl) - 2 * pad;
 
         tp.setTypeface(Typeface.DEFAULT_BOLD);
@@ -206,7 +209,7 @@ final class FridayArt {
         hp.setTypeface(Typeface.create(Typeface.SERIF, Typeface.NORMAL));
         String body = "“" + hadith + "”";
         StaticLayout lay = null;
-        for (float size = 66 * u; size >= 26 * u; size -= 2 * u) {
+        for (float size = 60 * u; size >= 24 * u; size -= 2 * u) {
             hp.setTextSize(size);
             lay = StaticLayout.Builder.obtain(body, 0, body.length(), hp, Math.round(inner))
                     .setAlignment(Layout.Alignment.ALIGN_CENTER).setLineSpacing(0, 1.18f).build();
