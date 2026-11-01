@@ -12,6 +12,7 @@ import java.util.List;
 public final class HomeScreen extends Screen {
     private final List<View> entrance = new ArrayList<>();
     private LinearLayout banner;
+    private Logo logo;
 
     @Override public View create() {
         Palette p = c.p;
@@ -22,6 +23,10 @@ public final class HomeScreen extends Screen {
         // Header: wordmark + settings
         LinearLayout head = new LinearLayout(c.a);
         head.setGravity(Gravity.CENTER_VERTICAL);
+        logo = new Logo(c.a, p.dark);
+        LinearLayout.LayoutParams ll = new LinearLayout.LayoutParams(c.dp(62), c.dp(46));
+        ll.setMarginEnd(c.dp(14));
+        head.addView(logo, ll);
         LinearLayout titles = new LinearLayout(c.a);
         titles.setOrientation(LinearLayout.VERTICAL);
         TextView name = Ui.text(c, "Kolay", 36, p.ink, 700);
@@ -146,6 +151,7 @@ public final class HomeScreen extends Screen {
     @Override public void onShown() {
         long d = 40;
         for (View v : entrance) { Ui.appear(v, d); d += 55; }
+        logo.intro();
         c.host.onUpdateReady(this::showBanner);
         if (c.host.updateReady()) showBanner();
     }

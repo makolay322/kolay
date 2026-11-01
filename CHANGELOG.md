@@ -4,6 +4,9 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 (görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
 
 ## 1.000
+### Değişti (logo)
+- Yeni “Ko” logosu uygulama ikonu oldu. Android 12+ cihazlarda ikonun renkleri duvar kağıdından gelir (dinamik renk); Android 13+ temalı ikon desteği vardır. Açılış ekranında logo animasyonla belirir (K kayar, O yaylanarak açılır, nokta belirir). **Kabuk 1.011 gerekir** (Ayarlar → “Kabuğu indir ve yükle”).
+- Ana sayfada canlı logo: saat gibi günün saatine göre renk değiştirir (sabah pembe-mavi, gündüz turkuaz, akşam mercan-mor, gece çivit), parıltısı yavaşça döner, nokta hafifçe nabız atar. Başlatıcıdaki ikon bu şekilde canlandırılamaz; Android bunu yalnızca Google'ın Saat/Takvim uygulamalarına tanır.
 ### Değişti (arayüz cilası)
 - Tüm ekranlar ortak ölçülere bağlandı: 16 dp kenar boşluğu, düğme yükseklikleri (alt çubuk 56, içerik 52, ikincil 48), tek tip bölüm etiketi, kart ve giriş alanı.
 - Boş, izin ve hata ekranları tek tasarımda (ikon rozeti, başlık, açıklama, eylem düğmesi). Fotoğraf izni reddedildiğinde “İzin ver / Ayarları aç”, ayarlardan dönünce liste kendiliğinden açılır.
