@@ -19,4 +19,4 @@ jobs:
           if git grep -nIE 'AIza[0-9A-Za-z_-]{35}|-----BEGIN (EC |RSA )?PRIVATE KEY-----|gemini\.key=' -- . ':!.github' ':!SECURITY.md' ':!CLAUDE.md' ':!docs'; then
             echo "::error::possible secret committed"; exit 1; fi
       - name: Build (debug-signed; no release keys exist in CI)
-        run: ./gradlew --no-daemon :shell:assembleRelease
+        run: ./gradlew --no-daemon :app:assembleRelease

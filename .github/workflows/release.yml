@@ -1,9 +1,9 @@
 name: release
-# Signs and publishes a new payload when module code changes on main. Needs the secret UPDATE_KEY_PEM (see docs/OPERATIONS.md).
+# Builds, signs and publishes Kolay.apk when app code changes on main. Needs the secret UPDATE_KEY_PEM (see docs/OPERATIONS.md).
 on:
   push:
     branches: [main]
-    paths: ['payload/**', 'shell/**', 'sdk/**', 'gradle/**', 'build.gradle', 'settings.gradle', '!payload/version.properties']
+    paths: ['app/**', 'gradle/**', 'build.gradle', 'settings.gradle', 'tools/release.sh', '!app/version.properties']
   workflow_dispatch:
     inputs:
       version:
@@ -37,7 +37,7 @@ jobs:
           UPDATE_KEY_PEM: ${{ secrets.UPDATE_KEY_PEM }}
           GH_TOKEN: ${{ github.token }}
           VERSION_NAME: ${{ inputs.version }}
-          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}              # shell signing; only used by tools/release.sh, never printed
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}              # APK signing; only used by tools/release.sh, never printed
           KEYSTORE_PROPERTIES: ${{ secrets.KEYSTORE_PROPERTIES }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}

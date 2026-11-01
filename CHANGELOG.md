@@ -4,6 +4,13 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 (görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
 
 ## 1.000
+### Değişti (tek APK — 1.014)
+- **Kabuk + modül düzeni kaldırıldı; Kolay artık tek APK.** Uygulama kendini GitHub'dan indirip doğrular ve kurar: ana sayfadaki “Yeni sürüm hazır” bandı veya Ayarlar → “Şimdi kur”. Android 12+'da genellikle onaysız; uygulama ekranda değilken arka planda kendiliğinden kurulur (Android onay isterse bildirim çıkar). İkon/izin/widget değişiklikleri artık ayrı “kabuk güncellemesi” istemez.
+- Eski kurulumlar (kabuk ≤ 1.013) yeni APK'yı Ayarlar → “Kabuğu indir ve yükle” ile bir kez alır; anahtar, ayarlar, widget ve kısayollar korunur. Eski modül dosyaları ilk açılışta silinir.
+- Kaldırılan: otomatik kara liste/geri dönüş (çöken sürüm önceki modüle düşmez; düzeltme daha yüksek sürümle gelir), `payload.apk`, `sdk` modülü.
+- Uygulama Güncelle: liste tek kartta ince satırlar; takibi kapatılanlar alttaki “KAPALI” grubuna iner. Kaynak iki seçenek: **M+P** (APKMirror + APKPure, hangisinde daha yeni sürüm varsa ondan iner) ve **Lite** (LiteAPKs); satırdaki rozete dokununca değişir.
+### Düzeltildi
+- Logonun giriş animasyonunda O harfi yaylanırken sağ kenardan kesiliyordu.
 ### Eklendi
 - **Uygulama Güncelle** karosu: Google Play dışından yüklenen uygulamalar için APKPure, APKMirror veya LiteAPKs'te (uygulama başına seçilir, takip anahtarı var) yeni sürüm arar; varsa indirir, Android yükleyicisine verir ve dosyayı siler. XAPK/APKM paketleri desteklenir; paket adı, sürüm ve imza kurulumdan önce denetlenir. Siteler bot doğrulaması isterse veya indirme kendiliğinden başlamazsa sayfa ekranda açılır, kullanıcı dokunur. **Kabuk 1.013 gerekir** (uygulama listesi için paket görünürlüğü).
 ### Değişti (açılış, Cuma 3:2)

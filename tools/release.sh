@@ -1,35 +1,31 @@
 #!/usr/bin/env bash
-# Publishes a new payload release. Usage: tools/release.sh [versionName]
+# Publishes a new Kolay.apk release. Usage: tools/release.sh [versionName]
 # Runs in two places with the same logic:
-#   - GitHub Actions (.github/workflows/release.yml): key from secret UPDATE_KEY_PEM; only payload.apk + manifest.json are published.
-#   - Locally: key from ~/.kolay/update_key.pem; Kolay.apk (shell, signed with ~/.kolay/release.keystore) is attached too.
-# Versions are stateless: the next versionCode/versionName derive from the latest published manifest (no commit-back to the repo).
+#   - GitHub Actions (.github/workflows/release.yml): update key from secret UPDATE_KEY_PEM, APK keystore from KEYSTORE_* secrets.
+#   - Locally: keys from ~/.kolay/ (update_key.pem, release.keystore, keystore.properties).
+# Versions are stateless: the next versionCode/versionName derive from the latest published manifest (no commit-back).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 command -v gh >/dev/null || { echo "gh not installed"; exit 1; }
 CI_MODE=${GITHUB_ACTIONS:-false}
 KEYDIR="$HOME/.kolay"
 TMP=$(mktemp -d)
-cleanup() { rm -rf "$TMP"; git checkout -q -- payload/version.properties 2>/dev/null || true
+cleanup() { rm -rf "$TMP"; git checkout -q -- app/version.properties 2>/dev/null || true
   [ "$CI_MODE" = true ] && rm -f "$KEYDIR/release.keystore" "$KEYDIR/keystore.properties" || true; }
 trap cleanup EXIT
-SHELL_BUILT=false
 
 if [ "$CI_MODE" = true ]; then
   [ -n "${UPDATE_KEY_PEM:-}" ] || { echo "secret UPDATE_KEY_PEM missing"; exit 1; }
   ( umask 077; printf '%s\n' "$UPDATE_KEY_PEM" > "$TMP/update_key.pem" )
-  # Optional: with the keystore secrets the CI also builds + signs the shell (Kolay.apk). Never printed; removed again on exit.
-  # Accepts either one KEYSTORE_PROPERTIES secret or the separate KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD secrets.
-  if [ -n "${KEYSTORE_B64:-}" ] && { [ -n "${KEYSTORE_PROPERTIES:-}" ] || [ -n "${KEYSTORE_PASSWORD:-}" ]; }; then
-    ( umask 077; mkdir -p "$KEYDIR"
-      printf '%s' "$KEYSTORE_B64" | base64 -d > "$KEYDIR/release.keystore"
-      if [ -n "${KEYSTORE_PROPERTIES:-}" ]; then
-        printf '%s\n' "$KEYSTORE_PROPERTIES" | sed "s#^storeFile=.*#storeFile=$KEYDIR/release.keystore#" > "$KEYDIR/keystore.properties"
-      else
-        printf 'storeFile=%s/release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KEYDIR" "$KEYSTORE_PASSWORD" "${KEY_ALIAS:-kolay}" "${KEY_PASSWORD:-$KEYSTORE_PASSWORD}" > "$KEYDIR/keystore.properties"
-      fi )
-    SHELL_BUILT=true
-  fi
+  # The APK must carry the same signing certificate as the installed app, or Android refuses the update: no keystore, no release.
+  [ -n "${KEYSTORE_B64:-}" ] && { [ -n "${KEYSTORE_PROPERTIES:-}" ] || [ -n "${KEYSTORE_PASSWORD:-}" ]; } || { echo "keystore secrets missing"; exit 1; }
+  ( umask 077; mkdir -p "$KEYDIR"
+    printf '%s' "$KEYSTORE_B64" | base64 -d > "$KEYDIR/release.keystore"
+    if [ -n "${KEYSTORE_PROPERTIES:-}" ]; then
+      printf '%s\n' "$KEYSTORE_PROPERTIES" | sed "s#^storeFile=.*#storeFile=$KEYDIR/release.keystore#" > "$KEYDIR/keystore.properties"
+    else
+      printf 'storeFile=%s/release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KEYDIR" "$KEYSTORE_PASSWORD" "${KEY_ALIAS:-kolay}" "${KEY_PASSWORD:-$KEYSTORE_PASSWORD}" > "$KEYDIR/keystore.properties"
+    fi )
   KEY="$TMP/update_key.pem"; SHA_HEAD=$GITHUB_SHA
 else
   for f in keystore.properties release.keystore update_key.pem; do [ -f "$KEYDIR/$f" ] || { echo "missing $KEYDIR/$f"; exit 1; }; done
@@ -41,17 +37,16 @@ else
 fi
 REPO=$(git config remote.origin.url | sed -E 's#.*github.com[:/]##; s#\.git$##')
 
-# --- version: one above the latest published manifest (fallback: the base in payload/version.properties) ---
-PROP=payload/version.properties
+# --- version: one above the latest published manifest (fallback: the base in app/version.properties) ---
+PROP=app/version.properties
 VC=$(sed -n 's/^versionCode=//p' "$PROP"); CUR=$(sed -n 's/^versionName=//p' "$PROP")
 if curl -fsSL "https://github.com/$REPO/releases/latest/download/manifest.json" -o "$TMP/latest.json" 2>/dev/null; then
   LVC=$(sed -n 's/.*"versionCode":\([0-9]*\).*/\1/p' "$TMP/latest.json"); LVN=$(sed -n 's/.*"versionName":"\([^"]*\)".*/\1/p' "$TMP/latest.json")
   [ -n "$LVC" ] && [ "$LVC" -ge "$VC" ] && { VC=$LVC; CUR=$LVN; }
 fi
 VC=$(( VC + 1 ))
-# Default name: bump the last part. "1.001" style (three-digit minor) -> 1.002; classic "1.0.4" -> 1.0.5.
-if [[ "$CUR" =~ ^1\.0\.[0-9]+$ ]]; then NEXT="1.001"   # legacy 1.0.x names switch to the 1.001 scheme
-elif [[ "$CUR" =~ ^([0-9]+)\.([0-9]{3})$ ]]; then NEXT=$(printf '%s.%03d' "${BASH_REMATCH[1]}" $(( 10#${BASH_REMATCH[2]} + 1 )))
+# Default name: bump the three-digit minor (1.013 -> 1.014).
+if [[ "$CUR" =~ ^([0-9]+)\.([0-9]{3})$ ]]; then NEXT=$(printf '%s.%03d' "${BASH_REMATCH[1]}" $(( 10#${BASH_REMATCH[2]} + 1 )))
 else NEXT="${CUR%.*}.$(( ${CUR##*.} + 1 ))"; fi
 VN="${1:-$NEXT}"
 gh release view "v$VN" >/dev/null 2>&1 && { echo "release v$VN already exists"; exit 1; }
@@ -59,34 +54,27 @@ printf 'versionCode=%s\nversionName=%s\n' "$VC" "$VN" > "$PROP"
 
 GRADLE=./gradlew; [ -x "$GRADLE" ] || GRADLE=gradle
 OUT=build/release; rm -rf "$OUT"; mkdir -p "$OUT"
-if [ "$CI_MODE" = true ] && [ "$SHELL_BUILT" != true ]; then $GRADLE -q --no-daemon :payload:assembleRelease; else $GRADLE -q --no-daemon :payload:assembleRelease :shell:assembleRelease; fi
-cp payload/build/outputs/apk/release/payload-release.apk "$OUT/payload.apk"
-if [ "$CI_MODE" != true ] || [ "$SHELL_BUILT" = true ]; then SHELL_BUILT=true; cp shell/build/outputs/apk/release/shell-release.apk "$OUT/Kolay.apk"; fi
+$GRADLE -q --no-daemon :app:assembleRelease
+cp app/build/outputs/apk/release/app-release.apk "$OUT/Kolay.apk"
+APK="$OUT/Kolay.apk"
 
-SHA=$(shasum -a 256 "$OUT/payload.apk" | cut -d' ' -f1)
-SIZE=$(wc -c < "$OUT/payload.apk" | tr -d ' ')
-SIG=$(openssl dgst -sha256 -sign "$KEY" "$OUT/payload.apk" | base64 | tr -d '\n')
+SHA=$(shasum -a 256 "$APK" | cut -d' ' -f1)
+SIZE=$(wc -c < "$APK" | tr -d ' ')
+SIG=$(openssl dgst -sha256 -sign "$KEY" "$APK" | base64 | tr -d '\n')
 # self-check: the signature must verify with the public key before anything is published
 openssl ec -in "$KEY" -pubout -out "$TMP/pub.pem" 2>/dev/null
 echo "$SIG" | base64 -d > "$TMP/sig.der"
-openssl dgst -sha256 -verify "$TMP/pub.pem" -signature "$TMP/sig.der" "$OUT/payload.apk" >/dev/null || { echo "signature self-check failed"; exit 1; }
+openssl dgst -sha256 -verify "$TMP/pub.pem" -signature "$TMP/sig.der" "$APK" >/dev/null || { echo "signature self-check failed"; exit 1; }
 PUB=$(openssl ec -in "$KEY" -pubout -outform DER 2>/dev/null | base64 | tr -d '\n')
-grep -q "$PUB" shell/src/main/java/app/kolay/shell/Config.java || { echo "signing key is not in Config.UPDATE_PUBLIC_KEYS"; exit 1; }
+grep -q "$PUB" app/src/main/java/app/kolay/shell/Config.java || { echo "signing key is not in Config.UPDATE_PUBLIC_KEYS"; exit 1; }
 
-API=$(sed -n 's/.*app.kolay.api" android:value="\([0-9]*\)".*/\1/p' payload/src/main/AndroidManifest.xml)
+URL="https://github.com/$REPO/releases/download/v$VN/Kolay.apk"
+# versionCode/url/size/sha256/signature: read by Kolay ≥ 1.014 (the app itself).
+# "api":5 and the shell* fields: only for installs still on the old two-APK design (shell ≤ 1.013). Their updater sees
+# api 5 > 4, downloads no module, and offers this APK through "Kabuğu indir ve yükle". Keep both until no such install is left.
 cat > "$OUT/manifest.json" <<JSON
-{"versionCode":$VC,"versionName":"$VN","api":$API,"size":$SIZE,"sha256":"$SHA","signature":"$SIG","url":"https://github.com/$REPO/releases/download/v$VN/payload.apk"}
+{"versionCode":$VC,"versionName":"$VN","api":5,"size":$SIZE,"sha256":"$SHA","signature":"$SIG","url":"$URL","shellVersionCode":$VC,"shellVersionName":"$VN","shellSize":$SIZE,"shellSha256":"$SHA","shellSignature":"$SIG","shellUrl":"$URL"}
 JSON
 
-# Shell entry for in-app shell updates: signed fresh when this run builds the shell (local), otherwise carried over from the previous release.
-if [ "$SHELL_BUILT" != true ]; then
-  [ -f "$TMP/latest.json" ] && tools/manifest_shell.py carry "$OUT/manifest.json" "$TMP/latest.json"
-else
-  SVC=$(sed -n "s/.*versionCode \([0-9]*\).*/\1/p" shell/build.gradle | head -1)
-  SVN=$(sed -n "s/.*versionName '\([^']*\)'.*/\1/p" shell/build.gradle | head -1)
-  tools/manifest_shell.py add "$OUT/manifest.json" "$OUT/Kolay.apk" "$KEY" "$SVC" "$SVN" "https://github.com/$REPO/releases/download/v$VN/Kolay.apk"
-fi
-
-FILES=("$OUT/payload.apk" "$OUT/manifest.json"); [ "$SHELL_BUILT" != true ] || FILES+=("$OUT/Kolay.apk")
-gh release create "v$VN" "${FILES[@]}" --target "$SHA_HEAD" --title "$VN" --notes "Payload $VN (versionCode $VC) — commit ${SHA_HEAD:0:7}" --latest
+gh release create "v$VN" "$APK" "$OUT/manifest.json" --target "$SHA_HEAD" --title "$VN" --notes "Kolay $VN (versionCode $VC) — commit ${SHA_HEAD:0:7}" --latest
 echo "released v$VN (versionCode $VC)"

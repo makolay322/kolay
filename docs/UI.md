@@ -1,6 +1,6 @@
 # Arayüz sistemi
 
-Hedef: "yerleşik, cilalı" his — az ama anlamlı hareket, tutarlı boşluk, açık/koyu tema. Her şey `payload/.../ui/` altında; ekranlar yalnızca bu parçaları birleştirir.
+Hedef: "yerleşik, cilalı" his — az ama anlamlı hareket, tutarlı boşluk, açık/koyu tema. Her şey `app/src/main/java/app/kolay/app/ui/` altında; ekranlar yalnızca bu parçaları birleştirir.
 
 ## Parçalar
 | Sınıf | Görev |

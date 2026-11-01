@@ -1,7 +1,6 @@
 # Kolay
 
-Telefonda çalışan, **kendini GitHub'dan güncelleyen kişisel araç kutusu**. Tek bir Android uygulaması (Android 10+);
-araçlar arayüz modülüyle birlikte arka planda güncellenir.
+Telefonda çalışan, **kendini GitHub'dan güncelleyen kişisel araç kutusu**. Tek bir Android uygulaması (Android 10+), tek APK.
 
 ## Araçlar
 
@@ -11,7 +10,7 @@ araçlar arayüz modülüyle birlikte arka planda güncellenir.
 | **Helal Sorgu** | Barkoddan (Open Food Facts) ya da etiket fotoğrafından içindekileri alır, Hanefi ölçütleriyle *helal / haram / şüpheli* değerlendirmesi yapar. |
 | **Cuma Mesajı** | Doğrulanmış 189 hadisten biriyle rastgele, yatay 3:2 Cuma görseli çizer; kaydet / paylaş. |
 | **Namaz Vakitleri** | Konuma göre vakitler (Diyanet açıları), geri sayım, vakit başına hatırlatıcı ve ana ekran widget'ı. |
-| **Uygulama Güncelle** | Google Play dışından yüklenen uygulamalar için APKPure, APKMirror veya LiteAPKs'te (uygulama başına seçilir) yeni sürüm arar, indirir, kurar ve dosyayı siler. |
+| **Uygulama Güncelle** | Google Play dışından yüklenen uygulamalar için yeni sürüm arar: APKMirror + APKPure (hangisi daha yeniyse) ya da LiteAPKs, uygulama başına seçilir. İndirir, kurar, dosyayı siler. |
 | **YouTube Özeti** | YouTube bağlantısından Türkçe özet; paylaşım menüsünde “YouTube Özet” olarak da çıkar. |
 | **Fotoğraf Sıkıştır** | Seçilen fotoğrafın %90 kaliteli JPEG kopyasını `Pictures/Kolay`'a kaydeder. |
 | **QR Okuyucu** | Hızlı QR okuma; bildirim panelindeki hızlı ayar kutucuğundan da açılır. |
@@ -24,38 +23,32 @@ Yeni araç eklemek: [docs/ADDING_A_TOOL.md](docs/ADDING_A_TOOL.md).
 1. [Releases](https://github.com/makolay322/kolay/releases/latest) sayfasından **`Kolay.apk`** dosyasını indirip yükle.
 2. Uygulamayı aç → sağ üstte **Ayarlar** → *Gemini API anahtarı* alanına anahtarı yapıştır → **Kaydet**. Anahtar yalnızca
    cilalama, özet ve helal değerlendirmesi için gerekir; diğer araçlar anahtarsız çalışır.
-3. Sonraki sürümler kendiliğinden iner; ana sayfada “Yeni sürüm hazır” bandı çıkınca dokunman yeterli.
+3. Sonraki sürümler kendiliğinden iner ve doğrulanır; ana sayfada “Yeni sürüm hazır” bandına dokununca kurulur (Android 12+'da
+   genellikle onaysız; uygulama kapanır, yeniden açınca yeni sürüm çalışır). Uygulama kapalıyken arka planda kendiliğinden de kurulur.
 
-Bazı sürümler kabuk değişikliği de içerir (ikon, izin, widget gibi). O zaman Ayarlar'da **“Kabuğu indir ve yükle”** düğmesi
-çıkar; tek dokunuşla yeni `Kolay.apk` indirilir, doğrulanır ve Android yükleyicisine verilir.
+1.013 veya daha eski bir kurulumdan geçiş: Ayarlar → **“Kabuğu indir ve yükle”** bir kez yeni tek APK'yı kurar; ayarlar ve anahtar korunur.
 
 API anahtarı yalnızca telefonda, Android Keystore ile şifreli tutulur. Bu depoda **hiçbir sır yoktur**.
 
 ## Nasıl çalışır (kısaca)
 
 ```
-┌──────────────── Kolay.apk (kabuk, app.kolay) ────────────────┐
-│ izinler · widget · hatırlatıcı · Tesseract verisi · anahtar   │  nadiren değişir
-│ deposu · güncelleyici · modül yükleyici · geri dönüş          │
-│        ▲ yükler                  │ indirir + doğrular          │
-│  ┌─────┴──────────────┐           ▼                            │
-│  │ modül (payload.apk)│ ◄── GitHub Releases ◄── release.yml   │  her sürümde değişir
-│  │ arayüz + araçlar   │    (SHA-256 + ECDSA imzası)            │
-│  └────────────────────┘                                        │
-└────────────────────────────────────────────────────────────────┘
+ main'e push ──► GitHub Actions (release.yml) ──► Release vX: Kolay.apk + manifest.json
+                 derle · keystore ile imzala ·            │  (SHA-256 + ECDSA imzası)
+                 ECDSA güncelleme imzası                  ▼
+ Telefon: Kolay ── 6–12 saatte bir manifest'i okur ── indirir · doğrular ── kendini günceller
 ```
 
-- **Kabuk** (`shell/`): kararlı çekirdek. Manifest (izinler, widget, kutucuk, paylaşım hedefi), anahtar deposu, güncelleme ve kurtarma.
-- **Modül** (`payload/`): arayüz ve tüm araçlar. Yeni sürüm arka planda iner, imzası doğrulanır, uygulama yenilenince devreye girer.
-- **Sözleşme** (`sdk/`): kabuk ile modül arasındaki arayüz (`Host`, `Module`); yalnızca büyür, bozulmaz.
+- **`app.kolay.app`**: arayüz ve tüm araçlar.
+- **`app.kolay.shell`**: platform katmanı — açılış, güncelleyici, şifreli anahtar deposu, namaz motoru/widget/alarmlar, QR kutucuğu.
+- Güncelleme yalnızca imza (uygulamaya gömülü açık anahtar) ve APK sertifikası tutarsa kurulur.
 
-`main`'e yapılan her push GitHub Actions'ta derlenir, imzalanır ve yeni sürüm olarak yayınlanır (`1.001`, `1.002`, …).
+`main`'e yapılan her push GitHub Actions'ta derlenir, imzalanır ve yeni sürüm olarak yayınlanır (`1.014`, `1.015`, …).
 Ayrıntı: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Güvenlik özeti
 
-- Güncelleme dosyaları GitHub'da durur ama **yalnızca sahibinin anahtarıyla imzalıdır**; kabuk imzayı doğrulamadan kod çalıştırmaz.
-- Bozuk/çöken bir modül otomatik kara listeye alınır, önceki sağlam sürüme dönülür.
+- Güncelleme dosyaları GitHub'da durur ama **yalnızca sahibinin anahtarıyla imzalıdır**; uygulama imzayı ve APK sertifikasını doğrulamadan güncellemeyi kurmaz.
 - OCR'da kişisel veriler buluta gitmeden önce cihazda maskelenir; OCR metni diske yazılmaz.
 - “Uygulama Güncelle” bir dosyayı yalnızca paket adı, sürümü ve imzası yüklü uygulamayla uyuşuyorsa kurar.
 - Yedekleme kapalı, yalnızca HTTPS.
@@ -78,8 +71,8 @@ Tam model: [SECURITY.md](SECURITY.md).
 ## Hızlı komutlar
 
 ```bash
-./gradlew :shell:assembleRelease   # kabuk APK'sı (içine güncel modülü gömer); JDK 17 + Android SDK gerekir
-tools/release.sh [sürümAdı]        # elle modül sürümü (normalde main'e push yeterli)
+./gradlew :app:assembleRelease     # APK; JDK 17 + Android SDK gerekir
+tools/release.sh [sürümAdı]        # elle sürüm (normalde main'e push yeterli)
 ```
 
 Üçüncü taraf bileşenler: [NOTICE.md](NOTICE.md).

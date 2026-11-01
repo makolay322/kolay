@@ -4,7 +4,7 @@ Bir araç = `Tool` uygulaması + en az bir `Screen`. Ana sayfa `Tools.ALL` liste
 ikon kutusu, geçiş ve geri tuşu hazır gelir.
 
 ## 1. Araç sınıfı
-`payload/src/main/java/app/kolay/payload/tools/<ad>/<Ad>Tool.java`:
+`app/src/main/java/app/kolay/app/tools/<ad>/<Ad>Tool.java`:
 ```java
 public final class NotTool implements Tool {
     @Override public String id() { return "not"; }                 // sabit, ekranda görünmez
@@ -43,9 +43,8 @@ Geçiş sürerken gelen istek kuyruğa alınır (son istek kazanır). Geri tuşu
 - Uzun işleri `c.io` havuzunda yap, arayüze `c.ui.post(...)` ile dön. Ekran yok edilince (`onDestroy`) işi iptal et / sonucu yok say.
 - Sır gerekiyorsa `c.host.secret("ad")` / Ayarlar'a bir giriş alanı ekle. **Kodda veya depoda sır tutma.**
 - Çıktıyı/kullanıcı verisini diske veya loga yazma (gerekçeli ve belgelenmiş istisna yoksa).
-- Yeni izin gerekiyorsa `shell/src/main/AndroidManifest.xml`'e eklenir → bu **kabuk değişikliğidir** (yeni `Kolay.apk` elle yüklenir). Mümkünse mevcut izinlerle çöz.
-- Yeni yerel kütüphane (`.so`) de kabuğa girer; payload saf Java kalır.
-- Yeni bir `Host` yeteneği gerekiyorsa: `sdk` `Host`'a metot ekle, `Host.API` + `Config.SHELL_API` + modül `app.kolay.api` artır, önce kabuğu dağıt ([OPERATIONS.md](OPERATIONS.md#kabuk-sürümü-yayınlama-nadir)).
+- Yeni izin gerekiyorsa `app/src/main/AndroidManifest.xml`'e ekle; sonraki sürümle birlikte gelir (ayrı kurulum gerekmez). Gereksiz izin isteme.
+- Platform yeteneği (alarm, widget, arka plan işi) gerekiyorsa `app.kolay.shell` içine koyup `Host`'a metot ekle; `Host` iç arayüzdür, serbestçe değişir.
 
 ## Yayın
-`git commit` → `tools/release.sh`. Telefonda *Şimdi denetle → Şimdi yenile*.
+`main`'e push → `release.yml` yeni sürümü yayınlar. Telefonda ana sayfadaki banda (veya Ayarlar → *Şimdi denetle → Şimdi kur*) dokun.
