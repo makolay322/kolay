@@ -6,7 +6,7 @@ import android.graphics.drawable.Drawable;
 /** Stroke icons on a 24-unit grid, drawn with paths so they stay crisp at any size and take any color. */
 public final class Icon extends Drawable {
     public enum Kind { BACK, CHEVRON, CHECK, COPY, SHARE, SETTINGS, SCAN, KEY, REFRESH, LINK, QR, FLASH, BARCODE, CAMERA, CRESCENT, CLOCK,
-        IMAGE, PIN, SPARKLE, PASTE, DOWNLOAD, LAYERS, PLAY, DOC, APPS }
+        IMAGE, PIN, SPARKLE, PASTE, DOWNLOAD, LAYERS, PLAY, DOC, APPS, COMPASS, PULSE }
 
     private final Kind kind;
     private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -127,6 +127,14 @@ public final class Icon extends Drawable {
                 path.quadTo(5.5f, 20.5f, 7.5f, 20.5f); path.lineTo(16.5f, 20.5f); path.quadTo(18.5f, 20.5f, 18.5f, 18.5f); path.lineTo(18.5f, 8); path.close();
                 path.moveTo(14, 3.5f); path.lineTo(14, 8); path.lineTo(18.5f, 8);
                 path.moveTo(9, 12.5f); path.lineTo(15, 12.5f); path.moveTo(9, 16); path.lineTo(13.5f, 16);
+                break;
+            case COMPASS:   // ring with a diamond needle pointing up-right
+                path.addCircle(12, 12, 8.5f, Path.Direction.CW);
+                path.moveTo(15.5f, 8.5f); path.lineTo(13.2f, 13.2f); path.lineTo(8.5f, 15.5f); path.lineTo(10.8f, 10.8f); path.close();
+                break;
+            case PULSE:     // heartbeat trace
+                path.moveTo(3, 12.5f); path.lineTo(7.5f, 12.5f); path.lineTo(9.5f, 8); path.lineTo(12.5f, 17.5f);
+                path.lineTo(15, 6.5f); path.lineTo(16.8f, 12.5f); path.lineTo(21, 12.5f);
                 break;
             case LINK:
                 path.moveTo(10, 14); path.lineTo(14, 10);

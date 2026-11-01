@@ -9,11 +9,13 @@ Telefonda çalışan, **kendini GitHub'dan güncelleyen kişisel araç kutusu**.
 | **OCR** | Belge fotoğraflarını cihazda okur (Tesseract). *Tıbbi* modda kişisel verileri cihazda maskeler, sayfaları sıraya dizip temizlenmiş metin verir; *Genel* modda ham metin ve isteğe bağlı cilalama. |
 | **Helal Sorgu** | Barkoddan (Open Food Facts) ya da etiket fotoğrafından içindekileri alır, Hanefi ölçütleriyle *helal / haram / şüpheli* değerlendirmesi yapar. |
 | **Cuma Mesajı** | Doğrulanmış 189 hadisten biriyle rastgele, yatay 3:2 Cuma görseli çizer; kaydet / paylaş. |
+| **Tıbbi Hesap** | Çevrimdışı klinik hesaplayıcılar: eGFR (CKD-EPI 2021), Cockcroft–Gault, VKİ/VYA, QTc, CHA₂DS₂-VA, HAS-BLED, Wells (PE), CURB-65, qSOFA, Glasgow, düzeltilmiş kalsiyum, anyon açığı. Girilen değerler kaydedilmez. |
 | **Namaz Vakitleri** | Konuma göre vakitler (Diyanet açıları), geri sayım, vakit başına hatırlatıcı ve ana ekran widget'ı. |
+| **Kıble** | Kayıtlı namaz konumu ve telefonun pusulasıyla kıble yönü; manyetik sapma düzeltilir, kıbleye dönünce titreşir. |
 | **Uygulama Güncelle** | Google Play dışından yüklenen uygulamalar için yeni sürüm arar: APKMirror + APKPure (hangisi daha yeniyse) ya da LiteAPKs, uygulama başına seçilir. İndirir, kurar, dosyayı siler. |
 | **YouTube Özeti** | YouTube bağlantısından Türkçe özet; paylaşım menüsünde “YouTube Özet” olarak da çıkar. |
 | **Fotoğraf Sıkıştır** | Seçilen fotoğrafın %90 kaliteli JPEG kopyasını `Pictures/Kolay`'a kaydeder. |
-| **QR Okuyucu** | Hızlı QR okuma; bildirim panelindeki hızlı ayar kutucuğundan da açılır. |
+| **QR Kod** | Hızlı QR okuma (bildirim panelindeki hızlı ayar kutucuğundan da açılır) ve QR oluşturma: metin/bağlantı, Wi-Fi (şifreyle bağlanma) veya kişi kartı; kaydet / paylaş. |
 
 Ana sayfadaki “Ko” logosu günün saatine göre renk değiştirir; O harfi birkaç saniyede bir madeni para gibi kendi ekseninde döner.
 Yeni araç eklemek: [docs/ADDING_A_TOOL.md](docs/ADDING_A_TOOL.md).

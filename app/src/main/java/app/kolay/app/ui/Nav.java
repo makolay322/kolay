@@ -62,7 +62,7 @@ public final class Nav {
         bv.setVisibility(View.VISIBLE); bv.setAlpha(0f); bv.setTranslationX(-shift * 0.5f);
         bv.animate().alpha(1f).translationX(0).setDuration(320).setInterpolator(Ui.EMPH).start();
         gv.animate().alpha(0f).translationX(shift).setDuration(240).setInterpolator(Ui.EXIT).withEndAction(() -> {
-            root.removeView(gv); gone.onDestroy(); finish();
+            root.removeView(gv); gone.onDestroy(); back.onReturn(); finish();
         }).start();
         return true;
     }

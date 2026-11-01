@@ -35,9 +35,11 @@ ui/                      Palette, Ctx, Ui, Icon, Nav, Screen, Header, Arc, Bar, 
 screens/                 HomeScreen, SettingsScreen
 tools/Tool, Tools        araç arayüzü + kayıt listesi                                   → docs/ADDING_A_TOOL.md
 tools/ocr/               OCR (tıbbi/genel mod): OcrTool, Picker/Progress/ResultScreen, Ocr, Mask, Session
-tools/qr/                QR Okuyucu: QrTool, QrScreen (arayüz), QrCamera (camera2; kipler QR / PRODUCT barkod / TEXT fotoğraf), QrDecoder (ZXing)
+tools/qr/                QR Kod: QrTool, QrScreen (okuyucu arayüzü), QrMakeScreen + QrPayload (QR oluşturma: metin, Wi-Fi, vCard), QrCamera (camera2; kipler QR / PRODUCT barkod / TEXT fotoğraf), QrDecoder (ZXing)
 tools/halal/             Helal Sorgu: HelalTool, ScanScreen/LabelScreen (CamScreen tabanı), Off (Open Food Facts), LabelOcr, Halal (istem + karar), WorkScreen, VerdictScreen
 tools/friday/            Cuma Mesajı: FridayTool, FridayScreen (önizleme/kaydet/paylaş), FridayArt (Canvas ile arka plan + yazı), Hadiths (hadis listesi)
+tools/tibbi/             Tıbbi Hesap: Formulas (saf formüller), Calc/Calcs (bildirimsel hesaplayıcı tanımları), TibbiScreen (liste), CalcScreen (alanlar + sabit sonuç kartı)
+tools/kible/             Kıble: Qibla (büyük daire açısı/uzaklık, saf Java), KibleScreen (dönme vektörü sensörü + manyetik sapma, kadran çizimi)
 tools/namaz/             Namaz Vakitleri: NamazTool, NamazScreen (saatler, geri sayım, hatırlatıcı anahtarı, widget düğmesi, konum alma)
 tools/apps/              Uygulama Güncelle: AppsTool, AppsScreen (liste + sıra), Sources (APKPure/APKMirror/LiteAPKs), Browser (WebView), Installer
 ```

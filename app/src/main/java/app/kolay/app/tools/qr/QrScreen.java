@@ -105,16 +105,20 @@ final class QrScreen extends Screen {
 
         // footer: add the quick-settings tile (Android 13+ can ask the system to add it with one tap)
         footer = new LinearLayout(c.a);
+        footer.setOrientation(LinearLayout.VERTICAL);
         footer.setGravity(Gravity.CENTER);
         footer.setPadding(c.dp(Ui.GUTTER), 0, c.dp(Ui.GUTTER), c.dp(Ui.GUTTER));
+        TextView make = Ui.button(c, "QR oluştur", Ui.Style.TONAL, Icon.Kind.QR);
+        make.setOnClickListener(v -> { cam.stop(); paintTorch(false); c.nav.push(new QrMakeScreen()); });
+        footer.addView(make, Ui.lp(-1, c.dp(Ui.H_BTN), 0, 0, 0, c.dp(4)));
         if (Build.VERSION.SDK_INT >= 33) {
-            tileBtn = Ui.button(c, "Hızlı ayarlara ekle", Ui.Style.GHOST, Icon.Kind.QR);
+            tileBtn = Ui.button(c, "Hızlı ayarlara ekle", Ui.Style.GHOST, null);
             tileBtn.setOnClickListener(v -> addTile());
             footer.addView(tileBtn, new LinearLayout.LayoutParams(-2, c.dp(Ui.H_GHOST)));
         } else {
             TextView t = Ui.text(c, "Bildirim panelinin düzenleme ekranından “QR Okuyucu” kutucuğunu ekleyebilirsin.", 12, p.muted, 400);
             t.setGravity(Gravity.CENTER);
-            footer.addView(t);
+            footer.addView(t, Ui.lp(-1, -2, 0, c.dp(8), 0, 0));
         }
         page.addView(footer);
         return page;
@@ -125,6 +129,7 @@ final class QrScreen extends Screen {
     @Override public void onShown() { shown = true; ensureCamera(); }
     @Override public void onResume() { if (shown) ensureCamera(); }
     @Override public void onPause() { cam.stop(); paintTorch(false); }
+    @Override public void onReturn() { ensureCamera(); }   // back from "QR oluştur"
     @Override public void onDestroy() { cam.stop(); }
     @Override public boolean onBack() { cam.stop(); return false; }  // release the camera right away; Nav then pops
 

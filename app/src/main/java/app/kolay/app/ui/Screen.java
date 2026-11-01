@@ -14,6 +14,8 @@ public abstract class Screen {
     /** Activity resumed / paused while this screen is on top (camera and other exclusive resources belong here). */
     public void onResume() {}
     public void onPause() {}
+    /** This screen is on top again because the one above it was popped. */
+    public void onReturn() {}
     public void onPermission(int req, String[] perms, int[] results) {}
     /** @return true if consumed (e.g. cancelled something) instead of leaving the screen. */
     public boolean onBack() { return false; }
