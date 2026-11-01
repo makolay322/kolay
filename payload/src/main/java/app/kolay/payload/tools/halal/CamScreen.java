@@ -33,6 +33,8 @@ abstract class CamScreen extends Screen implements QrCamera.Listener {
     abstract String title();
     abstract String subtitle();
     abstract QrCamera.Mode mode();
+    /** True on the label (OCR) page, false on the barcode page; drives the mode switch under the header. */
+    abstract boolean ocrMode();
     /** Fill the footer below the camera (hint text, buttons). */
     abstract void buildFooter(LinearLayout footer);
     /** Back button / header arrow. The camera is already stopped. */
@@ -43,6 +45,8 @@ abstract class CamScreen extends Screen implements QrCamera.Listener {
         LinearLayout page = new LinearLayout(c.a);
         page.setOrientation(LinearLayout.VERTICAL);
         page.addView(new Header(c, title(), subtitle(), this::back).view);
+
+        page.addView(modeBar(), Ui.lp(-1, c.dp(44), c.dp(16), 0, c.dp(16), c.dp(8)));
 
         stage = new FrameLayout(c.a);
         stage.setPadding(c.dp(16), c.dp(4), c.dp(16), c.dp(12));
@@ -99,6 +103,31 @@ abstract class CamScreen extends Screen implements QrCamera.Listener {
         buildFooter(footer);
         page.addView(footer);
         return page;
+    }
+
+    /** Barkod | Etiket (OCR): barcode is the default; the other mode is only entered by choosing it. */
+    private View modeBar() {
+        Palette p = c.p;
+        LinearLayout bar = new LinearLayout(c.a);
+        bar.setBackground(Ui.rounded(c, p.surface2, 16));
+        bar.setPadding(c.dp(4), c.dp(4), c.dp(4), c.dp(4));
+        bar.addView(modeChip("Barkod", Icon.Kind.BARCODE, !ocrMode(), () -> { finish(); c.nav.replace(new ScanScreen(null)); }), new LinearLayout.LayoutParams(0, -1, 1));
+        bar.addView(modeChip("Etiket (OCR)", Icon.Kind.CAMERA, ocrMode(), () -> { finish(); c.nav.replace(new LabelScreen(null, "İçindekiler yazısını çerçeveye al")); }), new LinearLayout.LayoutParams(0, -1, 1));
+        return bar;
+    }
+
+    private TextView modeChip(String label, Icon.Kind icon, boolean selected, Runnable onTap) {
+        Palette p = c.p;
+        TextView t = Ui.text(c, label, 14, selected ? p.onPrimary : p.muted, selected ? 700 : 500);
+        t.setGravity(Gravity.CENTER);
+        t.setCompoundDrawablePadding(c.dp(6));
+        android.graphics.drawable.Drawable d = new Icon(icon, selected ? p.onPrimary : p.muted);
+        d.setBounds(0, 0, c.dp(18), c.dp(18));
+        t.setCompoundDrawablesRelative(d, null, null, null);
+        t.setClickable(true);
+        if (selected) t.setBackground(Ui.rounded(c, p.primary, 12));
+        else { t.setOnClickListener(v -> { Ui.haptic(v, HapticFeedbackConstants.CLOCK_TICK); onTap.run(); }); Ui.press(t); }
+        return t;
     }
 
     private void back() { cam.stop(); leave(); }

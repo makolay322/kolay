@@ -126,6 +126,6 @@ final class VerdictScreen extends Screen {
         c.ui.postDelayed(() -> { if (btn.isAttachedToWindow()) btn.setText("Kopyala"); }, 1600);
     }
 
-    private void again() { c.nav.replace(new ScanScreen()); }
+    private void again() { c.nav.replace(new ScanScreen(null)); }
     @Override public boolean onBack() { again(); return true; }
 }

@@ -27,6 +27,15 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Share-sheet entry "YouTube Özet": same activity, started with ACTION_SEND; the payload reads the shared link. -->
+        <activity-alias android:name=".YoutubeShare" android:targetActivity=".MainActivity" android:exported="true"
+            android:label="YouTube Özet" android:icon="@mipmap/ic_launcher">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+        </activity-alias>
         <!-- Quick-settings tile (pull-down panel): opens the QR reader. The user adds it once via the panel's edit mode. -->
         <service android:name=".QrTileService" android:exported="true" android:label="QR Okuyucu"
             android:icon="@drawable/ic_qr_tile" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">

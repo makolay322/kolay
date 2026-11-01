@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import app.kolay.payload.screens.HomeScreen;
 import app.kolay.payload.tools.qr.QrTool;
+import app.kolay.payload.tools.youtube.YoutubeTool;
 import app.kolay.payload.ui.*;
 import app.kolay.sdk.Host;
 import app.kolay.sdk.Module;
@@ -37,6 +38,13 @@ public class Entry implements Module {
         if (saved == null && in != null && QrTool.ACTION_QR.equals(in.getAction())) {
             in.setAction(Intent.ACTION_MAIN);
             c.nav.push(new QrTool().open(c));
+        }
+        // Shared from another app via "YouTube Özet": open the summary screen with the link. Consumed so recreate() does not repeat it.
+        if (saved == null && in != null && Intent.ACTION_SEND.equals(in.getAction()) && in.getStringExtra(Intent.EXTRA_TEXT) != null) {
+            String text = in.getStringExtra(Intent.EXTRA_TEXT);
+            in.setAction(Intent.ACTION_MAIN);
+            in.removeExtra(Intent.EXTRA_TEXT);
+            c.nav.push(new YoutubeTool().openShared(c, text));
         }
         host.ready();
     }

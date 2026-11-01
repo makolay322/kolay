@@ -44,9 +44,20 @@ final class Prayer {
         refresh(c);
     }
 
-    static boolean reminder(Context c) { return prefs(c).getBoolean("remind", false); }
+    /** Bit i set = remind before prayer i's time runs out (0 Sabah, 2 Öğle, 3 İkindi, 4 Akşam, 5 Yatsı; bit 1 is unused). */
+    static final int ALL_MASK = 0b111101;
 
-    static void setReminder(Context c, boolean on) { prefs(c).edit().putBoolean("remind", on).apply(); refresh(c); }
+    static int reminderMask(Context c) {
+        SharedPreferences p = prefs(c);
+        if (p.contains("mask")) return p.getInt("mask", 0) & ALL_MASK;
+        return p.getBoolean("remind", false) ? ALL_MASK : 0;   // older single switch
+    }
+
+    static void setReminderMask(Context c, int mask) { prefs(c).edit().putInt("mask", mask & ALL_MASK).apply(); refresh(c); }
+
+    static boolean reminder(Context c) { return reminderMask(c) != 0; }
+
+    static void setReminder(Context c, boolean on) { setReminderMask(c, on ? ALL_MASK : 0); }
 
     // ---- times --------------------------------------------------------------------------------
 
@@ -75,13 +86,14 @@ final class Prayer {
 
     /** The next reminder: {prayer index, reminder instant, instant the prayer time ends}, or null. A time ends when the next one starts. */
     private static long[] nextReminder(Context c, long now) {
+        int mask = reminderMask(c);
         long best = Long.MAX_VALUE; long[] out = null;
         for (int d = -1; d <= 1; d++) {
             long[] t = timesAt(c, now, d), n = timesAt(c, now, d + 1);
             if (t == null || n == null) return null;
             long[] ends = {t[1], 0, t[3], t[4], t[5], n[0]};
             for (int i = 0; i < 6; i++) {
-                if (i == PrayerCalc.SUNRISE) continue;
+                if (i == PrayerCalc.SUNRISE || (mask & (1 << i)) == 0) continue;
                 long at = ends[i] - REMIND_MIN * 60000L;
                 if (at > now && at < best) { best = at; out = new long[]{i, at, ends[i]}; }
             }
@@ -134,7 +146,7 @@ final class Prayer {
 
     /** Shows the "time is running out" notification, then arms the next alarm. */
     static void remind(Context c, int index, long end) {
-        if (index >= 0 && index < 6 && end > System.currentTimeMillis() && reminder(c)) {
+        if (index >= 0 && index < 6 && end > System.currentTimeMillis() && (reminderMask(c) & (1 << index)) != 0) {
             NotificationManager nm = c.getSystemService(NotificationManager.class);
             if (nm != null) {
                 nm.createNotificationChannel(new NotificationChannel(CHANNEL, "Namaz vakti hatırlatıcı", NotificationManager.IMPORTANCE_HIGH));

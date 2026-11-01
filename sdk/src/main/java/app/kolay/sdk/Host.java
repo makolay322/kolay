@@ -18,8 +18,9 @@ public interface Host {
      *    and can download + install a newer shell ({@link #shellUpdateAvailable()}, {@link #installShellUpdate}).
      * 3: prayer times, home-screen widget and reminders ({@link #prayerTimes} and friends); shell declares the location,
      *    notification, exact-alarm and boot permissions.
+     * 4: per-prayer reminders ({@link #prayerReminderMask}); share target "YouTube Özet" (the activity is started with ACTION_SEND).
      */
-    int API = 3;
+    int API = 4;
 
     /** The shell's activity: the payload builds its whole UI inside it. */
     Activity activity();
@@ -84,6 +85,9 @@ public interface Host {
     /** Whether the "15 minutes before the prayer time ends" reminder is on. */
     boolean prayerReminder();
     void prayerSetReminder(boolean on);
+    /** Which prayers have the reminder on: bit i = prayer i (0 Sabah, 2 Öğle, 3 İkindi, 4 Akşam, 5 Yatsı; bit 1 unused) (API 4). */
+    int prayerReminderMask();
+    void prayerSetReminderMask(int mask);
     /** Asks the launcher to add the prayer widget to the home screen; false when the launcher cannot do that. */
     boolean prayerPinWidget();
 }

@@ -54,18 +54,25 @@ public final class HomeScreen extends Screen {
         col.addView(label, Ui.lp(-2, -2, c.dp(4), c.dp(28), 0, c.dp(12)));
         entrance.add(label);
 
-        // Two-column tile grid; an odd last tool leaves an empty slot.
+        // Two-column tile grid for everyday tools; the rarely used ones follow as slim full-width rows.
         final int gap = c.dp(12);
-        for (int i = 0; i < Tools.ALL.length; i += 2) {
+        java.util.List<Tool> tiles = new java.util.ArrayList<>(), slim = new java.util.ArrayList<>();
+        for (Tool t : Tools.ALL) (t.compact() ? slim : tiles).add(t);
+        for (int i = 0; i < tiles.size(); i += 2) {
             LinearLayout row = new LinearLayout(c.a);
             for (int j = i; j < i + 2; j++) {
-                View tile = j < Tools.ALL.length ? toolCard(Tools.ALL[j]) : new Space(c.a);
+                View tile = j < tiles.size() ? toolCard(tiles.get(j)) : new Space(c.a);
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -1, 1);
                 if (j == i) lp.setMarginEnd(gap / 2); else lp.setMarginStart(gap / 2);
                 row.addView(tile, lp);
-                if (j < Tools.ALL.length) entrance.add(tile);
+                if (j < tiles.size()) entrance.add(tile);
             }
             col.addView(row, Ui.lp(-1, -2, 0, 0, 0, gap));
+        }
+        for (Tool t : slim) {
+            View row = slimRow(t);
+            col.addView(row, Ui.lp(-1, c.dp(64), 0, 0, 0, gap));
+            entrance.add(row);
         }
 
         TextView foot = Ui.text(c, "Kolay · modül " + c.host.payloadName() + " · kabuk " + app.kolay.payload.Versions.shellName(c.a, c.host.shellVersion()), 12, p.muted, 400);
@@ -100,6 +107,31 @@ public final class HomeScreen extends Screen {
         card.setOnClickListener(v -> { Ui.haptic(v, HapticFeedbackConstants.VIRTUAL_KEY); c.nav.push(t.open(c)); });
         Ui.press(card);
         return card;
+    }
+
+    /** A slim wide row: small icon, title and subtitle on one line. */
+    private View slimRow(Tool t) {
+        Palette p = c.p;
+        LinearLayout row = new LinearLayout(c.a);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(c.dp(14), 0, c.dp(16), 0);
+        Ui.surface(c, row, p.surface, 18, true);
+        row.setClickable(true);
+        FrameLayout badge = new FrameLayout(c.a);
+        badge.setBackground(Ui.rounded(c, p.primarySoft, 12));
+        badge.addView(Ui.icon(c, t.icon(), p.onPrimarySoft, 20), new FrameLayout.LayoutParams(c.dp(20), c.dp(20), Gravity.CENTER));
+        row.addView(badge, new LinearLayout.LayoutParams(c.dp(40), c.dp(40)));
+        LinearLayout txt = new LinearLayout(c.a);
+        txt.setOrientation(LinearLayout.VERTICAL);
+        txt.addView(Ui.text(c, t.title(), 15, p.ink, 600));
+        txt.addView(Ui.text(c, t.subtitle(), 12, p.muted, 400), Ui.lp(-2, -2, 0, c.dp(2), 0, 0));
+        LinearLayout.LayoutParams tl = new LinearLayout.LayoutParams(0, -2, 1);
+        tl.setMarginStart(c.dp(12));
+        row.addView(txt, tl);
+        row.addView(Ui.icon(c, Icon.Kind.CHEVRON, p.muted, 18), new LinearLayout.LayoutParams(c.dp(18), c.dp(18)));
+        row.setOnClickListener(v -> { Ui.haptic(v, HapticFeedbackConstants.VIRTUAL_KEY); c.nav.push(t.open(c)); });
+        Ui.press(row);
+        return row;
     }
 
     @Override public void onShown() {

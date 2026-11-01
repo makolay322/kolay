@@ -4,7 +4,7 @@ package app.kolay.shell;
 final class Config {
     private Config() {}
     /** Contract version the shell implements (see sdk Host.API). */
-    static final int SHELL_API = 3;
+    static final int SHELL_API = 4;
     /** Oldest payload contract the shell still understands. */
     static final int MIN_PAYLOAD_API = 1;
     static final String PAYLOAD_PKG = "app.kolay.payload";

@@ -24,14 +24,20 @@ final class PickerScreen extends Screen {
     private TextView read;
     private FrameLayout content;
     private GridView grid;
+    private LinearLayout modeBar;
 
     PickerScreen(Session s) { this.s = s; }
 
     @Override public View create() {
         LinearLayout page = new LinearLayout(c.a);
         page.setOrientation(LinearLayout.VERTICAL);
-        header = new Header(c, "Tıbbi OCR", subtitle(), () -> c.nav.pop());
+        header = new Header(c, "OCR", subtitle(), () -> c.nav.pop());
         page.addView(header.view);
+        modeBar = new LinearLayout(c.a);
+        modeBar.setBackground(Ui.rounded(c, c.p.surface2, 16));
+        modeBar.setPadding(c.dp(4), c.dp(4), c.dp(4), c.dp(4));
+        page.addView(modeBar, Ui.lp(-1, c.dp(44), c.dp(16), 0, c.dp(16), c.dp(8)));
+        paintModeBar();
 
         content = new FrameLayout(c.a);
         page.addView(content, new LinearLayout.LayoutParams(-1, 0, 1));
@@ -46,9 +52,35 @@ final class PickerScreen extends Screen {
         else message("Fotoğraflara erişim izni gerekli", "Ayarlar → Uygulamalar → Kolay → İzinler");
     }
 
+    /** Tıbbi (default) | Genel. Switching only changes how the selected pages are processed afterwards. */
+    private void paintModeBar() {
+        modeBar.removeAllViews();
+        modeBar.addView(modeChip("Tıbbi", !s.general, false), new LinearLayout.LayoutParams(0, -1, 1));
+        modeBar.addView(modeChip("Genel", s.general, true), new LinearLayout.LayoutParams(0, -1, 1));
+    }
+
+    private TextView modeChip(String label, boolean selected, boolean toGeneral) {
+        Palette p = c.p;
+        TextView t = Ui.text(c, label, 14, selected ? p.onPrimary : p.muted, selected ? 700 : 500);
+        t.setGravity(Gravity.CENTER);
+        t.setClickable(true);
+        if (selected) t.setBackground(Ui.rounded(c, p.primary, 12));
+        else {
+            t.setOnClickListener(v -> {
+                Ui.haptic(v, HapticFeedbackConstants.CLOCK_TICK);
+                s.general = toGeneral;
+                paintModeBar();
+                refresh(false);
+            });
+            Ui.press(t);
+        }
+        return t;
+    }
+
     private String subtitle() {
         int n = s.selected.size();
-        return n == 0 ? "Okunacak sayfaları seç — sıra fark etmez" : n + " sayfa seçili";
+        String mode = s.general ? "genel okuma (yalnızca cihazda)" : "tıbbi belge";
+        return n == 0 ? "Sayfaları seç · " + mode : n + " sayfa seçili · " + mode;
     }
 
     private void message(String title, String body) {

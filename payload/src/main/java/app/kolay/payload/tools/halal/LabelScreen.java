@@ -17,6 +17,7 @@ final class LabelScreen extends CamScreen {
     @Override String title() { return "İçindekiler"; }
     @Override String subtitle() { return "Yazıyı net ve düz çerçevele"; }
     @Override QrCamera.Mode mode() { return QrCamera.Mode.TEXT; }
+    @Override boolean ocrMode() { return true; }
 
     @Override void buildFooter(LinearLayout f) {
         TextView t = Ui.text(c, note, 13, c.p.muted, 400);
@@ -30,12 +31,9 @@ final class LabelScreen extends CamScreen {
             cam.capture();
         });
         f.addView(shoot, Ui.lp(-1, c.dp(56)));
-        TextView back = Ui.button(c, "Barkod okumaya dön", Ui.Style.GHOST, Icon.Kind.BARCODE);
-        back.setOnClickListener(v -> { finish(); c.nav.replace(new ScanScreen()); });
-        f.addView(back, Ui.lp(-1, c.dp(48), 0, c.dp(6), 0, 0));
     }
 
-    @Override void leave() { c.nav.replace(new ScanScreen()); }
+    @Override void leave() { c.nav.replace(new ScanScreen(null)); }
 
     @Override public void onStill(Bitmap still) {
         finish();

@@ -8,8 +8,8 @@ import java.util.Random;
 
 /**
  * Draws the Friday card entirely with Canvas (no image assets): a gradient, a geometric Islamic pattern, a crescent,
- * stars and a mosque silhouette, with the hadith in a translucent panel. The same seed always gives the same
- * background. Half of the seeds give a near-black theme.
+ * stars and a plain mosque silhouette (no window lights), with the hadith in a translucent panel. The same seed always
+ * gives the same background. Only dark themes exist: half near-black, half deep mature colors.
  */
 final class FridayArt {
     private FridayArt() {}
@@ -27,12 +27,13 @@ final class FridayArt {
         new Theme(0xFF000000, 0xFF10202B, 0xFF7FD8E8, 0xFFEAF6F8, 0x66000000, 0xFF03070A),
         new Theme(0xFF0B0B0B, 0xFF241A0A, 0xFFFFC857, 0xFFFFF4DC, 0x66000000, 0xFF050300),
     };
-    private static final Theme[] LIGHT = {
-        new Theme(0xFF0E7A62, 0xFF0A4A3C, 0xFFF3D27A, 0xFFFFFFFF, 0x40000000, 0xFF06302A),
-        new Theme(0xFF2E86AB, 0xFF0D3B66, 0xFFFFE9A8, 0xFFFFFFFF, 0x40000000, 0xFF082A4A),
-        new Theme(0xFFFFF7E3, 0xFFF0D9A0, 0xFF0B6B58, 0xFF123D34, 0x33FFFFFF, 0xFFB88A2E),
-        new Theme(0xFFE6F7F4, 0xFF9AD6CB, 0xFF0F766E, 0xFF0B3B36, 0x40FFFFFF, 0xFF4FA89B),
-        new Theme(0xFF7A3B8F, 0xFF3C1B57, 0xFFFFD98A, 0xFFFFFFFF, 0x40000000, 0xFF241038),
+    /** Deep, mature colors (never bright): emerald, navy, burgundy, plum, olive. */
+    private static final Theme[] MATURE = {
+        new Theme(0xFF0B3D2E, 0xFF04201A, 0xFFD9B44A, 0xFFF4EFE0, 0x66000000, 0xFF021410),
+        new Theme(0xFF0E2340, 0xFF050E1F, 0xFFC9A85C, 0xFFEEF2F8, 0x66000000, 0xFF030812),
+        new Theme(0xFF4A1523, 0xFF1F0912, 0xFFE0B96B, 0xFFF8EEE8, 0x66000000, 0xFF140509),
+        new Theme(0xFF2E1A47, 0xFF130A21, 0xFFD8B86A, 0xFFF1EAF7, 0x66000000, 0xFF0B0615),
+        new Theme(0xFF3B3A1F, 0xFF1A190B, 0xFFD6B25E, 0xFFF6F1DD, 0x66000000, 0xFF0F0F05),
     };
 
     /** @return a new 3:2 (landscape) or 2:3 (portrait) bitmap; the caller owns it */
@@ -43,29 +44,30 @@ final class FridayArt {
         Canvas cv = new Canvas(bmp);
         Random r = new Random(seed);
         boolean dark = r.nextBoolean();
-        Theme t = dark ? DARK[r.nextInt(DARK.length)] : LIGHT[r.nextInt(LIGHT.length)];
+        Theme t = dark ? DARK[r.nextInt(DARK.length)] : MATURE[r.nextInt(MATURE.length)];
+        boolean ours = r.nextBoolean();   // "Cumamız" or "Cumanız"
 
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setShader(new LinearGradient(0, 0, 0, h, t.top, t.bottom, Shader.TileMode.CLAMP));
         cv.drawRect(0, 0, w, h, p);
         p.setShader(null);
 
-        pattern(cv, w, h, t, r, dark);
+        pattern(cv, w, h, t, r);
         moon(cv, w, h, t, r);
         sparkles(cv, w, h, t, r);
-        mosque(cv, w, h, t, r, portrait, dark);
-        panelAndText(cv, w, h, u, t, hadith, source);
+        mosque(cv, w, h, t, r, portrait);
+        panelAndText(cv, w, h, u, t, ours, hadith, source);
         return bmp;
     }
 
     // ---- background ---------------------------------------------------------------------------
 
-    private static void pattern(Canvas cv, int w, int h, Theme t, Random r, boolean dark) {
+    private static void pattern(Canvas cv, int w, int h, Theme t, Random r) {
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setStyle(Paint.Style.STROKE);
         p.setStrokeWidth(Math.max(2f, w / 520f));
         p.setColor(t.accent);
-        p.setAlpha(dark ? 34 : 46);
+        p.setAlpha(34);
         float s = w / (7f + r.nextInt(5));
         boolean stars = r.nextBoolean();
         for (float y = -s / 2; y < h + s; y += s) {
@@ -113,7 +115,7 @@ final class FridayArt {
     }
 
     /** Domes and minarets along the bottom edge. */
-    private static void mosque(Canvas cv, int w, int h, Theme t, Random r, boolean portrait, boolean dark) {
+    private static void mosque(Canvas cv, int w, int h, Theme t, Random r, boolean portrait) {
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setColor(t.mosque);
         float cx = w * (0.38f + r.nextFloat() * 0.24f);
@@ -136,16 +138,6 @@ final class FridayArt {
             minaret(cv, p, cx - off, tip, h, w);
             minaret(cv, p, cx + off, tip + h * 0.01f * (i + 1), h, w);
         }
-
-        if (dark) {   // lit arched windows
-            Paint wp = new Paint(Paint.ANTI_ALIAS_FLAG);
-            wp.setColor(t.accent); wp.setAlpha(90);
-            float ww = mw * 0.045f, wh = h * 0.045f;
-            for (int i = -2; i <= 2; i++) {
-                float x = cx + i * mw * 0.16f;
-                cv.drawRoundRect(new RectF(x - ww, bodyTop + h * 0.03f, x + ww, bodyTop + h * 0.03f + wh), ww, ww, wp);
-            }
-        }
     }
 
     private static void dome(Canvas cv, Paint p, float cx, float baseY, float rx, float ry) {
@@ -165,7 +157,7 @@ final class FridayArt {
 
     // ---- text ---------------------------------------------------------------------------------
 
-    private static void panelAndText(Canvas cv, int w, int h, float u, Theme t, String hadith, String source) {
+    private static void panelAndText(Canvas cv, int w, int h, float u, Theme t, boolean ours, String hadith, String source) {
         TextPaint tp = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         tp.setTextAlign(Paint.Align.CENTER);
 
@@ -176,7 +168,7 @@ final class FridayArt {
         tp.setColor(t.text);
         tp.setTextSize(54 * u);
         tp.setTypeface(Typeface.create(Typeface.SERIF, Typeface.BOLD));
-        cv.drawText("Cuma Mübarek Olsun", w / 2f, h * 0.178f + 78 * u, tp);
+        cv.drawText(ours ? "Cumamız Mübarek Olsun" : "Cumanız Mübarek Olsun", w / 2f, h * 0.178f + 78 * u, tp);
 
         float pl = w * 0.07f, pr = w * 0.93f, pt = h * 0.315f, pb = h * 0.725f;
         Paint pp = new Paint(Paint.ANTI_ALIAS_FLAG);

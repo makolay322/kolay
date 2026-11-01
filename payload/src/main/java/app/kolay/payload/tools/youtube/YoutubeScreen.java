@@ -24,6 +24,10 @@ final class YoutubeScreen extends Screen {
     private volatile boolean destroyed;
     private boolean busy;
     private String summary = "";
+    private final String shared;   // text received from the share sheet, or null
+
+    YoutubeScreen() { this(null); }
+    YoutubeScreen(String shared) { this.shared = shared; }
 
     @Override public View create() {
         Palette p = c.p;
@@ -139,6 +143,13 @@ final class YoutubeScreen extends Screen {
         ((ClipboardManager) c.a.getSystemService(Context.CLIPBOARD_SERVICE)).setPrimaryClip(clip);
         Ui.haptic(v, HapticFeedbackConstants.CONFIRM);
         Toast.makeText(c.a, "Kopyalandı", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override public void onShown() {
+        if (shared == null) return;
+        link.setText(shared.trim());
+        link.setSelection(link.length());
+        if (Transcript.videoId(shared) != null) start();
     }
 
     @Override public void onDestroy() { destroyed = true; }

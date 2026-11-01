@@ -17,8 +17,9 @@ import app.kolay.payload.tools.Gemini;
 import app.kolay.payload.ui.*;
 
 /**
- * Tap to record -> tap to stop -> text (German, Turkish or a mix, each part kept in the language it was spoken in) -> optional
- * one-tap translation into another language, all on one page. The audio exists only in memory and is dropped after sending.
+ * Tap to record -> text appears live while speaking (each pause-delimited segment is transcribed as soon as it is finished; German,
+ * Turkish or a mix, each part kept in the language it was spoken in) -> optional one-tap translation into another language, all on
+ * one page. The audio exists only in memory and every segment is dropped right after sending.
  */
 final class VoiceScreen extends Screen {
     private static final int REQ_MIC = 73;
@@ -50,7 +51,10 @@ final class VoiceScreen extends Screen {
     private TextView transLabel, transText, transStatus;
     private final TextView[] chips = new TextView[LANGS.length];
     private boolean recording, working, asked, destroyed;
-    private int transSeq;
+    private int transSeq, pending;
+    private boolean gotText;
+    private String lastErr;
+    private final java.util.concurrent.ExecutorService chunkQueue = java.util.concurrent.Executors.newSingleThreadExecutor();
     private String lastTranslation = "";
 
     @Override public View create() {
@@ -90,7 +94,7 @@ final class VoiceScreen extends Screen {
         spinner = new Arc(c.a, p.primarySoft, p.primary, c.dp(3));
         spinner.setVisibility(View.GONE);
         statusRow.addView(spinner, Ui.lp(c.dp(22), c.dp(22), 0, 0, c.dp(10), 0));
-        status = Ui.text(c, "Dokun ve konuş. Almanca, Türkçe ya da ikisi karışık.", 14, p.muted, 500);
+        status = Ui.text(c, "Dokun ve konuş; yazı konuştukça belirir. Almanca, Türkçe ya da ikisi karışık.", 14, p.muted, 500);
         status.setGravity(Gravity.CENTER); status.setLineSpacing(0, 1.2f);
         statusRow.addView(status, new LinearLayout.LayoutParams(-2, -2));
         col.addView(statusRow, Ui.lp(-1, -2, 0, c.dp(12), 0, 0));
@@ -153,7 +157,7 @@ final class VoiceScreen extends Screen {
 
         col.addView(resultBox, Ui.lp(-1, -2));
 
-        TextView note = Ui.text(c, "Kayıt cihazda saklanmaz; yazıya çevrilmesi için buluta gönderilir ve hemen atılır. En fazla 5 dakika.", 12, p.muted, 400);
+        TextView note = Ui.text(c, "Kayıt cihazda saklanmaz. Konuştukça, duraklamalarda parça parça yazıya çevrilmek üzere buluta gönderilir ve hemen atılır. En fazla 5 dakika.", 12, p.muted, 400);
         note.setGravity(Gravity.CENTER); note.setLineSpacing(0, 1.2f);
         col.addView(note, Ui.lp(-1, -2, c.dp(8), c.dp(28), c.dp(8), 0));
 
@@ -241,6 +245,10 @@ final class VoiceScreen extends Screen {
         Recorder r = new Recorder();
         try { r.start(); } catch (Exception e) { say(e.getMessage() == null ? "Mikrofon açılamadı" : e.getMessage(), true); return; }
         rec = r; recording = true;
+        gotText = false; lastErr = null;
+        transcript.setText("");
+        resetTranslation();
+        resultBox.setVisibility(View.GONE);
         micBtn.setBackground(Ui.rounded(c, c.p.danger, 48));
         micIcon.setVisibility(View.GONE); stopSquare.setVisibility(View.VISIBLE);
         say("0:00 · durdurmak için dokun", false);
@@ -257,7 +265,8 @@ final class VoiceScreen extends Screen {
         float s = 0.72f + 0.28f * lv;
         ring.animate().scaleX(s).scaleY(s).setDuration(120).start();
         long sec = rec.millis() / 1000;
-        status.setText(String.format("%d:%02d · durdurmak için dokun", sec / 60, sec % 60));
+        status.setText(String.format("%d:%02d · %s", sec / 60, sec % 60, gotText || pending > 0 ? "canlı yazıya çevriliyor · durdurmak için dokun" : "durdurmak için dokun"));
+        for (byte[] w; (w = rec.poll()) != null; ) submit(w);
         if (rec.limitHit()) { stopAndTranscribe(); return; }
         c.ui.postDelayed(this::tick, 120);
     }
@@ -267,32 +276,54 @@ final class VoiceScreen extends Screen {
         recording = false;
         Recorder r = rec; rec = null;
         boolean silent = r.silent();
-        byte[] wav = r.stop();
+        r.stop();
+        for (byte[] w; (w = r.poll()) != null; ) submit(w);
         micBtn.setBackground(Ui.rounded(c, c.p.primary, 48));
         micIcon.setVisibility(View.VISIBLE); stopSquare.setVisibility(View.GONE);
         ring.animate().cancel(); ring.animate().alpha(0f).setDuration(200).start();
-        if (silent) { say("Ses algılanmadı. Mikrofona biraz daha yakın konuş.", true); return; }
+        if (pending == 0 && !gotText) {
+            say(silent ? "Ses algılanmadı. Mikrofona biraz daha yakın konuş." : "Konuşma anlaşılamadı. Tekrar dene.", true);
+            return;
+        }
         working = true;
         micBtn.setAlpha(0.5f);
         spinner.setVisibility(View.VISIBLE);
-        say("Yazıya çevriliyor…", false);
-        c.io.execute(() -> {
+        say("Son kısım yazıya çevriliyor…", false);
+        if (pending == 0) finishTranscription();
+    }
+
+    /** Queues one finished speech segment; the single-thread queue keeps the text in speaking order. */
+    private void submit(byte[] wav) {
+        pending++;
+        chunkQueue.execute(() -> {
             String out = null, err = null;
             try { out = Gemini.generateFromAudio(c.host, TRANSCRIBE, wav, "audio/wav"); }
             catch (Exception e) { err = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage(); }
             final String o = out, e = err;
-            c.ui.post(() -> { if (!destroyed) transcribed(o, e); });
+            c.ui.post(() -> { if (!destroyed) chunkDone(o, e); });
         });
     }
 
-    private void transcribed(String text, String err) {
+    private void chunkDone(String text, String err) {
+        pending--;
+        if (err != null) lastErr = err;
+        else if (text != null) {
+            String t = text.trim();
+            if (!t.isEmpty() && !t.contains("[ANLAŞILAMADI]")) {
+                if (transcript.length() > 0) transcript.append(" ");
+                transcript.append(t);
+                gotText = true;
+                if (resultBox.getVisibility() != View.VISIBLE) { resultBox.setVisibility(View.VISIBLE); Ui.appear(resultBox, 0); }
+                if (lastTranslation.length() > 0) resetTranslation();    // the source text changed
+            }
+        }
+        if (!recording && pending == 0) finishTranscription();
+    }
+
+    private void finishTranscription() {
         working = false; micBtn.setAlpha(1f); spinner.setVisibility(View.GONE);
-        if (err != null) { say("Hata: " + err, true); return; }
-        if (text == null || text.isEmpty() || text.contains("[ANLAŞILAMADI]")) { say("Konuşma anlaşılamadı. Tekrar dene.", true); return; }
-        say("Hazır. Metni düzeltebilir, çevirebilirsin.", false);
-        transcript.setText(text);
-        resetTranslation();
-        if (resultBox.getVisibility() != View.VISIBLE) { resultBox.setVisibility(View.VISIBLE); Ui.appear(resultBox, 0); }
+        if (!gotText) { say(lastErr != null ? "Hata: " + lastErr : "Konuşma anlaşılamadı. Tekrar dene.", true); return; }
+        say(lastErr != null ? "Hazır, ama bazı kısımlar çevrilemedi (" + lastErr + "). Metni düzeltebilirsin." : "Hazır. Metni düzeltebilir, çevirebilirsin.", lastErr != null);
         Ui.haptic(micBtn, HapticFeedbackConstants.CONFIRM);
     }
 
@@ -348,6 +379,7 @@ final class VoiceScreen extends Screen {
 
     @Override public void onDestroy() {
         destroyed = true;
+        chunkQueue.shutdownNow();
         if (rec != null) { rec.discard(); rec = null; }
         recording = false;
     }

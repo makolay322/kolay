@@ -13,14 +13,17 @@ import app.kolay.payload.ui.*;
 /** The cleaned text with Copy and Share. Never stored: it only exists in memory while this screen is open. */
 final class ResultScreen extends Screen {
     private final Session s;
-    private final String text;
+    private final String raw;
+    private String text;            // what is shown / copied: the raw OCR text, or its cleaned version in general mode
+    private boolean cleaned, cleaning;
+    private TextView out, clean;
     private final long secs;
     private final int pages;
     private final boolean ok;
     private View body, bar;
     private TextView copy;
 
-    ResultScreen(Session s, String text, long secs, int pages, boolean ok) { this.s = s; this.text = text; this.secs = secs; this.pages = pages; this.ok = ok; }
+    ResultScreen(Session s, String text, long secs, int pages, boolean ok) { this.s = s; this.raw = text; this.text = text; this.secs = secs; this.pages = pages; this.ok = ok; }
 
     @Override public View create() {
         Palette p = c.p;
@@ -31,6 +34,7 @@ final class ResultScreen extends Screen {
         ScrollView sv = new ScrollView(c.a);
         sv.setVerticalScrollBarEnabled(false);
         TextView t = Ui.text(c, text, 15, ok ? p.ink : p.danger, 400);
+        out = t;
         t.setLineSpacing(0, 1.3f);
         t.setTextIsSelectable(false);
         LinearLayout card = new LinearLayout(c.a);
@@ -44,6 +48,13 @@ final class ResultScreen extends Screen {
         body = sv;
         page.addView(sv, new LinearLayout.LayoutParams(-1, 0, 1));
 
+        LinearLayout bottom = new LinearLayout(c.a);
+        bottom.setOrientation(LinearLayout.VERTICAL);
+        if (s.general && ok) {   // general mode: the text stays on the device unless this button is pressed
+            clean = Ui.button(c, "Gemini'ye gönder (temizle)", Ui.Style.TONAL, Icon.Kind.REFRESH);
+            clean.setOnClickListener(v -> cleanUp());
+            bottom.addView(clean, Ui.lp(-1, c.dp(52), c.dp(16), c.dp(8), c.dp(16), 0));
+        }
         LinearLayout row = new LinearLayout(c.a);
         row.setPadding(c.dp(16), c.dp(8), c.dp(16), c.dp(16));
         copy = Ui.button(c, "Kopyala", Ui.Style.PRIMARY, Icon.Kind.COPY);
@@ -57,8 +68,9 @@ final class ResultScreen extends Screen {
         ((LinearLayout.LayoutParams) copy.getLayoutParams()).weight = 1;
         row.addView(share, Ui.lp(0, c.dp(56)));
         ((LinearLayout.LayoutParams) share.getLayoutParams()).weight = 1;
-        bar = row;
-        page.addView(row);
+        bottom.addView(row);
+        bar = bottom;
+        page.addView(bottom);
         body.setAlpha(0f); bar.setAlpha(0f);
         return page;
     }
@@ -68,6 +80,32 @@ final class ResultScreen extends Screen {
         body.animate().alpha(1f).translationY(0).setDuration(420).setInterpolator(Ui.EMPH).start();
         bar.setTranslationY(c.dp(40));
         bar.animate().alpha(1f).translationY(0).setStartDelay(120).setDuration(420).setInterpolator(Ui.EMPH).start();
+    }
+
+    /** General mode only: sends the OCR text to the model with a loose cleanup prompt; pressing again shows the raw text. */
+    private void cleanUp() {
+        if (cleaning) return;
+        if (cleaned) {   // toggle back to the raw text
+            cleaned = false; text = raw; out.setText(raw);
+            Ui.style(c, clean, Ui.Style.TONAL, Icon.Kind.REFRESH); clean.setText("Gemini'ye gönder (temizle)");
+            return;
+        }
+        cleaning = true;
+        clean.setText("Temizleniyor…"); clean.setEnabled(false);
+        c.io.execute(() -> {
+            String res = null, err = null;
+            try { res = Ocr.cleanGeneral(c.host, raw); if (res.isEmpty()) err = "Boş yanıt"; }
+            catch (Exception e) { err = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage(); }
+            final String r = res, e = err;
+            c.ui.post(() -> {
+                cleaning = false;
+                if (!clean.isAttachedToWindow()) return;
+                clean.setEnabled(true);
+                if (e != null) { clean.setText("Gemini'ye gönder (temizle)"); android.widget.Toast.makeText(c.a, e, android.widget.Toast.LENGTH_LONG).show(); return; }
+                cleaned = true; text = r; out.setText(r);
+                clean.setText("Ham metni göster");
+            });
+        });
     }
 
     private void copy() {

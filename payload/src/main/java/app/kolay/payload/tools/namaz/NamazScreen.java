@@ -23,13 +23,14 @@ import java.util.Locale;
  * The calculation, alarms and widget live in the shell (they must work while the app is closed); this is only the front end.
  */
 final class NamazScreen extends Screen {
-    private static final int SHELL_NEEDED = 7, REQ_LOC = 71, REQ_NOTIF = 72;
+    private static final int SHELL_NEEDED = 8, REQ_LOC = 71, REQ_NOTIF = 72;
     private static final String[] NAMES = {"Sabah", "Güneş", "Öğle", "İkindi", "Akşam", "Yatsı"};
 
     private Header header;
     private LinearLayout body;
     private TextView heroName, heroTime, heroLeft;
-    private Toggle toggle;
+    private int pendingBit = -1;       // toggle waiting for the notification permission
+    private final Toggle[] toggles = new Toggle[6];
     private long[] today, tomorrow;
     private long nextAt;                // the instant the countdown runs to
     private boolean destroyed, ticking;
@@ -91,8 +92,9 @@ final class NamazScreen extends Screen {
         if (req == REQ_LOC) {
             if (ok) locate(false); else info("Konum izni verilmedi", "Ayarlar → Uygulamalar → Kolay → İzinler → Konum.");
         } else if (req == REQ_NOTIF) {
-            if (ok) { c.host.prayerSetReminder(true); }
-            else { if (toggle != null) toggle.set(false, true); say("Bildirim izni olmadan hatırlatıcı gösterilemez"); }
+            int bit = pendingBit; pendingBit = -1;
+            if (ok && bit >= 0) c.host.prayerSetReminderMask(c.host.prayerReminderMask() | (1 << bit));
+            else { if (bit >= 0 && toggles[bit] != null) toggles[bit].set(false, true); say("Bildirim izni olmadan hatırlatıcı gösterilemez"); }
         }
     }
 
@@ -189,35 +191,32 @@ final class NamazScreen extends Screen {
             nextAt = n[1];
         }
 
+        TextView remLabel = Ui.text(c, "Vakit çıkmadan 15 dakika önce hatırlat", 12, c.p.muted, 600);
+        body.addView(remLabel, Ui.lp(-2, -2, c.dp(4), c.dp(2), 0, c.dp(6)));
+        int mask = c.host.prayerReminderMask();
         for (int i = 0; i < 6; i++) {
             boolean isNext = n != null && n[2] == 0 && n[0] == i;
             LinearLayout r = new LinearLayout(c.a);
             r.setGravity(Gravity.CENTER_VERTICAL);
-            r.setPadding(c.dp(16), 0, c.dp(16), 0);
+            r.setPadding(c.dp(16), 0, c.dp(12), 0);
             if (isNext) r.setBackground(Ui.rounded(c, c.p.surface2, 14));
             TextView nm = Ui.text(c, NAMES[i], 16, isNext ? c.p.ink : c.p.muted, isNext ? 700 : 500);
             TextView tm = Ui.text(c, clock(today[i]), 18, c.p.ink, isNext ? 700 : 500);
             r.addView(nm, new LinearLayout.LayoutParams(0, -2, 1));
             r.addView(tm);
-            body.addView(r, Ui.lp(-1, c.dp(48)));
+            if (i == 1) {   // Güneş ends Sabah; it has no reminder of its own
+                r.addView(new Space(c.a), new LinearLayout.LayoutParams(c.dp(52 + 14), 1));
+            } else {
+                final int bit = i;
+                Toggle tg = new Toggle(c.a, c.p.dark ? c.p.line : 0xFFC9D2D6, c.p.primary, c.p.dark ? c.p.ink : 0xFFFFFFFF, (mask & (1 << i)) != 0);
+                tg.onChange(on -> onReminder(bit, on));
+                toggles[i] = tg;
+                LinearLayout.LayoutParams tl = new LinearLayout.LayoutParams(-2, -2);
+                tl.setMarginStart(c.dp(14));
+                r.addView(tg, tl);
+            }
+            body.addView(r, Ui.lp(-1, c.dp(52)));
         }
-
-        // reminder switch
-        LinearLayout rem = new LinearLayout(c.a);
-        rem.setGravity(Gravity.CENTER_VERTICAL);
-        rem.setPadding(c.dp(16), c.dp(14), c.dp(16), c.dp(14));
-        rem.setBackground(Ui.rounded(c, c.p.surface, 16));
-        LinearLayout txt = new LinearLayout(c.a);
-        txt.setOrientation(LinearLayout.VERTICAL);
-        txt.addView(Ui.text(c, "Vakit çıkmadan 15 dk önce hatırlat", 15, c.p.ink, 600));
-        txt.addView(Ui.text(c, "Her vakit için, vakit bitmeden bildirim gelir", 12, c.p.muted, 400), Ui.lp(-2, -2, 0, c.dp(2), 0, 0));
-        toggle = new Toggle(c.a, c.p.dark ? c.p.line : 0xFFC9D2D6, c.p.primary, c.p.dark ? c.p.ink : 0xFFFFFFFF, c.host.prayerReminder());
-        toggle.onChange(this::onReminder);
-        LinearLayout.LayoutParams tl = new LinearLayout.LayoutParams(0, -2, 1);
-        tl.setMarginEnd(c.dp(12));
-        rem.addView(txt, tl);
-        rem.addView(toggle);
-        body.addView(rem, Ui.lp(-1, -2, 0, c.dp(16), 0, 0));
 
         if (Build.VERSION.SDK_INT >= 31 && !canExact()) {
             TextView exact = Ui.button(c, "Tam zamanlı alarm izni ver", Ui.Style.GHOST, Icon.Kind.CLOCK);
@@ -246,14 +245,16 @@ final class NamazScreen extends Screen {
         return am == null || am.canScheduleExactAlarms();
     }
 
-    private void onReminder(boolean on) {
-        if (!on) { c.host.prayerSetReminder(false); return; }
-        if (c.host.prayerLocation() == null) { toggle.set(false, true); say("Önce konum gerekli"); return; }
+    private void onReminder(int bit, boolean on) {
+        int mask = c.host.prayerReminderMask();
+        if (!on) { c.host.prayerSetReminderMask(mask & ~(1 << bit)); return; }
+        if (c.host.prayerLocation() == null) { toggles[bit].set(false, true); say("Önce konum gerekli"); return; }
         if (Build.VERSION.SDK_INT >= 33 && c.a.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            pendingBit = bit;
             c.a.requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_NOTIF);
             return;
         }
-        c.host.prayerSetReminder(true);
+        c.host.prayerSetReminderMask(mask | (1 << bit));
     }
 
     // ---- countdown ----------------------------------------------------------------------------

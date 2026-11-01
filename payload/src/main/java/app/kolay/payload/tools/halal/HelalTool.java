@@ -11,5 +11,5 @@ public final class HelalTool implements Tool {
     @Override public String title() { return "Helal Sorgu"; }
     @Override public String subtitle() { return "Barkod · Hanefi mezhebi"; }
     @Override public Icon.Kind icon() { return Icon.Kind.BARCODE; }
-    @Override public Screen open(Ctx c) { return new ScanScreen(); }
+    @Override public Screen open(Ctx c) { return new ScanScreen(null); }
 }

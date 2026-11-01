@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widget_prayer_desc">Bir sonraki namaz vakti ve kalan süre</string>
+    <string name="widget_prayer_desc">Bir sonraki namaz vaktinin saati</string>
 </resources>

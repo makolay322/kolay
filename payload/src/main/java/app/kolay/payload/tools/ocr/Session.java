@@ -9,4 +9,6 @@ final class Session {
     final List<Uri> photos = new ArrayList<>();
     final LinkedHashSet<Uri> selected = new LinkedHashSet<>();
     final Map<Uri, Bitmap> thumbs = new HashMap<>();
+    /** false = medical mode (default: masking + page ordering + cleanup), true = general mode (local OCR only; cleanup on request). */
+    boolean general;
 }

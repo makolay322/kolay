@@ -145,6 +145,8 @@ public class MainActivity extends Activity {
         @Override public long[] prayerTimes(int y, int m, int d) { return Prayer.times(MainActivity.this, y, m, d); }
         @Override public boolean prayerReminder() { return Prayer.reminder(MainActivity.this); }
         @Override public void prayerSetReminder(boolean on) { Prayer.setReminder(MainActivity.this, on); }
+        @Override public int prayerReminderMask() { return Prayer.reminderMask(MainActivity.this); }
+        @Override public void prayerSetReminderMask(int mask) { Prayer.setReminderMask(MainActivity.this, mask); }
         @Override public boolean prayerPinWidget() { return Prayer.pinWidget(MainActivity.this); }
     }
 

@@ -7,7 +7,7 @@ import app.kolay.payload.ui.*;
 
 /**
  * Does the whole job behind one spinner: barcode -> product lookup -> (photo -> OCR ->) assessment.
- * If the barcode yields no ingredients it hands over to the label camera. Back / Cancel aborts.
+ * If the barcode yields no ingredients it returns to the barcode page with a note (OCR is only used when chosen). Back / Cancel aborts.
  */
 final class WorkScreen extends Screen {
     private final String barcode;
@@ -47,15 +47,15 @@ final class WorkScreen extends Screen {
             if (shot == null) {
                 Off.Product pr;
                 try { pr = Off.lookup(barcode); }
-                catch (java.io.IOException e) { toLabel("Ürün veritabanına ulaşılamadı. İçindekiler yazısını fotoğrafla"); return; }
-                if (pr == null) { toLabel("Bu barkod veritabanında yok. İçindekiler yazısını fotoğrafla"); return; }
-                if (pr.ingredients.isEmpty()) { toLabel("Bu ürün için içindekiler kayıtlı değil. Etiketteki yazıyı fotoğrafla"); return; }
+                catch (java.io.IOException e) { backToScan("Ürün veritabanına ulaşılamadı. İnterneti kontrol edip tekrar dene ya da «Etiket (OCR)» moduna geç."); return; }
+                if (pr == null) { backToScan("Bu barkod veritabanında yok. Tekrar okutabilir ya da «Etiket (OCR)» moduna geçip içindekiler yazısını fotoğraflayabilirsin."); return; }
+                if (pr.ingredients.isEmpty()) { backToScan("Bu ürün için içindekiler kayıtlı değil. «Etiket (OCR)» moduna geçip yazıyı fotoğraflayabilirsin."); return; }
                 name = ((pr.brand.isEmpty() ? "" : pr.brand + " ") + pr.name).trim();
                 ingredients = pr.ingredients;
                 source = "Ürün veritabanı";
             } else {
                 try { ingredients = LabelOcr.read(c.host, shot); } finally { shot.recycle(); }
-                if (ingredients.replaceAll("\\s", "").length() < 8) { toLabel("Yazı okunamadı. Daha yakından, ışığı yansıtmadan tekrar dene"); return; }
+                if (ingredients.replaceAll("\\s", "").length() < 8) { backToLabel("Yazı okunamadı. Daha yakından, ışığı yansıtmadan tekrar dene"); return; }
                 source = "Etiket fotoğrafı";
             }
             if (stopped) return;
@@ -70,7 +70,10 @@ final class WorkScreen extends Screen {
         }
     }
 
-    private void toLabel(String note) { finishWith(() -> c.nav.replace(new LabelScreen(barcode, note))); }
+    /** A barcode lookup that found nothing returns to the barcode page with a note; the OCR mode is never started on its own. */
+    private void backToScan(String note) { finishWith(() -> c.nav.replace(new ScanScreen(note))); }
+    /** A photo that could not be read stays in the OCR mode. */
+    private void backToLabel(String note) { finishWith(() -> c.nav.replace(new LabelScreen(barcode, note))); }
 
     /** Status updates: skipped once the screen is gone. */
     private void live(Runnable r) { c.ui.post(() -> { if (!stopped) r.run(); }); }
@@ -84,7 +87,7 @@ final class WorkScreen extends Screen {
         if (stopped) return;
         stopped = true;
         recyclePhoto();
-        c.nav.replace(new ScanScreen());
+        c.nav.replace(new ScanScreen(null));
     }
 
     private synchronized Bitmap takePhoto() { Bitmap b = photo; photo = null; return b; }

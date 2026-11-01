@@ -32,7 +32,7 @@ final class ProgressScreen extends Screen {
         status = Ui.text(c, "Başlıyor…", 18, p.ink, 600);
         status.setGravity(Gravity.CENTER);
         col.addView(status, Ui.lp(-1, -2, 0, c.dp(28), 0, 0));
-        TextView sub = Ui.text(c, pages.size() + " sayfa · okuma, isim maskeleme, cilalama", 13, p.muted, 400);
+        TextView sub = Ui.text(c, pages.size() + (s.general ? " sayfa · yalnızca cihazda okuma" : " sayfa · okuma, isim maskeleme, cilalama"), 13, p.muted, 400);
         sub.setGravity(Gravity.CENTER);
         col.addView(sub, Ui.lp(-1, -2, 0, c.dp(6), 0, 0));
         bar = new Bar(c.a, p.surface2, p.primary);
@@ -61,10 +61,13 @@ final class ProgressScreen extends Screen {
     private void work() {
         String result; boolean ok = true;
         try {
-            result = ocr.run(pages, (msg, f) -> c.ui.post(() -> {
+            result = (s.general ? ocr.runPlain(pages, (msg, f) -> c.ui.post(() -> {
                 if (stopped) return;
                 Ui.swapText(status, msg); shown = Math.max(shown, f); bar.set(shown);
-            }));
+            })) : ocr.run(pages, (msg, f) -> c.ui.post(() -> {
+                if (stopped) return;
+                Ui.swapText(status, msg); shown = Math.max(shown, f); bar.set(shown);
+            })));
             if (result.isEmpty()) result = "Metin bulunamadı.";
         } catch (Exception e) {
             result = "Hata: " + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage()); ok = false;

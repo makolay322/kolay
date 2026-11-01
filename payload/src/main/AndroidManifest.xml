@@ -3,6 +3,6 @@
     <!-- Not an installable app: a code container loaded by the shell. -->
     <application android:label="Kolay modülü" android:allowBackup="false">
         <!-- Shell contract (sdk Host.API) this payload was built against. -->
-        <meta-data android:name="app.kolay.api" android:value="3"/>
+        <meta-data android:name="app.kolay.api" android:value="4"/>
     </application>
 </manifest>

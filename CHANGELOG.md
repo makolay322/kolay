@@ -5,6 +5,13 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 
 ## 1.000
 ### Eklendi
+- Sesli Not: konuşurken canlı (parça parça) yazıya çevirme; kayıt bitmesi beklenmez.
+- YouTube Özet paylaşım menüsü hedefi: başka uygulamalardan paylaşılan YouTube bağlantısı doğrudan özetlenir.
+- Tıbbi OCR'a Genel OCR modu (Gemini ile isteğe bağlı temizleme); mod anahtarı.
+- Helal Sorgu: barkod/etiket mod anahtarı; açılış modu barkod, otomatik OCR geçişi kaldırıldı.
+- Namaz: vakit başına ayrı hatırlatıcı anahtarı; boyutlandırılabilir modern widget (yalnızca sıradaki vaktin 24 sa saati). **Kabuk 1.006 + Host API 4 gerekir.**
+- Cuma Mesajı: 189 doğrulanmış hadis (tek kaynak: Buhârî/Müslim/Tirmizî), "Cumamız/Cumanız Mübarek Olsun", yalnızca koyu/olgun tonlar, pencere ışıksız siluetler.
+- QR, Fotoğraf Sıkıştır ve YouTube Özeti karoları ana sayfanın altında ince yatay şeritler.
 - Namaz Vakitleri aracı + ana ekran widget'ı + hatırlatıcı: konumdan vakitler hesaplanır, widget sıradaki vakti ve geri sayımı gösterir, vakit çıkmadan 15 dk önce bildirim gelir. **Kabuk 1.005 + Host API 3 gerekir** (konum, bildirim, alarm izinleri ve widget kabukta).
 - Cuma Mesajı aracı: rastgele İslami temalı (yarısı siyah) 3:2 görsel üzerine Buhârî, Müslim ve Tirmizî'den ünlü hadislerden biri yazılır; yeni görsel/başka hadis/dikey 2:3, kaydet ve paylaş. Görsel Canvas ile üretilir, ağ gerekmez.
 - Uygulama içi kabuk güncellemesi: yeni sürüm daha yeni kabuk istediğinde Ayarlar'da “Kabuğu indir ve yükle” çıkar; kabuk APK'sı Release'ten indirilir, SHA-256 + güncelleme anahtarı imzası + paket adı/sürüm/imza sertifikası doğrulanır, sistem yükleyicisine verilir (onayı Android sorar, sessiz yükleme mümkün değil). İlk kez “bilinmeyen kaynaktan yükleme” izni istenir. Manifest'e `shell*` alanları eklendi; `tools/release-shell.sh` ve `tools/manifest_shell.py`.

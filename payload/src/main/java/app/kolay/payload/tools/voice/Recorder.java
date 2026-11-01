@@ -5,9 +5,12 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayDeque;
 
 /**
  * Microphone -> 16 kHz mono PCM, held in memory only (nothing is written to disk). Stops by itself at {@link #MAX_SECONDS}.
+ * While recording, speech is cut into short WAV segments at natural pauses (or every {@link #SEG_MAX_MS}); the screen takes them
+ * with {@link #poll()} and transcribes each one as it is ready, so text appears live.
  * Needs RECORD_AUDIO, which the screen requests before {@link #start()}.
  */
 final class Recorder {
@@ -15,7 +18,15 @@ final class Recorder {
     /** Below this peak (of 32767) the clip is treated as silence and not sent anywhere. */
     private static final int SILENCE_PEAK = 400;
 
-    private final ByteArrayOutputStream pcm = new ByteArrayOutputStream(1 << 20);
+    /** A 200 ms frame whose peak reaches this counts as speech. */
+    private static final int SPEECH_PEAK = 900;
+    private static final int SEG_MIN_SPEECH_MS = 1200, SEG_PAUSE_MS = 700, SEG_MAX_MS = 15000;
+
+    private final Object lock = new Object();
+    private final ByteArrayOutputStream seg = new ByteArrayOutputStream(1 << 19);
+    private final ArrayDeque<byte[]> ready = new ArrayDeque<>();
+    private long totalBytes;
+    private int segMs, segSpeechMs, trailSilMs;
     private AudioRecord rec;
     private Thread thread;
     private volatile boolean running, limitHit;
@@ -52,18 +63,43 @@ final class Recorder {
             double rms = Math.sqrt(sum / Math.max(1.0, n / 2.0));
             level = (float) Math.min(1.0, rms / 5000.0);
             if (pk > peak) peak = pk;
-            synchronized (pcm) { pcm.write(buf, 0, n); if (pcm.size() >= cap) { limitHit = true; running = false; } }
+            synchronized (lock) {
+                totalBytes += n;
+                seg.write(buf, 0, n);
+                int ms = n / 32;
+                segMs += ms;
+                if (pk >= SPEECH_PEAK) { segSpeechMs += ms; trailSilMs = 0; } else trailSilMs += ms;
+                if (segSpeechMs == 0 && segMs > 600) {
+                    // Only silence so far: keep just the last 400 ms as lead-in for the next word.
+                    byte[] b = seg.toByteArray();
+                    int keep = Math.min(b.length, RATE * 2 * 400 / 1000) & ~1;
+                    seg.reset(); seg.write(b, b.length - keep, keep);
+                    segMs = keep / 32; trailSilMs = segMs;
+                } else if ((segSpeechMs >= SEG_MIN_SPEECH_MS && trailSilMs >= SEG_PAUSE_MS) || segMs >= SEG_MAX_MS) {
+                    cut();
+                }
+                if (totalBytes >= cap) { limitHit = true; running = false; }
+            }
         }
     }
+
+    /** Closes the current segment (caller holds {@link #lock}); segments without speech are dropped. */
+    private void cut() {
+        if (segSpeechMs > 0) ready.add(wav(seg.toByteArray()));
+        seg.reset(); segMs = 0; segSpeechMs = 0; trailSilMs = 0;
+    }
+
+    /** Next finished speech segment as WAV, or null if none is ready yet. */
+    byte[] poll() { synchronized (lock) { return ready.poll(); } }
 
     boolean running() { return running; }
     boolean limitHit() { return limitHit; }
     float level() { return level; }
     boolean silent() { return peak < SILENCE_PEAK; }
-    long millis() { synchronized (pcm) { return pcm.size() / (RATE * 2L / 1000L); } }
+    long millis() { synchronized (lock) { return totalBytes / (RATE * 2L / 1000L); } }
 
-    /** Stops the microphone and returns the clip as WAV bytes. Safe to call twice (second call returns the same clip). */
-    byte[] stop() {
+    /** Stops the microphone and closes the last segment; collect the remaining segments with {@link #poll()}. Safe to call twice. */
+    void stop() {
         running = false;
         try { if (thread != null) thread.join(1500); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
         if (rec != null) {
@@ -71,13 +107,11 @@ final class Recorder {
             rec.release();
             rec = null;
         }
-        byte[] data;
-        synchronized (pcm) { data = pcm.toByteArray(); }
-        return wav(data);
+        synchronized (lock) { cut(); }
     }
 
-    /** Throws the clip away (screen closed): stops the microphone, keeps nothing. */
-    void discard() { stop(); synchronized (pcm) { pcm.reset(); } }
+    /** Throws everything away (screen closed): stops the microphone, keeps nothing. */
+    void discard() { stop(); synchronized (lock) { ready.clear(); seg.reset(); } }
 
     private static byte[] wav(byte[] pcm16) {
         int n = pcm16.length;

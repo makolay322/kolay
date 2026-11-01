@@ -15,4 +15,5 @@ public final class QrTool implements Tool {
     @Override public String subtitle() { return "Kamerayla anında oku"; }
     @Override public Icon.Kind icon() { return Icon.Kind.QR; }
     @Override public Screen open(Ctx c) { return new QrScreen(); }
+    @Override public boolean compact() { return true; }
 }

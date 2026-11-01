@@ -117,6 +117,35 @@ final class Ocr {
         catch (Exception e) { return plain.toString().trim() + "\n\n[Cilalama başarısız: " + e.getMessage() + " — ham OCR gösteriliyor]"; }
     }
 
+    /** General mode: Tesseract only, automatic page layout, no masking and no network. Pages are joined with a blank line. */
+    synchronized String runPlain(java.util.List<Uri> uris, Progress pr) throws Exception {
+        TessBaseAPI a = tess();
+        a.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < uris.size(); i++) {
+            if (cancelled) throw new InterruptedIOException("iptal");
+            pr.on("Sayfa " + (i + 1) + "/" + uris.size() + " okunuyor…", 0.08f + 0.9f * i / uris.size());
+            Bitmap bmp = load(uris.get(i));
+            a.setImage(bmp);
+            String raw = a.getUTF8Text();
+            bmp.recycle();
+            if (raw != null && !raw.trim().isEmpty()) out.append(raw.trim()).append("\n\n");
+        }
+        return out.toString().trim();
+    }
+
+    private static final String GENERAL_PROMPT =
+        "Aşağıdaki metin bir fotoğraftan Tesseract OCR ile okundu (Almanca, Türkçe veya İngilizce olabilir). "
+        + "OCR hatalarını düzelt (bozuk harf ve kelimeler, yanlış birleşmiş veya bölünmüş kelimeler, satır sonu kırıkları), "
+        + "paragraf ve satır düzenini okunur hale getir, çöp karakterleri ve anlamsız tekrarları at. "
+        + "Anlamı değiştirme; bilgi ekleme, özetleme veya çevirme. Dil ve içerik aynı kalsın. "
+        + "Çıktı yalnızca düzeltilmiş düz metin olsun; açıklama, markdown veya kod bloğu yazma.\n\nMETİN:\n";
+
+    /** General mode, on request only: one cleanup request with a loose prompt. Throws on a missing key or network error. */
+    static String cleanGeneral(Host host, String text) throws Exception {
+        return app.kolay.payload.tools.Gemini.generate(host, GENERAL_PROMPT + text, 0.2).trim();
+    }
+
     private String gemini(String text) throws Exception {
         String key = host.secret(SettingsScreen.LLM_SECRET);
         if (key.isEmpty()) throw new IOException("API anahtarı girilmemiş (Ayarlar)");
