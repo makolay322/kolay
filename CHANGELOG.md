@@ -7,6 +7,8 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 ### Kaldırıldı
 - Sesli Not aracı (ve kabuktaki mikrofon izni), Cuma Mesajı'nda dikey/yatay seçeneği, Ayarlar'daki "Ekran görüntüsünü engelle" (kayıtlı "açık" değer kabuk açılışında temizlenir).
 ### Değişti
+- Namaz widget'ına dokununca renk paleti rastgele değişir (uygulama açılmaz). Kabuk 1.008.
+- Cuma görselleri biraz aydınlatıldı; menüde "kare" yazar. Namaz ekranında satırlar/düğmeler kırpılmayacak boyuta döndü.
 - Cuma Mesajı yalnızca kare (1:1) görsel üretir; başlık yalnızca "Cumamız Mübarek Olsun" (Arapça satır ve "Cumanız" kalktı).
 - Namaz widget'ı: arka plan yok; pastel gradyanlı, ince yazılı saat; dar widget'ta saat/dakika alt alta büyük çizilir. **Kabuk 1.007 gerekir.**
 - "Tıbbi OCR" karosu "OCR" oldu (tıbbi/genel mod seçimi içeride kalır).

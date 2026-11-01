@@ -17,8 +17,14 @@ final class FridayArt {
     private static final class Theme {
         final int top, bottom, accent, text, panel, mosque;
         Theme(int top, int bottom, int accent, int text, int panel, int mosque) {
-            this.top = top; this.bottom = bottom; this.accent = accent; this.text = text; this.panel = panel; this.mosque = mosque;
+            this.top = lift(top); this.bottom = lift(bottom); this.accent = accent; this.text = text; this.panel = panel; this.mosque = mosque;
         }
+    }
+
+    /** Brightens a background color (x1.7 + 16 per channel) while keeping its hue, so the cards are dark but not murky. */
+    private static int lift(int c) {
+        int r = Math.min(255, Math.round(((c >> 16) & 255) * 1.7f) + 16), g = Math.min(255, Math.round(((c >> 8) & 255) * 1.7f) + 16), b = Math.min(255, Math.round((c & 255) * 1.7f) + 16);
+        return 0xFF000000 | r << 16 | g << 8 | b;
     }
 
     private static final Theme[] DARK = {

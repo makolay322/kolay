@@ -51,7 +51,7 @@ final class NamazScreen extends Screen {
         sv.setFillViewport(true);
         body = new LinearLayout(c.a);
         body.setOrientation(LinearLayout.VERTICAL);
-        body.setPadding(c.dp(20), c.dp(0), c.dp(20), c.dp(12));
+        body.setPadding(c.dp(20), c.dp(4), c.dp(20), c.dp(24));
         sv.addView(body, new FrameLayout.LayoutParams(-1, -2));
         page.addView(sv, new LinearLayout.LayoutParams(-1, 0, 1));
         return page;
@@ -172,7 +172,7 @@ final class NamazScreen extends Screen {
 
         LinearLayout hero = new LinearLayout(c.a);
         hero.setOrientation(LinearLayout.VERTICAL);
-        hero.setPadding(c.dp(18), c.dp(12), c.dp(18), c.dp(12));
+        hero.setPadding(c.dp(18), c.dp(16), c.dp(18), c.dp(16));
         hero.setBackground(Ui.rounded(c, c.p.primarySoft, 20));
         hero.addView(Ui.text(c, "Sıradaki vakit", 13, c.p.onPrimarySoft, 500));
         LinearLayout row = new LinearLayout(c.a);
@@ -215,21 +215,21 @@ final class NamazScreen extends Screen {
                 tl.setMarginStart(c.dp(14));
                 r.addView(tg, tl);
             }
-            body.addView(r, Ui.lp(-1, c.dp(44)));
+            body.addView(r, Ui.lp(-1, c.dp(50)));
         }
 
         if (Build.VERSION.SDK_INT >= 31 && !canExact()) {
             TextView exact = Ui.button(c, "Tam zamanlı alarm izni ver", Ui.Style.GHOST, Icon.Kind.CLOCK);
             exact.setOnClickListener(v -> c.a.startActivity(new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + c.a.getPackageName()))));
-            body.addView(exact, Ui.lp(-1, c.dp(40), 0, c.dp(2), 0, 0));
+            body.addView(exact, Ui.lp(-1, c.dp(48), 0, c.dp(4), 0, 0));
         }
 
         LinearLayout btns = new LinearLayout(c.a);
         TextView pin = Ui.button(c, "Widget ekle", Ui.Style.TONAL, Icon.Kind.CLOCK);
         pin.setOnClickListener(v -> { if (!c.host.prayerPinWidget()) say("Ana ekrana uzun bas → Widget'lar → Kolay → Namaz vakti"); });
-        TextView loc2 = Ui.button(c, "Konumu güncelle", Ui.Style.TONAL, Icon.Kind.REFRESH);
+        TextView loc2 = Ui.button(c, "Konumu yenile", Ui.Style.TONAL, Icon.Kind.REFRESH);
         loc2.setOnClickListener(v -> { if (hasLocationPermission()) { locate(false); } else c.a.requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQ_LOC); });
-        LinearLayout.LayoutParams b1 = new LinearLayout.LayoutParams(0, c.dp(46), 1), b2 = new LinearLayout.LayoutParams(0, c.dp(46), 1);
+        LinearLayout.LayoutParams b1 = new LinearLayout.LayoutParams(0, c.dp(54), 1), b2 = new LinearLayout.LayoutParams(0, c.dp(54), 1);
         b2.setMarginStart(c.dp(10));
         btns.addView(pin, b1); btns.addView(loc2, b2);
         body.addView(btns, Ui.lp(-1, -2, 0, c.dp(10), 0, 0));

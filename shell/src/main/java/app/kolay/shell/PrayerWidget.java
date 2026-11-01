@@ -6,18 +6,42 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.graphics.*;
 import android.widget.RemoteViews;
 
 /**
  * Home-screen widget: only the next prayer's time, 24-hour, as pastel-gradient light text with no background. It adapts to its
- * size: one line when wide, hours above minutes otherwise, always scaled to fill the widget. Tapping it opens the app.
+ * size: tap = new color palette; one line when wide, hours above minutes otherwise, always scaled to fill the widget. Tapping it opens the app.
  */
 public class PrayerWidget extends AppWidgetProvider {
+    private static final String ACTION_PALETTE = "app.kolay.shell.PALETTE";
+    /** Pastel gradients, three stops each. */
+    private static final int[][] PALETTES = {
+        {0xFFB4C0FF, 0xFFF5B8E4, 0xFFFFD0A8},   // lavender - pink - peach
+        {0xFFA8E6CF, 0xFFA8D8F0, 0xFFC9B8FF},   // mint - sky - lilac
+        {0xFFFFC2D1, 0xFFFFDDB5, 0xFFFFF3B0},   // rose - apricot - butter
+        {0xFF9FE0E8, 0xFFB5C7FF, 0xFFE3B8FF},   // aqua - periwinkle - orchid
+        {0xFFC5F0A4, 0xFFA5E8D0, 0xFF9FD0F5},   // lime - mint - blue
+        {0xFFFFB8B8, 0xFFFFC9E8, 0xFFD4C2FF},   // coral - pink - violet
+        {0xFFFFD6A5, 0xFFFFB5C8, 0xFFC4B5FF},   // sand - blush - lavender
+    };
     @Override public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
         for (int id : ids) paint(c, m, id);
         Prayer.refresh(c);   // keeps the alarms armed even if the app was never opened after an install
+    }
+
+    /** Tapping the widget switches to another random pastel palette (it no longer opens the app). */
+    @Override public void onReceive(Context c, Intent i) {
+        if (ACTION_PALETTE.equals(i.getAction())) {
+            SharedPreferences sp = c.getSharedPreferences("prayer", Context.MODE_PRIVATE);
+            int cur = sp.getInt("pal", 0), next = new java.util.Random().nextInt(PALETTES.length - 1);
+            sp.edit().putInt("pal", next >= cur ? next + 1 : next).apply();
+            updateAll(c);
+            return;
+        }
+        super.onReceive(c, i);
     }
 
     @Override public void onAppWidgetOptionsChanged(Context c, AppWidgetManager m, int id, Bundle options) { paint(c, m, id); }
@@ -44,8 +68,8 @@ public class PrayerWidget extends AppWidgetProvider {
         String t = n == null ? "--:--" : Prayer.clock(n[1]);
 
         RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_prayer);
-        v.setOnClickPendingIntent(R.id.root, PendingIntent.getActivity(c, 0,
-            new Intent(c, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP),
+        v.setOnClickPendingIntent(R.id.root, PendingIntent.getBroadcast(c, 0,
+            new Intent(c, PrayerWidget.class).setAction(ACTION_PALETTE),
             PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
         v.setImageViewBitmap(R.id.img, draw(c, t, w, h, stacked));
         v.setContentDescription(R.id.root, n == null ? "Namaz vakitleri" : "Sıradaki namaz vakti " + t);
@@ -84,7 +108,7 @@ public class PrayerWidget extends AppWidgetProvider {
 
         // pastel diagonal gradient across the block (lavender -> pink -> peach), soft shadow keeps it readable on light wallpapers
         p.setShader(new LinearGradient(pad, pad, bw - pad, bh - pad,
-            new int[]{0xFFB4C0FF, 0xFFF5B8E4, 0xFFFFD0A8}, new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP));
+            PALETTES[Math.floorMod(c.getSharedPreferences("prayer", Context.MODE_PRIVATE).getInt("pal", 0), PALETTES.length)], new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP));
         p.setShadowLayer(Math.max(2f, k * 6f), 0, k * 2f, 0x66000000);
         float y = (bh - blockH) / 2f + digitH;
         for (String l : lines) { cv.drawText(l, bw / 2f, y, p); y += digitH + gap; }
