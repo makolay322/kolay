@@ -4,6 +4,10 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 (görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
 
 ## 1.000
+### Değişti (1.017)
+- Logo: açılış animasyonu kaldırıldı; yerine boşta animasyon: O harfi 6 sn'de bir madeni para gibi dikey ekseni etrafında bir tur döner (parıltı ve nokta nefesi sürer). Ana sayfa başlığı baştan ince.
+- Helal Sorgu: “Barkod” ve “İçindekiler” iki eşit mod (önceden içindekiler barkodun alt sayfasıydı); İçindekiler ekranında geri tuşu artık ana sayfaya döner. Başlıklar sadeleşti (ikisi de “Helal Sorgu”, altında modun kısa açıklaması), mod etiketi “Etiket (OCR)” → “İçindekiler”, alt notlar kısaldı. Sonuç ekranında geri ana sayfaya, “Yeni sorgu” aynı moda gider.
+- Segmentli seçici (OCR ve Helal modları): ikon yazının hemen yanında; dar ekranda/büyük yazı tipinde yazı üst üste binmek yerine “…” ile kısalır.
 ### Değişti (1.016)
 - Ana sayfa başlığı logonun giriş animasyonu bitince daralır (logo ve “Kolay” yazısı küçülür, “Araç kutun” katlanır); araçlar yukarı çıkar. “Yeni sürüm hazır” bandı da inceldi.
 - APK küçültüldü: R8 kod küçültme + kullanılmayan kaynakların atılması, Tesseract kütüphaneleri ve OCR verisi APK içinde sıkıştırılmış (her güncellemede inen dosya ~10,7 MB'den yaklaşık yarısına iner; kütüphaneler kurulumda bir kez açılır). Kullanılmayan kod (eski hatırlatıcı açma/kapama, ikon, yardımcılar, import'lar) silindi.

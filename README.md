@@ -15,7 +15,7 @@ Telefonda çalışan, **kendini GitHub'dan güncelleyen kişisel araç kutusu**.
 | **Fotoğraf Sıkıştır** | Seçilen fotoğrafın %90 kaliteli JPEG kopyasını `Pictures/Kolay`'a kaydeder. |
 | **QR Okuyucu** | Hızlı QR okuma; bildirim panelindeki hızlı ayar kutucuğundan da açılır. |
 
-Ana sayfadaki “Ko” logosu günün saatine göre renk değiştirir; uygulama açıldığında ve öne her geldiğinde kısa bir giriş animasyonu oynatır.
+Ana sayfadaki “Ko” logosu günün saatine göre renk değiştirir; O harfi birkaç saniyede bir madeni para gibi kendi ekseninde döner.
 Yeni araç eklemek: [docs/ADDING_A_TOOL.md](docs/ADDING_A_TOOL.md).
 
 ## Kurulum

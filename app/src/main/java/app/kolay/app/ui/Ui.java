@@ -224,7 +224,11 @@ public final class Ui {
         return l;
     }
 
-    /** Segmented control (two or more options); the selected one is filled. Tapping another calls {@code onPick}. */
+    /**
+     * Segmented control (two or more options); the selected one is filled. Tapping another calls {@code onPick}.
+     * Each option is icon + label centred together; on a narrow screen or with a large font the label is cut with "…"
+     * instead of running into the icon or the neighbouring option.
+     */
     public static LinearLayout segmented(Ctx c, String[] labels, Icon.Kind[] icons, int selected, java.util.function.IntConsumer onPick) {
         LinearLayout bar = new LinearLayout(c.a);
         bar.setBackground(rounded(c, c.p.surface2, 16));
@@ -232,22 +236,28 @@ public final class Ui {
         for (int i = 0; i < labels.length; i++) {
             boolean on = i == selected;
             int fg = on ? c.p.onPrimary : c.p.muted;
-            TextView t = text(c, labels[i], 14, fg, on ? 700 : 500);
-            t.setGravity(Gravity.CENTER);
-            t.setSingleLine(true);
+            LinearLayout item = new LinearLayout(c.a);
+            item.setGravity(Gravity.CENTER);
+            item.setPadding(c.dp(8), 0, c.dp(8), 0);
             if (icons != null && icons[i] != null) {
-                Drawable d = new Icon(icons[i], fg); d.setBounds(0, 0, c.dp(18), c.dp(18));
-                t.setCompoundDrawablesRelative(d, null, null, null); t.setCompoundDrawablePadding(c.dp(6));
+                ImageView ic = icon(c, icons[i], fg, 18);
+                LinearLayout.LayoutParams il = new LinearLayout.LayoutParams(c.dp(18), c.dp(18));
+                il.setMarginEnd(c.dp(6));
+                item.addView(ic, il);
             }
-            t.setClickable(true);
-            t.setContentDescription(labels[i] + (on ? ", seçili" : ""));
-            if (on) t.setBackground(rounded(c, c.p.primary, 12));
+            TextView t = text(c, labels[i], 14, fg, on ? 700 : 500);
+            t.setSingleLine(true);
+            t.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            item.addView(t, new LinearLayout.LayoutParams(-2, -2));
+            item.setClickable(true);
+            item.setContentDescription(labels[i] + (on ? ", seçili" : ""));
+            if (on) item.setBackground(rounded(c, c.p.primary, 12));
             else {
                 final int idx = i;
-                t.setOnClickListener(v -> { haptic(v, HapticFeedbackConstants.CLOCK_TICK); onPick.accept(idx); });
-                press(t);
+                item.setOnClickListener(v -> { haptic(v, HapticFeedbackConstants.CLOCK_TICK); onPick.accept(idx); });
+                press(item);
             }
-            bar.addView(t, new LinearLayout.LayoutParams(0, -1, 1));
+            bar.addView(item, new LinearLayout.LayoutParams(0, -1, 1));
         }
         return bar;
     }

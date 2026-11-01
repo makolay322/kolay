@@ -15,7 +15,9 @@ final class WorkScreen extends Screen {
     private TextView status;
     private volatile boolean stopped;
 
-    WorkScreen(String barcode, Bitmap photo) { this.barcode = barcode; this.photo = photo; }
+    private final boolean fromLabel;   // started in İçindekiler mode: Vazgeç returns there
+
+    WorkScreen(String barcode, Bitmap photo) { this.barcode = barcode; this.photo = photo; this.fromLabel = photo != null; }
 
     @Override public View create() {
         Palette p = c.p;
@@ -47,9 +49,9 @@ final class WorkScreen extends Screen {
             if (shot == null) {
                 Off.Product pr;
                 try { pr = Off.lookup(barcode); }
-                catch (java.io.IOException e) { backToScan("Ürün veritabanına ulaşılamadı. İnterneti kontrol edip tekrar dene ya da «Etiket (OCR)» moduna geç."); return; }
-                if (pr == null) { backToScan("Bu barkod veritabanında yok. Tekrar okutabilir ya da «Etiket (OCR)» moduna geçip içindekiler yazısını fotoğraflayabilirsin."); return; }
-                if (pr.ingredients.isEmpty()) { backToScan("Bu ürün için içindekiler kayıtlı değil. «Etiket (OCR)» moduna geçip yazıyı fotoğraflayabilirsin."); return; }
+                catch (java.io.IOException e) { backToScan("Ürün veritabanına ulaşılamadı. İnterneti kontrol edip tekrar dene ya da «İçindekiler» moduna geç."); return; }
+                if (pr == null) { backToScan("Bu barkod veritabanında yok. Tekrar okutabilir ya da «İçindekiler» moduna geçip yazıyı fotoğraflayabilirsin."); return; }
+                if (pr.ingredients.isEmpty()) { backToScan("Bu ürün için içindekiler kayıtlı değil. «İçindekiler» moduna geçip yazıyı fotoğraflayabilirsin."); return; }
                 name = ((pr.brand.isEmpty() ? "" : pr.brand + " ") + pr.name).trim();
                 ingredients = pr.ingredients;
                 source = "Ürün veritabanı";
@@ -87,7 +89,7 @@ final class WorkScreen extends Screen {
         if (stopped) return;
         stopped = true;
         recyclePhoto();
-        c.nav.replace(new ScanScreen(null));
+        c.nav.replace(fromLabel ? new LabelScreen(barcode, null) : new ScanScreen(null));
     }
 
     private synchronized Bitmap takePhoto() { Bitmap b = photo; photo = null; return b; }

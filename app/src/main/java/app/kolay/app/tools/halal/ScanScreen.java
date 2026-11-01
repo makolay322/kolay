@@ -12,18 +12,16 @@ final class ScanScreen extends CamScreen {
     ScanScreen(String note) { this.note = note; }
 
     @Override String title() { return "Helal Sorgu"; }
-    @Override String subtitle() { return "Barkodu çerçeveye hizala"; }
+    @Override String subtitle() { return "Ürün barkodunu çerçeveye al"; }
     @Override QrCamera.Mode mode() { return QrCamera.Mode.PRODUCT; }
     @Override boolean ocrMode() { return false; }
 
     @Override void buildFooter(LinearLayout f) {
-        TextView t = Ui.text(c, note != null ? note : "Barkod okunmazsa üstten «Etiket (OCR)» seçeneğine geçip içindekiler yazısını fotoğraflayabilirsin.", 13,
+        TextView t = Ui.text(c, note != null ? note : "Barkod okunmazsa «İçindekiler»e geç, yazıyı fotoğrafla.", 13,
             note != null ? c.p.ink : c.p.muted, note != null ? 500 : 400);
         t.setGravity(Gravity.CENTER); t.setLineSpacing(0, 1.2f);
         f.addView(t, Ui.lp(-1, -2, 0, 0, 0, c.dp(4)));
     }
-
-    @Override void leave() { c.nav.pop(); }
 
     @Override public void onCode(String code) {
         finish();

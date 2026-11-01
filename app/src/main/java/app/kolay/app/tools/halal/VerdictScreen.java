@@ -22,7 +22,7 @@ final class VerdictScreen extends Screen {
         Palette p = c.p;
         LinearLayout page = new LinearLayout(c.a);
         page.setOrientation(LinearLayout.VERTICAL);
-        page.addView(new Header(c, "Sonuç", source.isEmpty() ? "Hanefi mezhebi" : source + " · Hanefi mezhebi", this::again).view);
+        page.addView(new Header(c, "Sonuç", source.isEmpty() ? "Hanefi mezhebi" : source + " · Hanefi mezhebi", () -> c.nav.pop()).view);
 
         LinearLayout col = new LinearLayout(c.a);
         col.setOrientation(LinearLayout.VERTICAL);
@@ -90,7 +90,7 @@ final class VerdictScreen extends Screen {
 
         LinearLayout row = Ui.bottomBar(c);
         TextView copy = Ui.button(c, "Kopyala", Ui.Style.TONAL, Icon.Kind.COPY);
-        TextView again = Ui.button(c, "Yeni sorgu", Ui.Style.PRIMARY, Icon.Kind.BARCODE);
+        TextView again = Ui.button(c, "Yeni sorgu", Ui.Style.PRIMARY, fromLabel() ? Icon.Kind.CAMERA : Icon.Kind.BARCODE);
         copy.setOnClickListener(x -> copy(copy));
         again.setOnClickListener(x -> again());
         if (error != null) row.addView(again, Ui.lp(-1, c.dp(Ui.H_BAR)));
@@ -122,6 +122,8 @@ final class VerdictScreen extends Screen {
         Ui.flashCopied(c, btn, Ui.Style.TONAL);
     }
 
-    private void again() { c.nav.replace(new ScanScreen(null)); }
-    @Override public boolean onBack() { again(); return true; }
+    /** "Yeni sorgu" starts over in the mode this result came from; the header arrow / Back go to the home screen. */
+    private void again() { c.nav.replace(fromLabel() ? new LabelScreen(null, null) : new ScanScreen(null)); }
+
+    private boolean fromLabel() { return "Etiket fotoğrafı".equals(source); }
 }

@@ -91,5 +91,5 @@ Not: gömülü OCR verisi yalnızca `deu`; Türkçe özel harfler (ş ğ ı) yan
 ## Araç düzeni ve genel OCR
 - `Tool.compact()` true olan araçlar (QR, Fotoğraf Sıkıştır, YouTube Özeti) ana sayfada karo ızgarasının altında ince yatay şeritler olarak gösterilir.
 - Tıbbi OCR: iki mod, anahtarla seçilir. Varsayılan "Tıbbi"; "Genel" mod yerel OCR sonucunu tıbbi bağlam varsaymadan gösterir, Kopyala yanında isteğe bağlı "Gemini ile temizle" (gevşek istem) sunar. OCR metni diske yazılmaz.
-- Helal Sorgu: açılış modu barkod; barkod bulunamazsa otomatik etiket OCR'ına geçilmez, kullanıcı anahtarla "Etiket" moduna geçer.
+- Helal Sorgu: iki eşit mod, **Barkod** (açılış modu) ve **İçindekiler** (etiket fotoğrafı + OCR); üstteki seçiciyle değişir (ekran yer değiştirir, yığına eklenmez). İki moddan da geri tuşu ana sayfaya döner; sonuç ekranında geri ana sayfaya, “Yeni sorgu” aynı moda götürür. Barkod bulunamazsa otomatik OCR'a geçilmez.
 - YouTube Özeti paylaşım hedefi: manifestte `activity-alias .YoutubeShare` ("YouTube Özet", `ACTION_SEND text/plain`); `Entry` paylaşılan bağlantıyı alıp özeti doğrudan başlatır.

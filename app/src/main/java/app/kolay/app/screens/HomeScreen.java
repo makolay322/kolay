@@ -14,30 +14,25 @@ public final class HomeScreen extends Screen {
     private LinearLayout banner;
     private TextView bannerText;
     private Logo logo;
-    private LinearLayout col;
-    private TextView name, sub, toolsLabel;
-    private boolean compact;
 
     @Override public View create() {
         Palette p = c.p;
-        col = new LinearLayout(c.a);
+        LinearLayout col = new LinearLayout(c.a);
         col.setOrientation(LinearLayout.VERTICAL);
-        col.setPadding(c.dp(Ui.GUTTER), c.dp(HEAD_PAD_FULL), c.dp(Ui.GUTTER), c.dp(24));
+        col.setPadding(c.dp(Ui.GUTTER), c.dp(8), c.dp(Ui.GUTTER), c.dp(24));
 
-        // Header: wordmark + settings. Starts large for the logo's entrance, then settles into a slim bar (see collapse()).
+        // Header: a slim bar with the live logo, the wordmark and settings.
         LinearLayout head = new LinearLayout(c.a);
         head.setGravity(Gravity.CENTER_VERTICAL);
         logo = new Logo(c.a, p.dark);
-        LinearLayout.LayoutParams ll = new LinearLayout.LayoutParams(c.dp(LOGO_W_FULL), c.dp(LOGO_H_FULL));   // width includes the O's overshoot room
+        LinearLayout.LayoutParams ll = new LinearLayout.LayoutParams(c.dp(43), c.dp(32));
         ll.setMarginEnd(c.dp(12));
         head.addView(logo, ll);
         LinearLayout titles = new LinearLayout(c.a);
         titles.setOrientation(LinearLayout.VERTICAL);
-        name = Ui.text(c, "Kolay", NAME_SP_FULL, p.ink, 700);
+        TextView name = Ui.text(c, "Kolay", 26, p.ink, 700);
         name.setLetterSpacing(-0.02f);
         titles.addView(name);
-        sub = Ui.text(c, "Araç kutun", 15, p.muted, 400);
-        titles.addView(sub, Ui.lp(-2, -2, 0, c.dp(4), 0, 0));
         head.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
         head.addView(Ui.iconButton(c, Icon.Kind.SETTINGS, "Ayarlar", () -> c.nav.push(new SettingsScreen())));
         col.addView(head);
@@ -63,8 +58,7 @@ public final class HomeScreen extends Screen {
         col.addView(banner, Ui.lp(-1, -2, 0, c.dp(12), 0, 0));
 
         TextView label = Ui.label(c, "ARAÇLAR");
-        toolsLabel = label;
-        col.addView(label, Ui.lp(-2, -2, c.dp(4), c.dp(LABEL_TOP_FULL), 0, c.dp(12)));
+        col.addView(label, Ui.lp(-2, -2, c.dp(4), c.dp(16), 0, c.dp(12)));
         entrance.add(label);
 
         // Two-column tile grid for everyday tools; the rarely used ones follow as slim full-width rows.
@@ -160,59 +154,11 @@ public final class HomeScreen extends Screen {
     @Override public void onShown() {
         long d = 40;
         for (View v : entrance) { Ui.appear(v, d); d += 55; }
-        logo.intro();
-        if (!compact) c.ui.postDelayed(this::collapse, Logo.INTRO_MS + 150);
         c.host.onUpdateReady(this::showBanner);
         if (c.host.updateReady()) showBanner();
     }
 
-    // Header sizes (dp / sp): large while the logo enters, slim afterwards.
-    private static final int LOGO_W_FULL = 64, LOGO_H_FULL = 46, LOGO_W_SLIM = 44, LOGO_H_SLIM = 32;
-    private static final int NAME_SP_FULL = 36, NAME_SP_SLIM = 26, HEAD_PAD_FULL = 18, HEAD_PAD_SLIM = 8, LABEL_TOP_FULL = 26, LABEL_TOP_SLIM = 16;
-
-    /** After the entrance: the header shrinks (smaller logo and wordmark, subtitle folds away) so the tools move up. */
-    private void collapse() {
-        if (compact || name == null || !name.isAttachedToWindow()) return;
-        compact = true;
-        LinearLayout.LayoutParams ll = (LinearLayout.LayoutParams) logo.getLayoutParams();
-        int subH = sub.getHeight();
-        LinearLayout.LayoutParams sl = (LinearLayout.LayoutParams) sub.getLayoutParams();
-        int subTop = sl.topMargin;
-        LinearLayout.LayoutParams tl = (LinearLayout.LayoutParams) toolsLabel.getLayoutParams();
-        android.animation.ValueAnimator a = android.animation.ValueAnimator.ofFloat(0f, 1f);
-        a.setDuration(480);
-        a.setInterpolator(Ui.EMPH);
-        a.addUpdateListener(v -> {
-            float t = (float) v.getAnimatedValue();
-            ll.width = c.dp(LOGO_W_FULL + (LOGO_W_SLIM - LOGO_W_FULL) * t);
-            ll.height = c.dp(LOGO_H_FULL + (LOGO_H_SLIM - LOGO_H_FULL) * t);
-            logo.setLayoutParams(ll);
-            name.setTextSize(NAME_SP_FULL + (NAME_SP_SLIM - NAME_SP_FULL) * t);
-            sub.setAlpha(1f - Math.min(1f, t * 1.6f));
-            sl.height = Math.round(subH * (1f - t));
-            sl.topMargin = Math.round(subTop * (1f - t));
-            sub.setLayoutParams(sl);
-            tl.topMargin = c.dp(LABEL_TOP_FULL + (LABEL_TOP_SLIM - LABEL_TOP_FULL) * t);
-            toolsLabel.setLayoutParams(tl);
-            col.setPadding(col.getPaddingLeft(), c.dp(HEAD_PAD_FULL + (HEAD_PAD_SLIM - HEAD_PAD_FULL) * t), col.getPaddingRight(), col.getPaddingBottom());
-        });
-        a.addListener(new android.animation.AnimatorListenerAdapter() {
-            @Override public void onAnimationEnd(android.animation.Animator x) { sub.setVisibility(View.GONE); }
-        });
-        a.start();
-    }
-
-    private boolean wentAway;
-
-    @Override public void onPause() { wentAway = true; }
-
-    /** Back from the background (or from another app): replay the logo entrance. */
-    @Override public void onResume() {
-        if (c.host.updateReady()) showBanner();
-        if (!wentAway) return;
-        wentAway = false;
-        logo.intro();
-    }
+    @Override public void onResume() { if (c.host.updateReady()) showBanner(); }
 
     private void showBanner() {
         if (banner == null) return;

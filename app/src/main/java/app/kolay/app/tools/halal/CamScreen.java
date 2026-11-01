@@ -35,8 +35,8 @@ abstract class CamScreen extends Screen implements QrCamera.Listener {
     abstract boolean ocrMode();
     /** Fill the footer below the camera (hint text, buttons). */
     abstract void buildFooter(LinearLayout footer);
-    /** Back button / header arrow. The camera is already stopped. */
-    abstract void leave();
+    /** Back button / header arrow: both modes return to the home screen. The camera is already stopped. */
+    void leave() { c.nav.pop(); }
 
     @Override public View create() {
         Palette p = c.p;
@@ -104,12 +104,15 @@ abstract class CamScreen extends Screen implements QrCamera.Listener {
         return page;
     }
 
-    /** Barkod | Etiket (OCR): barcode is the default; the other mode is only entered by choosing it. */
+    /**
+     * Barkod | İçindekiler: two equal modes of the tool, not a main page and a sub page. Switching replaces the screen,
+     * so Back from either always returns to the home screen.
+     */
     private View modeBar() {
-        return Ui.segmented(c, new String[]{"Barkod", "Etiket (OCR)"}, new Icon.Kind[]{Icon.Kind.BARCODE, Icon.Kind.CAMERA}, ocrMode() ? 1 : 0, i -> {
+        return Ui.segmented(c, new String[]{"Barkod", "İçindekiler"}, new Icon.Kind[]{Icon.Kind.BARCODE, Icon.Kind.CAMERA}, ocrMode() ? 1 : 0, i -> {
             finish();
             if (i == 0) c.nav.replace(new ScanScreen(null));
-            else c.nav.replace(new LabelScreen(null, "İçindekiler yazısını çerçeveye al"));
+            else c.nav.replace(new LabelScreen(null, null));
         });
     }
 
