@@ -256,7 +256,7 @@ final class NamazScreen extends Screen {
         loc2.setOnClickListener(v -> { if (hasLocationPermission()) { locate(false); } else c.a.requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQ_LOC); });
         body.addView(Ui.pair(c, pin, loc2, Ui.H_BTN), Ui.lp(-1, -2, 0, c.dp(12), 0, 0));
 
-        TextView note = Ui.text(c, "Diyanet açıları ve Hanefi ikindiyle astronomik hesap; resmî takvimle birkaç dakika fark olabilir.", 12, c.p.muted, 400);
+        TextView note = Ui.text(c, "Diyanet usulü (imsak 18°, yatsı 17°, ikindi asr-ı evvel) astronomik hesap; resmî takvimle birkaç dakika fark olabilir.", 12, c.p.muted, 400);
         note.setLineSpacing(0, 1.15f);
         note.setGravity(Gravity.CENTER);
         body.addView(note, Ui.lp(-1, -2, c.dp(8), c.dp(10), c.dp(8), 0));

@@ -4,6 +4,8 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/tr/). Modül sürümleri `
 (görünen sürüm `1.0.x` yama sayısıyla artar; dahili `versionCode` her yayında +1 olur ve kullanıcıya gösterilmez).
 
 ## 1.000
+### Değişti (1.015)
+- Namaz: ikindi vakti Diyanet takvimindeki gibi **asr-ı evvel** (gölge = boy) ile hesaplanır; önceden Hanefi asr-ı sani (gölge = 2 boy) idi ve kışın ~40 dk geç çıkıyordu (Mettmann, 1 Kasım: 15:20 → 14:42). Widget ve hatırlatıcılar da buna göre kayar.
 ### Değişti (tek APK — 1.014)
 - **Kabuk + modül düzeni kaldırıldı; Kolay artık tek APK.** Uygulama kendini GitHub'dan indirip doğrular ve kurar: ana sayfadaki “Yeni sürüm hazır” bandı veya Ayarlar → “Şimdi kur”. Android 12+'da genellikle onaysız; uygulama ekranda değilken arka planda kendiliğinden kurulur (Android onay isterse bildirim çıkar). İkon/izin/widget değişiklikleri artık ayrı “kabuk güncellemesi” istemez.
 - Eski kurulumlar (kabuk ≤ 1.013) yeni APK'yı Ayarlar → “Kabuğu indir ve yükle” ile bir kez alır; anahtar, ayarlar, widget ve kısayollar korunur. Eski modül dosyaları ilk açılışta silinir.

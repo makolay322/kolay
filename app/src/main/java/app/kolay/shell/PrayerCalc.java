@@ -4,7 +4,7 @@ import java.util.TimeZone;
 
 /**
  * Astronomical prayer times (the usual solar-position method). Pure Java, no Android types, so it can be run on a JVM.
- * Angles follow the Diyanet convention (Fajr 18, Isha 17); Asr uses the Hanafi shadow factor 2.
+ * Angles follow the Diyanet convention (Fajr 18, Isha 17); Asr is "asr-ı evvel" (shadow factor 1), as in the Diyanet calendar.
  * At high latitudes, where the twilight angle is never reached, Fajr/Isha fall back to the angle-based night portion.
  */
 final class PrayerCalc {
@@ -13,7 +13,7 @@ final class PrayerCalc {
     static final int FAJR = 0, SUNRISE = 1, DHUHR = 2, ASR = 3, MAGHRIB = 4, ISHA = 5;
 
     private static final double FAJR_ANGLE = 18, ISHA_ANGLE = 17, SUN_ANGLE = 0.833;
-    private static final int ASR_FACTOR = 2;
+    private static final int ASR_FACTOR = 1;   // Diyanet: asr-ı evvel (the Hanafi asr-ı sani would be 2, ~40 min later in winter)
     /** Safety margins in minutes, Diyanet style (earlier sunrise, later noon/afternoon/sunset). Indexed like the constants above. */
     private static final double[] TUNE_MIN = {0, -7, 5, 4, 7, 0};
 
