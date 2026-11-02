@@ -46,8 +46,7 @@ public final class Ui {
     public static void surface(Ctx c, View v, int fill, float radiusDp, boolean raised) {
         Drawable content = c.p.dark ? outlined(c, fill, c.p.line, radiusDp) : rounded(c, fill, radiusDp);
         GradientDrawable mask = rounded(c, Color.WHITE, radiusDp);
-        int rip = c.p.dark ? 0x22FFFFFF : 0x180F766E;
-        v.setBackground(new RippleDrawable(ColorStateList.valueOf(rip), content, mask));
+        v.setBackground(new RippleDrawable(ColorStateList.valueOf(c.p.ripple), content, mask));
         final float r = c.dp(radiusDp);
         v.setOutlineProvider(new ViewOutlineProvider() {
             @Override public void getOutline(View view, Outline o) { o.setRoundRect(0, 0, view.getWidth(), view.getHeight(), r); }
@@ -102,7 +101,7 @@ public final class Ui {
         int fg = st == Style.PRIMARY ? c.p.onPrimary : st == Style.TONAL ? c.p.onPrimarySoft : c.p.primary;
         int bg = st == Style.PRIMARY ? c.p.primary : st == Style.TONAL ? c.p.primarySoft : 0;
         b.setTextColor(fg);
-        if (st == Style.GHOST) b.setBackground(new RippleDrawable(ColorStateList.valueOf(0x220F766E), null, rounded(c, Color.WHITE, 16)));
+        if (st == Style.GHOST) b.setBackground(new RippleDrawable(ColorStateList.valueOf(c.p.ripple), null, rounded(c, Color.WHITE, 16)));
         else surface(c, b, bg, 16, false);
         if (k != null) {
             Drawable d = new Icon(k, fg); d.setBounds(0, 0, c.dp(20), c.dp(20));

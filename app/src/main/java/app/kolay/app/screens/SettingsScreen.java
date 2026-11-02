@@ -167,12 +167,15 @@ public final class SettingsScreen extends Screen {
         return v;
     }
 
+    private int rows;   // running index so neighbouring rows get different tile tones
+
     private LinearLayout row(Icon.Kind icon, String title, String sub, View trailing) {
         LinearLayout r = new LinearLayout(c.a);
         r.setGravity(Gravity.CENTER_VERTICAL);
         FrameLayout tile = new FrameLayout(c.a);
-        tile.setBackground(Ui.rounded(c, c.p.primarySoft, 12));
-        tile.addView(Ui.icon(c, icon, c.p.onPrimarySoft, 20), new FrameLayout.LayoutParams(c.dp(20), c.dp(20), Gravity.CENTER));
+        int idx = rows++;
+        tile.setBackground(Ui.rounded(c, c.p.softBg(idx), 12));
+        tile.addView(Ui.icon(c, icon, c.p.softFg(idx), 20), new FrameLayout.LayoutParams(c.dp(20), c.dp(20), Gravity.CENTER));
         r.addView(tile, new LinearLayout.LayoutParams(c.dp(40), c.dp(40)));
         LinearLayout t = new LinearLayout(c.a);
         t.setOrientation(LinearLayout.VERTICAL);

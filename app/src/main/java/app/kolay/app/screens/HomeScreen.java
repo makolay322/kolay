@@ -68,7 +68,7 @@ public final class HomeScreen extends Screen {
         for (int i = 0; i < tiles.size(); i += 2) {
             LinearLayout row = new LinearLayout(c.a);
             for (int j = i; j < i + 2; j++) {
-                View tile = j < tiles.size() ? toolCard(tiles.get(j)) : new Space(c.a);
+                View tile = j < tiles.size() ? toolCard(tiles.get(j), j) : new Space(c.a);
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -1, 1);
                 if (j == i) lp.setMarginEnd(gap / 2); else lp.setMarginStart(gap / 2);
                 row.addView(tile, lp);
@@ -76,8 +76,8 @@ public final class HomeScreen extends Screen {
             }
             col.addView(row, Ui.lp(-1, -2, 0, 0, 0, gap));
         }
-        for (Tool t : slim) {
-            View row = slimRow(t);
+        for (int i = 0; i < slim.size(); i++) {
+            View row = slimRow(slim.get(i), tiles.size() + i);
             col.addView(row, Ui.lp(-1, c.dp(68), 0, 0, 0, gap));
             entrance.add(row);
         }
@@ -94,7 +94,7 @@ public final class HomeScreen extends Screen {
         return sv;
     }
 
-    private View toolCard(Tool t) {
+    private View toolCard(Tool t, int idx) {
         Palette p = c.p;
         LinearLayout card = new LinearLayout(c.a);
         card.setOrientation(LinearLayout.VERTICAL);
@@ -104,8 +104,8 @@ public final class HomeScreen extends Screen {
         card.setClickable(true);
 
         FrameLayout tile = new FrameLayout(c.a);
-        tile.setBackground(Ui.rounded(c, p.primarySoft, 16));
-        tile.addView(Ui.icon(c, t.icon(), p.onPrimarySoft, 26), new FrameLayout.LayoutParams(c.dp(26), c.dp(26), Gravity.CENTER));
+        tile.setBackground(Ui.rounded(c, p.softBg(idx), 16));
+        tile.addView(Ui.icon(c, t.icon(), p.softFg(idx), 26), new FrameLayout.LayoutParams(c.dp(26), c.dp(26), Gravity.CENTER));
         card.addView(tile, new LinearLayout.LayoutParams(c.dp(52), c.dp(52)));
 
         TextView title = Ui.text(c, t.title(), 16, p.ink, 600);
@@ -122,7 +122,7 @@ public final class HomeScreen extends Screen {
     }
 
     /** A slim wide row: small icon, title and subtitle on one line. */
-    private View slimRow(Tool t) {
+    private View slimRow(Tool t, int idx) {
         Palette p = c.p;
         LinearLayout row = new LinearLayout(c.a);
         row.setGravity(Gravity.CENTER_VERTICAL);
@@ -130,8 +130,8 @@ public final class HomeScreen extends Screen {
         Ui.surface(c, row, p.surface, 22, true);
         row.setClickable(true);
         FrameLayout badge = new FrameLayout(c.a);
-        badge.setBackground(Ui.rounded(c, p.primarySoft, 12));
-        badge.addView(Ui.icon(c, t.icon(), p.onPrimarySoft, 20), new FrameLayout.LayoutParams(c.dp(20), c.dp(20), Gravity.CENTER));
+        badge.setBackground(Ui.rounded(c, p.softBg(idx), 12));
+        badge.addView(Ui.icon(c, t.icon(), p.softFg(idx), 20), new FrameLayout.LayoutParams(c.dp(20), c.dp(20), Gravity.CENTER));
         row.addView(badge, new LinearLayout.LayoutParams(c.dp(40), c.dp(40)));
         LinearLayout txt = new LinearLayout(c.a);
         txt.setOrientation(LinearLayout.VERTICAL);

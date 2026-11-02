@@ -3,4 +3,6 @@
     <!-- Dynamic (wallpaper) colors for the launcher icon; light theme -->
     <color name="logo_icon_bg">@android:color/system_accent1_200</color>
     <color name="logo_icon_fg">@android:color/system_accent1_800</color>
+    <!-- window/splash background: same wallpaper tone as Palette.bg -->
+    <color name="window_bg">@android:color/system_neutral2_50</color>
 </resources>

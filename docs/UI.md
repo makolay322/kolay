@@ -5,7 +5,7 @@ Hedef: "yerleşik, cilalı" his — az ama anlamlı hareket, tutarlı boşluk, a
 ## Parçalar
 | Sınıf | Görev |
 |---|---|
-| `Palette` | Renk belirteçleri (açık/koyu). Sistem temasından seçilir; tema değişince etkinlik yeniden kurulur. |
+| `Palette` | Renk belirteçleri (açık/koyu). Android 12+'da vurgu ve nötr tonlar sistemin duvar kâğıdı paletinden (`system_accent1/2`, `system_neutral1/2`; uygulama ikonuyla aynı kaynak) gelir, öncesinde sabit turkuaz takım. Tema veya duvar kâğıdı değişince etkinlik yeniden kurulur. |
 | `Ctx` | `host`, `a` (Activity), `p` (Palette), `nav`, `ui` (Handler), `io` (havuz), `dp()` |
 | `Ui` | Metin/buton/yüzey fabrikaları, dokunma geri bildirimi, ortak hareket eğrileri ve yardımcıları |
 | `Icon` | 24 birimlik ızgarada çizgi ikonlar (path); renk serbest, her boyutta keskin |
@@ -20,7 +20,9 @@ Hazır kalıplar (`Ui`): `label` bölüm etiketi · `card` kart · `input` metin
 ## Renk belirteçleri
 `bg` sayfa · `surface` kart · `surface2` girdi/ikincil düğme · `ink` ana metin · `muted` ikincil metin · `line` ayraç ·
 `primary`/`onPrimary` vurgu · `primarySoft`/`onPrimarySoft` yumuşak vurgu (ikon kutuları, tonlu düğme) · `danger`/`dangerSoft`, `ok`/`okSoft`, `warn`/`warnSoft` ·
-`track`/`thumb` anahtar (kapalı ray, düğme) · `scrim` kamera üstü koyu katman.
+`track`/`thumb` anahtar (kapalı ray, düğme) · `scrim` kamera üstü koyu katman · `ripple` dokunma dalgası.
+`softBg(i)`/`softFg(i)`: liste/ızgaradaki ikon kutuları için vurgunun birbirine yakın tonları; sıra numarasıyla çağır ki komşu kutular farklı tonda olsun.
+Anlamsal renkler (`danger`, `ok`, `warn`) duvar kâğıdından etkilenmez.
 Açık temada kartlar gölgeli, koyu temada ince çerçeveli (gölge koyuda okunmaz).
 
 ## Ölçü ve tipografi
